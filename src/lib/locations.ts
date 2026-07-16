@@ -1,0 +1,125 @@
+/** Curated locations to keep city/country naming consistent */
+
+export const COUNTRIES = [
+  "Czechia",
+  "Slovakia",
+  "Austria",
+  "Germany",
+  "Poland",
+  "Hungary",
+  "Switzerland",
+  "France",
+  "Italy",
+  "Spain",
+  "Portugal",
+  "United Kingdom",
+  "Ireland",
+  "Netherlands",
+  "Belgium",
+  "Luxembourg",
+  "Denmark",
+  "Sweden",
+  "Norway",
+  "Finland",
+  "Croatia",
+  "Slovenia",
+  "Romania",
+  "Bulgaria",
+  "Greece",
+  "Turkey",
+  "United Arab Emirates",
+  "United States",
+  "Canada",
+  "China",
+  "Japan",
+  "South Korea",
+  "Singapore",
+  "Australia",
+] as const;
+
+export type CountryName = (typeof COUNTRIES)[number];
+
+export const CITIES_BY_COUNTRY: Record<string, string[]> = {
+  Czechia: [
+    "Prague",
+    "Brno",
+    "Ostrava",
+    "Plzeň",
+    "Liberec",
+    "Olomouc",
+    "České Budějovice",
+    "Hradec Králové",
+    "Ústí nad Labem",
+    "Pardubice",
+    "Zlín",
+    "Karlovy Vary",
+    "Jihlava",
+    "Teplice",
+    "Mladá Boleslav",
+  ],
+  Slovakia: ["Bratislava", "Košice", "Žilina", "Prešov", "Nitra", "Banská Bystrica", "Trnava"],
+  Austria: ["Vienna", "Salzburg", "Innsbruck", "Graz", "Linz", "Klagenfurt"],
+  Germany: [
+    "Berlin",
+    "Munich",
+    "Hamburg",
+    "Frankfurt",
+    "Cologne",
+    "Stuttgart",
+    "Düsseldorf",
+    "Dresden",
+    "Leipzig",
+    "Nuremberg",
+  ],
+  Poland: ["Warsaw", "Kraków", "Wrocław", "Gdańsk", "Poznań", "Łódź", "Katowice"],
+  Hungary: ["Budapest", "Debrecen", "Szeged", "Pécs", "Győr"],
+  Switzerland: ["Zurich", "Geneva", "Basel", "Bern", "Lausanne", "Lugano"],
+  France: ["Paris", "Lyon", "Marseille", "Nice", "Toulouse", "Bordeaux", "Strasbourg"],
+  Italy: ["Rome", "Milan", "Venice", "Florence", "Naples", "Turin", "Bologna"],
+  Spain: ["Madrid", "Barcelona", "Valencia", "Seville", "Málaga", "Bilbao"],
+  Portugal: ["Lisbon", "Porto", "Faro", "Funchal"],
+  "United Kingdom": ["London", "Manchester", "Edinburgh", "Birmingham", "Glasgow", "Bristol"],
+  Ireland: ["Dublin", "Cork", "Galway", "Limerick"],
+  Netherlands: ["Amsterdam", "Rotterdam", "The Hague", "Utrecht", "Eindhoven"],
+  Belgium: ["Brussels", "Antwerp", "Ghent", "Bruges", "Liège"],
+  Luxembourg: ["Luxembourg City"],
+  Denmark: ["Copenhagen", "Aarhus", "Odense"],
+  Sweden: ["Stockholm", "Gothenburg", "Malmö"],
+  Norway: ["Oslo", "Bergen", "Trondheim"],
+  Finland: ["Helsinki", "Tampere", "Turku"],
+  Croatia: ["Zagreb", "Split", "Dubrovnik", "Rijeka", "Zadar"],
+  Slovenia: ["Ljubljana", "Maribor", "Bled"],
+  Romania: ["Bucharest", "Cluj-Napoca", "Timișoara", "Brașov"],
+  Bulgaria: ["Sofia", "Plovdiv", "Varna", "Burgas"],
+  Greece: ["Athens", "Thessaloniki", "Heraklion", "Rhodes"],
+  Turkey: ["Istanbul", "Ankara", "Antalya", "Izmir"],
+  "United Arab Emirates": ["Dubai", "Abu Dhabi", "Sharjah"],
+  "United States": [
+    "New York",
+    "Los Angeles",
+    "Chicago",
+    "Miami",
+    "San Francisco",
+    "Boston",
+    "Washington",
+    "Las Vegas",
+  ],
+  Canada: ["Toronto", "Vancouver", "Montreal", "Calgary", "Ottawa"],
+  China: ["Beijing", "Shanghai", "Guangzhou", "Shenzhen", "Hong Kong"],
+  Japan: ["Tokyo", "Osaka", "Kyoto", "Yokohama", "Nagoya"],
+  "South Korea": ["Seoul", "Busan", "Incheon"],
+  Singapore: ["Singapore"],
+  Australia: ["Sydney", "Melbourne", "Brisbane", "Perth", "Adelaide"],
+};
+
+export function getCitiesForCountry(country: string | null | undefined): string[] {
+  if (!country) return [];
+  return CITIES_BY_COUNTRY[country] || [];
+}
+
+/** Ensure an existing free-text value still appears in the dropdown */
+export function withExistingOption(options: string[], current: string | null | undefined) {
+  if (!current) return options;
+  if (options.includes(current)) return options;
+  return [current, ...options];
+}

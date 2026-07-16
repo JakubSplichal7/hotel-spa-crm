@@ -14,6 +14,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { NativeSelect } from "@/components/ui/native-select";
+import { LocationFields } from "@/components/accounts/location-fields";
 import {
   ACCOUNT_TYPES,
   ACCOUNT_STATUSES,
@@ -82,16 +83,7 @@ export function CreateAccountDialog({ profiles }: { profiles: Profile[] }) {
               </NativeSelect>
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="city">City</Label>
-              <Input id="city" name="city" placeholder="Prague" />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="country">Country</Label>
-              <Input id="country" name="country" placeholder="Czechia" />
-            </div>
-          </div>
+          <LocationFields />
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="loyalty_tier">Loyalty tier</Label>
