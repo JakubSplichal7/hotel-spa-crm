@@ -1,6 +1,6 @@
-/** Curated locations to keep city/country naming consistent */
+/** Default seed list — copied into each org's locations table on first use */
 
-export const COUNTRIES = [
+export const DEFAULT_COUNTRIES = [
   "Czechia",
   "Slovakia",
   "Austria",
@@ -37,9 +37,7 @@ export const COUNTRIES = [
   "Australia",
 ] as const;
 
-export type CountryName = (typeof COUNTRIES)[number];
-
-export const CITIES_BY_COUNTRY: Record<string, string[]> = {
+export const DEFAULT_CITIES_BY_COUNTRY: Record<string, string[]> = {
   Czechia: [
     "Prague",
     "Brno",
@@ -112,14 +110,7 @@ export const CITIES_BY_COUNTRY: Record<string, string[]> = {
   Australia: ["Sydney", "Melbourne", "Brisbane", "Perth", "Adelaide"],
 };
 
-export function getCitiesForCountry(country: string | null | undefined): string[] {
-  if (!country) return [];
-  return CITIES_BY_COUNTRY[country] || [];
-}
-
-/** Ensure an existing free-text value still appears in the dropdown */
-export function withExistingOption(options: string[], current: string | null | undefined) {
-  if (!current) return options;
-  if (options.includes(current)) return options;
-  return [current, ...options];
-}
+export const DEFAULT_LOCATIONS: { country: string; city: string }[] =
+  Object.entries(DEFAULT_CITIES_BY_COUNTRY).flatMap(([country, cities]) =>
+    cities.map((city) => ({ country, city }))
+  );
