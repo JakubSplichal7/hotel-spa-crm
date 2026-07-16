@@ -1,19 +1,24 @@
 import { NextResponse } from "next/server";
+import { getSupabaseAnonKey, getSupabaseUrl } from "@/lib/supabase/env";
 
 export async function GET() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
-  const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
+  const raw = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
+  const normalized = getSupabaseUrl();
+  const anon = getSupabaseAnonKey();
+
+  let pathname = "";
+  try {
+    pathname = new URL(raw.trim().replace(/^["']|["']$/g, "")).pathname;
+  } catch {
+    pathname = "PARSE_ERROR";
+  }
 
   const checks = {
-    hasUrl: Boolean(url),
-    urlLooksValid: /^https:\/\/[a-z0-9-]+\.supabase\.co\/?$/i.test(url),
-    urlHost: (() => {
-      try {
-        return new URL(url).host;
-      } catch {
-        return "INVALID_URL";
-      }
-    })(),
+    hasUrl: Boolean(raw),
+    rawLength: raw.length,
+    normalized,
+    pathname,
+    urlLooksValid: /^https:\/\/[a-z0-9-]+\.supabase\.co$/i.test(normalized),
     hasAnonKey: anon.length > 20,
     anonKeyStartsWithEyJ: anon.startsWith("eyJ"),
   };
@@ -21,7 +26,7 @@ export async function GET() {
   let authHealth: string = "not_checked";
   if (checks.urlLooksValid) {
     try {
-      const res = await fetch(`${url.replace(/\/$/, "")}/auth/v1/health`, {
+      const res = await fetch(`${normalized}/auth/v1/health`, {
         headers: { apikey: anon },
         cache: "no-store",
       });
@@ -31,5 +36,9 @@ export async function GET() {
     }
   }
 
-  return NextResponse.json({ ok: checks.urlLooksValid && checks.hasAnonKey, checks, authHealth });
+  return NextResponse.json({
+    ok: checks.urlLooksValid && checks.hasAnonKey,
+    checks,
+    authHealth,
+  });
 }
