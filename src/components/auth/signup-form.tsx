@@ -4,7 +4,6 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { finishSignUp } from "@/lib/actions/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -61,14 +60,16 @@ export function SignUpForm() {
         return;
       }
 
-      const result = await finishSignUp({
-        orgName,
-        fullName,
-        email,
+      const res = await fetch("/api/signup/complete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ orgName, fullName, email }),
       });
 
-      if (result?.error) {
-        setError(result.error);
+      const result = await res.json();
+
+      if (!res.ok || result?.error) {
+        setError(result?.error || `Request failed (${res.status})`);
         setLoading(false);
         return;
       }

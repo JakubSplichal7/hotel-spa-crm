@@ -32,15 +32,21 @@ export async function updateSession(request: NextRequest) {
     pathname.startsWith("/login") || pathname.startsWith("/signup");
 
   const isPublicPath =
-    isAuthPage || pathname === "/" || pathname.startsWith("/api/health");
+    isAuthPage || pathname === "/" || pathname.startsWith("/api/");
 
-  if (!user && !isPublicPath) {
+  // Server Actions POST to the current page. Never redirect those responses
+  // or the client gets "An unexpected response was received from the server."
+  const isServerAction = request.headers.has("next-action");
+
+  if (!user && !isPublicPath && !isServerAction) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     return NextResponse.redirect(url);
   }
 
-  if (user && isAuthPage) {
+  // Don't redirect logged-in users away from auth pages during Server Actions
+  // (e.g. finishing org creation right after signup on /signup).
+  if (user && isAuthPage && !isServerAction && request.method === "GET") {
     const url = request.nextUrl.clone();
     url.pathname = "/dashboard";
     return NextResponse.redirect(url);
