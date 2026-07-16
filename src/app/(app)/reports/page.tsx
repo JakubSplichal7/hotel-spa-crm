@@ -59,7 +59,7 @@ export default async function ReportsPage() {
 
   const wonThisMonth = (wonDeals || []).reduce((sum, d) => sum + Number(d.value), 0);
   const openPipelineValue = (deals || [])
-    .filter((d) => !["won", "lost"].includes(d.stage))
+    .filter((d) => d.stage !== "won" && d.stage !== "lost")
     .reduce((sum, d) => sum + Number(d.value), 0);
 
   const monthlyRevenue = [
@@ -78,8 +78,12 @@ export default async function ReportsPage() {
 
   const activitiesByRep = (repActivities || []).reduce(
     (acc, a) => {
-      const name = (a.profiles as { full_name: string } | null)?.full_name || "Unknown";
-      acc[name] = (acc[name] || 0) + 1;
+      const profile = a.profiles as { full_name: string } | { full_name: string }[] | null;
+      const name = Array.isArray(profile)
+        ? profile[0]?.full_name
+        : profile?.full_name;
+      const key = name || "Unknown";
+      acc[key] = (acc[key] || 0) + 1;
       return acc;
     },
     {} as Record<string, number>
