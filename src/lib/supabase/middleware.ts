@@ -16,7 +16,10 @@ export async function updateSession(request: NextRequest) {
         );
         supabaseResponse = NextResponse.next({ request });
         cookiesToSet.forEach(({ name, value, options }) =>
-          supabaseResponse.cookies.set(name, value, options)
+          supabaseResponse.cookies.set(name, value, {
+            ...options,
+            path: options?.path?.startsWith("/") ? options.path : "/",
+          })
         );
       },
     },
@@ -27,29 +30,42 @@ export async function updateSession(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   const pathname = request.nextUrl.pathname;
-
   const isAuthPage =
     pathname.startsWith("/login") || pathname.startsWith("/signup");
-
   const isPublicPath =
     isAuthPage || pathname === "/" || pathname.startsWith("/api/");
-
-  // Server Actions POST to the current page. Never redirect those responses
-  // or the client gets "An unexpected response was received from the server."
   const isServerAction = request.headers.has("next-action");
 
+  // Not logged in → only protect app pages
   if (!user && !isPublicPath && !isServerAction) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     return NextResponse.redirect(url);
   }
 
-  // Don't redirect logged-in users away from auth pages during Server Actions
-  // (e.g. finishing org creation right after signup on /signup).
-  if (user && isAuthPage && !isServerAction && request.method === "GET") {
-    const url = request.nextUrl.clone();
-    url.pathname = "/dashboard";
-    return NextResponse.redirect(url);
+  if (user) {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("id")
+      .eq("id", user.id)
+      .maybeSingle();
+
+    // Logged in but no org/profile yet → keep them on signup (never bounce to dashboard)
+    if (!profile) {
+      if (!isAuthPage && !pathname.startsWith("/api/") && !isServerAction) {
+        const url = request.nextUrl.clone();
+        url.pathname = "/signup";
+        return NextResponse.redirect(url);
+      }
+      return supabaseResponse;
+    }
+
+    // Fully set up user on login/signup → go to dashboard (GET only)
+    if (isAuthPage && !isServerAction && request.method === "GET") {
+      const url = request.nextUrl.clone();
+      url.pathname = "/dashboard";
+      return NextResponse.redirect(url);
+    }
   }
 
   return supabaseResponse;

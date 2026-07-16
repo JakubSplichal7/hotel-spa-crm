@@ -22,14 +22,28 @@ export async function getCurrentProfile(): Promise<Profile | null> {
     .from("profiles")
     .select("*")
     .eq("id", user.id)
-    .single();
+    .maybeSingle();
 
   return profile;
 }
 
 export async function requireProfile(): Promise<Profile> {
-  const profile = await getCurrentProfile();
-  if (!profile) redirect("/login");
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) redirect("/login");
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("*")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  // Auth user exists but org was never finished → complete signup (avoids login↔dashboard loop)
+  if (!profile) redirect("/signup");
+
   return profile;
 }
 
