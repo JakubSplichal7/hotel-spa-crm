@@ -14,9 +14,13 @@ export async function createClient() {
         },
         setAll(cookiesToSet) {
           try {
-            cookiesToSet.forEach(({ name, value, options }) =>
-              cookieStore.set(name, value, options)
-            );
+            cookiesToSet.forEach(({ name, value, options }) => {
+              const safeOptions = {
+                ...options,
+                path: options?.path && options.path.startsWith("/") ? options.path : "/",
+              };
+              cookieStore.set(name, value, safeOptions);
+            });
           } catch {
             // Server Component — ignore
           }

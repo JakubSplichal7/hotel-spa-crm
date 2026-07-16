@@ -4,9 +4,69 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 
-export async function signUp(formData: FormData) {
+export async function finishSignUp(input: {
+  orgName: string;
+  fullName: string;
+  email: string;
+}) {
   const supabase = await createClient();
 
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return {
+      error:
+        "You are not signed in after signup. Disable email confirmation in Supabase, then try again with a new email.",
+    };
+  }
+
+  const { error: rpcError } = await supabase.rpc(
+    "create_organization_with_admin",
+    {
+      org_name: input.orgName,
+      admin_full_name: input.fullName,
+      admin_email: input.email,
+    }
+  );
+
+  if (!rpcError) {
+    return { success: true };
+  }
+
+  // Fallback if RPC migration not applied
+  const { data: org, error: orgError } = await supabase
+    .from("organizations")
+    .insert({ name: input.orgName })
+    .select("id")
+    .single();
+
+  if (orgError) {
+    return {
+      error: `Could not create organization (${orgError.message}). In Supabase SQL Editor run supabase/migrations/002_signup_rpc.sql. RPC detail: ${rpcError.message}`,
+    };
+  }
+
+  const { error: profileError } = await supabase.from("profiles").insert({
+    id: user.id,
+    org_id: org.id,
+    role: "admin",
+    full_name: input.fullName,
+    email: input.email,
+  });
+
+  if (profileError) {
+    return {
+      error: `Could not create profile: ${profileError.message}`,
+    };
+  }
+
+  return { success: true };
+}
+
+export async function signUp(formData: FormData) {
+  // Kept for compatibility; UI now uses client signup + finishSignUp.
   const email = (formData.get("email") as string)?.trim();
   const password = formData.get("password") as string;
   const fullName = (formData.get("fullName") as string)?.trim();
@@ -16,74 +76,22 @@ export async function signUp(formData: FormData) {
     return { error: "Please fill in all fields." };
   }
 
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
-  if (!supabaseUrl.includes("supabase.co")) {
-    return {
-      error:
-        "Supabase URL is not configured correctly in Vercel. It must look like https://xxxxx.supabase.co (no extra path).",
-    };
-  }
-
+  const supabase = await createClient();
   const { data: authData, error: authError } = await supabase.auth.signUp({
     email,
     password,
   });
 
-  if (authError) {
-    return { error: authError.message };
-  }
-
-  if (!authData.user) {
-    return { error: "Failed to create user. Check Supabase Auth settings." };
-  }
-
+  if (authError) return { error: `Auth error: ${authError.message}` };
+  if (!authData.user) return { error: "Failed to create user." };
   if (!authData.session) {
     return {
       error:
-        "Account was created, but you are not signed in yet. In Supabase go to Authentication → Configuration (or Providers → Email) and disable email confirmation. Then try signing in, or sign up with a new email.",
+        "Account created but not signed in. Disable email confirmation in Supabase.",
     };
   }
 
-  const { error: rpcError } = await supabase.rpc(
-    "create_organization_with_admin",
-    {
-      org_name: orgName,
-      admin_full_name: fullName,
-      admin_email: email,
-    }
-  );
-
-  if (rpcError) {
-    // Fallback if migration 002 is not applied yet
-    const { data: org, error: orgError } = await supabase
-      .from("organizations")
-      .insert({ name: orgName })
-      .select("id")
-      .single();
-
-    if (orgError) {
-      return {
-        error: `Could not create organization: ${orgError.message}. Open Supabase SQL Editor and run the file supabase/migrations/002_signup_rpc.sql`,
-      };
-    }
-
-    const { error: profileError } = await supabase.from("profiles").insert({
-      id: authData.user.id,
-      org_id: org.id,
-      role: "admin",
-      full_name: fullName,
-      email,
-    });
-
-    if (profileError) {
-      return {
-        error: `Could not create profile: ${profileError.message}. Run supabase/migrations/002_signup_rpc.sql in Supabase SQL Editor.`,
-      };
-    }
-  }
-
-  revalidatePath("/", "layout");
-  return { success: true };
+  return finishSignUp({ orgName, fullName, email });
 }
 
 export async function signIn(formData: FormData) {

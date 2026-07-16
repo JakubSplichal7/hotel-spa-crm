@@ -3,35 +3,82 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { signUp } from "@/lib/actions/auth";
+import { createClient } from "@/lib/supabase/client";
+import { finishSignUp } from "@/lib/actions/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 export function SignUpForm() {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  async function handleSubmit(formData: FormData) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
     setLoading(true);
     setError(null);
+
+    const form = e.currentTarget;
+    const formData = new FormData(form);
+    const email = String(formData.get("email") || "").trim();
+    const password = String(formData.get("password") || "");
+    const fullName = String(formData.get("fullName") || "").trim();
+    const orgName = String(formData.get("orgName") || "").trim();
+
     try {
-      const result = await signUp(formData);
+      const supabase = createClient();
+
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email,
+        password,
+      });
+
+      if (authError) {
+        setError(`Auth error: ${authError.message}`);
+        setLoading(false);
+        return;
+      }
+
+      if (!authData.user) {
+        setError("Failed to create user. Check Supabase Auth settings.");
+        setLoading(false);
+        return;
+      }
+
+      if (!authData.session) {
+        setError(
+          "Account was created, but email confirmation is still required. In Supabase: Authentication → Providers → Email (or Configuration) → disable Confirm email. Then try again with a new email, or confirm the user under Authentication → Users and use Sign in."
+        );
+        setLoading(false);
+        return;
+      }
+
+      const result = await finishSignUp({
+        orgName,
+        fullName,
+        email,
+      });
+
       if (result?.error) {
         setError(result.error);
         setLoading(false);
         return;
       }
-      if (result?.success) {
-        router.push("/dashboard");
-        router.refresh();
-        return;
-      }
-      setLoading(false);
+
+      router.push("/dashboard");
+      router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
+      const message =
+        err instanceof Error ? err.message : "Something went wrong. Please try again.";
+      setError(`Unexpected: ${message}`);
       setLoading(false);
     }
   }
@@ -43,9 +90,11 @@ export function SignUpForm() {
         <CardDescription>Set up your Hotel & Spa CRM workspace</CardDescription>
       </CardHeader>
       <CardContent>
-        <form action={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4">
           {error && (
-            <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">{error}</div>
+            <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
+              {error}
+            </div>
           )}
           <div className="space-y-2">
             <Label htmlFor="orgName">Organization name</Label>
