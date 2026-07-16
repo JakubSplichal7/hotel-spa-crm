@@ -6,7 +6,7 @@ import { EmptyState } from "@/components/empty-state";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { formatCurrency } from "@/lib/utils";
-import { DEAL_STAGE_LABELS } from "@/lib/types";
+import { getDealStageLabel } from "@/lib/types";
 import Link from "next/link";
 import type { Deal } from "@/lib/types";
 
@@ -68,7 +68,7 @@ export default async function DealsPage() {
                     </div>
                     <div className="flex items-center gap-4">
                       <Badge variant={deal.stage === "won" ? "success" : "destructive"}>
-                        {DEAL_STAGE_LABELS[deal.stage]}
+                        {getDealStageLabel(deal.stage)}
                       </Badge>
                       <span className="font-medium">
                         {formatCurrency(Number(deal.value), deal.currency)}

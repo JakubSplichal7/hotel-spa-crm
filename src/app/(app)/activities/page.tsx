@@ -5,7 +5,7 @@ import { EmptyState } from "@/components/empty-state";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { formatDateTime } from "@/lib/utils";
-import { ACTIVITY_TYPE_LABELS } from "@/lib/types";
+import { getActivityTypeLabel } from "@/lib/types";
 import Link from "next/link";
 
 export default async function ActivitiesPage() {
@@ -45,7 +45,7 @@ export default async function ActivitiesPage() {
                 <div className="flex items-start justify-between">
                   <div>
                     <div className="flex items-center gap-2">
-                      <Badge variant="outline">{ACTIVITY_TYPE_LABELS[activity.type]}</Badge>
+                      <Badge variant="outline">{getActivityTypeLabel(activity.type)}</Badge>
                       <span className="font-medium">{activity.subject}</span>
                     </div>
                     {activity.body && (

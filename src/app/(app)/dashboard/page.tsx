@@ -3,9 +3,8 @@ import { requireProfile } from "@/lib/auth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { formatCurrency, formatDate, formatDateTime } from "@/lib/utils";
-import { DEAL_STAGE_LABELS, ACTIVITY_TYPE_LABELS } from "@/lib/types";
-import Link from "next/link";
-import { Building2, Handshake, CheckSquare, Activity, CalendarDays } from "lucide-react";
+import { getDealStageLabel, getActivityTypeLabel } from "@/lib/types";
+import { Handshake, CheckSquare, Activity, CalendarDays } from "lucide-react";
 
 export default async function DashboardPage() {
   const profile = await requireProfile();
@@ -140,7 +139,7 @@ export default async function DashboardPage() {
               <div className="space-y-2">
                 {Object.entries(dealsByStage).map(([stage, count]) => (
                   <div key={stage} className="flex items-center justify-between">
-                    <Badge variant="secondary">{DEAL_STAGE_LABELS[stage as keyof typeof DEAL_STAGE_LABELS]}</Badge>
+                    <Badge variant="secondary">{getDealStageLabel(stage)}</Badge>
                     <span className="font-medium">{count}</span>
                   </div>
                 ))}
@@ -181,7 +180,7 @@ export default async function DashboardPage() {
                 {recentActivities.map((activity) => (
                   <li key={activity.id} className="text-sm">
                     <div className="flex items-center gap-2">
-                      <Badge variant="outline">{ACTIVITY_TYPE_LABELS[activity.type]}</Badge>
+                      <Badge variant="outline">{getActivityTypeLabel(activity.type)}</Badge>
                       <span className="font-medium">{activity.subject}</span>
                     </div>
                     <p className="mt-1 text-muted-foreground">

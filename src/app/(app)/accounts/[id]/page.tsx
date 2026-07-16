@@ -7,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CreateContactDialog } from "@/components/accounts/create-contact-dialog";
 import { EmptyState } from "@/components/empty-state";
 import { formatCurrency, formatDate, formatDateTime } from "@/lib/utils";
-import { DEAL_STAGE_LABELS, ACTIVITY_TYPE_LABELS } from "@/lib/types";
+import { getDealStageLabel, getActivityTypeLabel } from "@/lib/types";
 import Link from "next/link";
 import { deleteContact } from "@/lib/actions/accounts";
 import { Button } from "@/components/ui/button";
@@ -136,7 +136,7 @@ export default async function AccountDetailPage({ params }: PageProps) {
                     <CardContent className="flex items-center justify-between p-4">
                       <div>
                         <p className="font-medium">{deal.title}</p>
-                        <Badge variant="secondary" className="mt-1">{DEAL_STAGE_LABELS[deal.stage]}</Badge>
+                        <Badge variant="secondary" className="mt-1">{getDealStageLabel(deal.stage)}</Badge>
                       </div>
                       <div className="text-right">
                         <p className="font-medium">{formatCurrency(Number(deal.value), deal.currency)}</p>
@@ -161,7 +161,7 @@ export default async function AccountDetailPage({ params }: PageProps) {
                 <Card key={activity.id}>
                   <CardContent className="p-4">
                     <div className="flex items-center gap-2">
-                      <Badge variant="outline">{ACTIVITY_TYPE_LABELS[activity.type]}</Badge>
+                      <Badge variant="outline">{getActivityTypeLabel(activity.type)}</Badge>
                       <span className="font-medium">{activity.subject}</span>
                     </div>
                     {activity.body && <p className="mt-2 text-sm text-muted-foreground">{activity.body}</p>}

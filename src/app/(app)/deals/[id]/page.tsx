@@ -4,11 +4,11 @@ import { notFound } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { formatCurrency, formatDate, formatDateTime } from "@/lib/utils";
-import { DEAL_STAGE_LABELS, ACTIVITY_TYPE_LABELS } from "@/lib/types";
+import { getDealStageLabel, getActivityTypeLabel, DEAL_STAGE_LABELS } from "@/lib/types";
+import type { DealStage } from "@/lib/types";
 import { updateDealStage } from "@/lib/actions/deals";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import type { DealStage } from "@/lib/types";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -51,7 +51,7 @@ export default async function DealDetailPage({ params }: PageProps) {
         <div className="mt-2">
           <h1 className="text-3xl font-bold">{deal.title}</h1>
           <div className="mt-2 flex items-center gap-2">
-            <Badge>{DEAL_STAGE_LABELS[deal.stage]}</Badge>
+            <Badge>{getDealStageLabel(deal.stage)}</Badge>
             <Link href={`/accounts/${(deal.account as { id: string }).id}`} className="text-sm text-primary hover:underline">
               {(deal.account as { name: string }).name}
             </Link>
@@ -123,7 +123,7 @@ export default async function DealDetailPage({ params }: PageProps) {
                 <Card key={activity.id}>
                   <CardContent className="p-4">
                     <div className="flex items-center gap-2">
-                      <Badge variant="outline">{ACTIVITY_TYPE_LABELS[activity.type]}</Badge>
+                      <Badge variant="outline">{getActivityTypeLabel(activity.type)}</Badge>
                       <span className="font-medium">{activity.subject}</span>
                     </div>
                     {activity.body && <p className="mt-2 text-sm text-muted-foreground">{activity.body}</p>}

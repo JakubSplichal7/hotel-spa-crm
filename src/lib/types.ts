@@ -176,3 +176,11 @@ export const ROLE_LABELS: Record<UserRole, string> = {
   manager: "Manager",
   rep: "Account Rep",
 };
+
+export function getDealStageLabel(stage: string): string {
+  return DEAL_STAGE_LABELS[stage as DealStage] ?? stage;
+}
+
+export function getActivityTypeLabel(type: string): string {
+  return ACTIVITY_TYPE_LABELS[type as ActivityType] ?? type;
+}
