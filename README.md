@@ -1,104 +1,43 @@
-# Hotel & Spa CRM
+# Hotel & Spa Client CRM
 
-A simple CRM for hotel and spa account managers. Track accounts, deals, activities, tasks, bookings, and reports — with role-based access for admin, manager, and rep users.
+CRM for **hotel and spa account managers** to manage **their clients** — mainly companies (corporate, events, groups) and also individual guests.
 
-## Features
+## Who it’s for
 
-- **Accounts & Contacts** — Manage hotel/spa properties and decision-makers
-- **Deals Pipeline** — Kanban board with stages from lead to won/lost
-- **Activities** — Log calls, emails, meetings, and notes
-- **Tasks** — Follow-up reminders with due dates and assignments
-- **Bookings & Contracts** — Track agreements linked to accounts
-- **Reports** — Pipeline, activity, and revenue charts
-- **Team Management** — Admin can invite users and assign roles
+You work **at** a hotel or spa. You manage client relationships, not other hotels.
 
-## Tech Stack
+## What you can do
 
-- [Next.js 15](https://nextjs.org/) (App Router)
-- [Supabase](https://supabase.com/) (Auth, PostgreSQL, RLS)
-- [Tailwind CSS](https://tailwindcss.com/) + [shadcn/ui](https://ui.shadcn.com/)
-- [Recharts](https://recharts.org/) for reporting
+- **Clients** — companies and individuals, with VIP flag, loyalty tier, and preferences
+- **Contacts** — people at company clients (or guest details)
+- **Offers & packages** — upsells, memberships, corporate packages (pipeline)
+- **Activities** — calls, emails, meetings, notes
+- **Tasks** — follow-ups and reminders
+- **Bookings & stays** — stays, spa visits, events
+- **Reports** — pipeline, activity, and booking overview
+- **Team** — admin / manager / account manager roles
 
-## Getting Started
+## Tech stack
 
-### Prerequisites
+- Next.js 15 + TypeScript + Tailwind
+- Supabase (Auth, Postgres, RLS)
+- Vercel hosting
 
-- Node.js 18+
-- A [Supabase](https://supabase.com/) project
+## Setup
 
-### 1. Clone and install
+1. `npm install`
+2. Copy `.env.local.example` → `.env.local` and add Supabase keys
+3. In Supabase SQL Editor, run migrations in order:
+   - `supabase/migrations/001_initial_schema.sql`
+   - `supabase/migrations/002_signup_rpc.sql`
+   - `supabase/migrations/003_client_focus.sql`
+4. `npm run dev`
 
-```bash
-cd hotel-spa-crm
-npm install
-```
+## Production checklist
 
-### 2. Configure environment
-
-Copy the example env file and fill in your Supabase credentials:
-
-```bash
-cp .env.local.example .env.local
-```
-
-```env
-NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
-SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
-```
-
-### 3. Run database migration
-
-In your Supabase dashboard, go to **SQL Editor** and run the contents of:
-
-```
-supabase/migrations/001_initial_schema.sql
-```
-
-### 4. Start the dev server
-
-```bash
-npm run dev
-```
-
-Open [http://localhost:3000](http://localhost:3000). Create your organization on the signup page — the first user becomes admin.
-
-## User Roles
-
-| Role | Access |
-|------|--------|
-| **Admin** | Full org data, invite users, manage roles |
-| **Manager** | All accounts/deals, reassign owners, view reports |
-| **Rep** | Own accounts/deals, org-wide read for reporting |
-
-## Deploy
-
-### Vercel
-
-1. Push to GitHub
-2. Import in [Vercel](https://vercel.com/)
-3. Add environment variables from `.env.local.example`
-4. Deploy
-
-### Supabase
-
-Use the hosted Supabase project for production. Run the migration SQL in the Supabase SQL Editor.
-
-## Project Structure
-
-```
-src/
-├── app/
-│   ├── (auth)/          # Login, signup
-│   └── (app)/           # Protected CRM pages
-├── components/          # UI and domain components
-└── lib/
-    ├── actions/         # Server actions
-    ├── supabase/        # Supabase clients
-    └── types.ts         # Shared types
-supabase/
-└── migrations/          # SQL schema + RLS
-```
+- Site URL in Supabase Auth = your Vercel URL (e.g. `https://pospolu-spa-crm.vercel.app`)
+- `NEXT_PUBLIC_SUPABASE_URL` = `https://YOUR-PROJECT.supabase.co` (no path, no quotes)
+- Run all three SQL migrations
 
 ## License
 

@@ -43,9 +43,9 @@ export function LogActivityDialog({ accounts }: { accounts: Account[] }) {
         </DialogHeader>
         <form action={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="account_id">Account</Label>
+            <Label htmlFor="account_id">Client</Label>
             <NativeSelect id="account_id" name="account_id" required defaultValue="">
-              <option value="" disabled>Select account</option>
+              <option value="" disabled>Select client</option>
               {accounts.map((a) => (
                 <option key={a.id} value={a.id}>{a.name}</option>
               ))}

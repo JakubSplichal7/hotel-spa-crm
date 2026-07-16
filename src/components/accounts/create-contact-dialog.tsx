@@ -45,7 +45,7 @@ export function CreateContactDialog({ accountId }: { accountId: string }) {
           </div>
           <div className="space-y-2">
             <Label htmlFor="title">Title</Label>
-            <Input id="title" name="title" placeholder="General Manager" />
+            <Input id="title" name="title" placeholder="Event coordinator / Guest" />
           </div>
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>

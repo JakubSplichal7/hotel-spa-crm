@@ -87,8 +87,10 @@ export function SignUpForm() {
   return (
     <Card className="w-full max-w-md">
       <CardHeader>
-        <CardTitle>Create organization</CardTitle>
-        <CardDescription>Set up your Hotel & Spa CRM workspace</CardDescription>
+        <CardTitle>Create workspace</CardTitle>
+        <CardDescription>
+          Set up CRM for your hotel/spa account management team
+        </CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">

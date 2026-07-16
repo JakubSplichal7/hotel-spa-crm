@@ -54,7 +54,7 @@ export function LoginForm() {
     <Card className="w-full max-w-md">
       <CardHeader>
         <CardTitle>Sign in</CardTitle>
-        <CardDescription>Access your Hotel & Spa CRM account</CardDescription>
+        <CardDescription>Access your hotel/spa client CRM</CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -78,7 +78,7 @@ export function LoginForm() {
         <p className="mt-4 text-center text-sm text-muted-foreground">
           No account?{" "}
           <Link href="/signup" className="text-primary hover:underline">
-            Create organization
+            Create workspace
           </Link>
         </p>
       </CardContent>

@@ -2,14 +2,13 @@
 
 import { useRouter, useSearchParams } from "next/navigation";
 import { Input } from "@/components/ui/input";
+import { NativeSelect } from "@/components/ui/native-select";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { ACCOUNT_TYPES, ACCOUNT_STATUSES } from "@/lib/types";
+  ACCOUNT_TYPES,
+  ACCOUNT_STATUSES,
+  ACCOUNT_TYPE_LABELS,
+  ACCOUNT_STATUS_LABELS,
+} from "@/lib/types";
 import type { Profile } from "@/lib/types";
 
 export function AccountFilters({ profiles }: { profiles: Profile[] }) {
@@ -29,60 +28,56 @@ export function AccountFilters({ profiles }: { profiles: Profile[] }) {
   return (
     <div className="flex flex-wrap gap-3">
       <Input
-        placeholder="Search accounts..."
+        placeholder="Search clients..."
         defaultValue={searchParams.get("q") || ""}
         className="max-w-xs"
         onChange={(e) => updateFilter("q", e.target.value)}
       />
-      <Select
+      <NativeSelect
+        className="w-[160px]"
         defaultValue={searchParams.get("type") || "all"}
-        onValueChange={(v) => updateFilter("type", v)}
+        onChange={(e) => updateFilter("type", e.target.value)}
       >
-        <SelectTrigger className="w-[140px]">
-          <SelectValue placeholder="Type" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="all">All types</SelectItem>
-          {ACCOUNT_TYPES.map((t) => (
-            <SelectItem key={t} value={t}>
-              {t.charAt(0).toUpperCase() + t.slice(1)}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-      <Select
+        <option value="all">All types</option>
+        {ACCOUNT_TYPES.map((t) => (
+          <option key={t} value={t}>
+            {ACCOUNT_TYPE_LABELS[t]}
+          </option>
+        ))}
+      </NativeSelect>
+      <NativeSelect
+        className="w-[160px]"
         defaultValue={searchParams.get("status") || "all"}
-        onValueChange={(v) => updateFilter("status", v)}
+        onChange={(e) => updateFilter("status", e.target.value)}
       >
-        <SelectTrigger className="w-[140px]">
-          <SelectValue placeholder="Status" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="all">All statuses</SelectItem>
-          {ACCOUNT_STATUSES.map((s) => (
-            <SelectItem key={s} value={s}>
-              {s.charAt(0).toUpperCase() + s.slice(1)}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+        <option value="all">All statuses</option>
+        {ACCOUNT_STATUSES.map((s) => (
+          <option key={s} value={s}>
+            {ACCOUNT_STATUS_LABELS[s]}
+          </option>
+        ))}
+      </NativeSelect>
+      <NativeSelect
+        className="w-[140px]"
+        defaultValue={searchParams.get("vip") || "all"}
+        onChange={(e) => updateFilter("vip", e.target.value)}
+      >
+        <option value="all">All clients</option>
+        <option value="yes">VIP only</option>
+      </NativeSelect>
       {profiles.length > 1 && (
-        <Select
+        <NativeSelect
+          className="w-[180px]"
           defaultValue={searchParams.get("owner") || "all"}
-          onValueChange={(v) => updateFilter("owner", v)}
+          onChange={(e) => updateFilter("owner", e.target.value)}
         >
-          <SelectTrigger className="w-[160px]">
-            <SelectValue placeholder="Owner" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All owners</SelectItem>
-            {profiles.map((p) => (
-              <SelectItem key={p.id} value={p.id}>
-                {p.full_name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+          <option value="all">All managers</option>
+          {profiles.map((p) => (
+            <option key={p.id} value={p.id}>
+              {p.full_name}
+            </option>
+          ))}
+        </NativeSelect>
       )}
     </div>
   );

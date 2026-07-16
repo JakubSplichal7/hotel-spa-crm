@@ -23,8 +23,8 @@ export default async function BookingsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Bookings & Contracts</h1>
-          <p className="text-muted-foreground">Active and upcoming agreements</p>
+          <h1 className="text-3xl font-bold">Bookings & stays</h1>
+          <p className="text-muted-foreground">Stays, spa visits, and events for your clients</p>
         </div>
         <CreateBookingDialog accounts={accounts || []} />
       </div>
@@ -32,7 +32,7 @@ export default async function BookingsPage() {
       {!bookings?.length ? (
         <EmptyState
           title="No bookings yet"
-          description="Record contracts and bookings linked to your accounts."
+          description="Record stays, spa appointments, and events linked to your clients."
         />
       ) : (
         <div className="rounded-lg border">
@@ -40,7 +40,7 @@ export default async function BookingsPage() {
             <thead>
               <tr className="border-b bg-muted/50">
                 <th className="px-4 py-3 text-left text-sm font-medium">Title</th>
-                <th className="px-4 py-3 text-left text-sm font-medium">Account</th>
+                <th className="px-4 py-3 text-left text-sm font-medium">Client</th>
                 <th className="px-4 py-3 text-left text-sm font-medium">Period</th>
                 <th className="px-4 py-3 text-left text-sm font-medium">Value</th>
                 <th className="px-4 py-3 text-left text-sm font-medium">Status</th>

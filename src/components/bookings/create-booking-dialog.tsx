@@ -39,17 +39,17 @@ export function CreateBookingDialog({ accounts }: { accounts: Account[] }) {
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Create Booking / Contract</DialogTitle>
+          <DialogTitle>Create Booking / Stay</DialogTitle>
         </DialogHeader>
         <form action={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="title">Title</Label>
-            <Input id="title" name="title" required placeholder="Annual spa supply contract" />
+            <Input id="title" name="title" required placeholder="Corporate retreat – May week" />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="account_id">Account</Label>
+            <Label htmlFor="account_id">Client</Label>
             <NativeSelect id="account_id" name="account_id" required defaultValue="">
-              <option value="" disabled>Select account</option>
+              <option value="" disabled>Select client</option>
               {accounts.map((a) => (
                 <option key={a.id} value={a.id}>{a.name}</option>
               ))}

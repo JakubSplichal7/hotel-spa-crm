@@ -40,22 +40,22 @@ export function CreateDealDialog({
       <DialogTrigger asChild>
         <Button>
           <Plus className="mr-2 h-4 w-4" />
-          New Deal
+          New Offer
         </Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Create Deal</DialogTitle>
+          <DialogTitle>Create Offer / Package</DialogTitle>
         </DialogHeader>
         <form action={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="title">Deal title</Label>
-            <Input id="title" name="title" required placeholder="Spa partnership Q2" />
+            <Label htmlFor="title">Offer title</Label>
+            <Input id="title" name="title" required placeholder="Corporate spa package Q2" />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="account_id">Account</Label>
+            <Label htmlFor="account_id">Client</Label>
             <NativeSelect id="account_id" name="account_id" required defaultValue="">
-              <option value="" disabled>Select account</option>
+              <option value="" disabled>Select client</option>
               {accounts.map((a) => (
                 <option key={a.id} value={a.id}>{a.name}</option>
               ))}
@@ -104,7 +104,7 @@ export function CreateDealDialog({
             <Textarea id="notes" name="notes" />
           </div>
           <Button type="submit" className="w-full" disabled={loading}>
-            {loading ? "Creating..." : "Create Deal"}
+            {loading ? "Creating..." : "Create Offer"}
           </Button>
         </form>
       </DialogContent>

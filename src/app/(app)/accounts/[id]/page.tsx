@@ -7,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CreateContactDialog } from "@/components/accounts/create-contact-dialog";
 import { EmptyState } from "@/components/empty-state";
 import { formatCurrency, formatDate, formatDateTime } from "@/lib/utils";
-import { getDealStageLabel, getActivityTypeLabel } from "@/lib/types";
+import { getDealStageLabel, getActivityTypeLabel, getAccountTypeLabel } from "@/lib/types";
 import Link from "next/link";
 import { deleteContact } from "@/lib/actions/accounts";
 import { Button } from "@/components/ui/button";
@@ -47,16 +47,22 @@ export default async function AccountDetailPage({ params }: PageProps) {
     <div className="space-y-6">
       <div>
         <Link href="/accounts" className="text-sm text-muted-foreground hover:text-primary">
-          &larr; Back to accounts
+          &larr; Back to clients
         </Link>
         <div className="mt-2 flex items-start justify-between">
           <div>
             <h1 className="text-3xl font-bold">{account.name}</h1>
-            <div className="mt-2 flex items-center gap-2">
-              <Badge variant="secondary">{account.type}</Badge>
+            <div className="mt-2 flex flex-wrap items-center gap-2">
+              <Badge variant="secondary">{getAccountTypeLabel(account.type)}</Badge>
               <Badge variant={account.status === "active" ? "success" : "warning"}>
                 {account.status}
               </Badge>
+              {account.is_vip && <Badge variant="warning">VIP</Badge>}
+              {account.loyalty_tier && (
+                <Badge variant="outline" className="capitalize">
+                  {account.loyalty_tier}
+                </Badge>
+              )}
               {(account.city || account.country) && (
                 <span className="text-sm text-muted-foreground">
                   {[account.city, account.country].filter(Boolean).join(", ")}
@@ -64,19 +70,25 @@ export default async function AccountDetailPage({ params }: PageProps) {
               )}
             </div>
             <p className="mt-1 text-sm text-muted-foreground">
-              Owner: {(account.owner as { full_name: string } | null)?.full_name}
+              Account manager: {(account.owner as { full_name: string } | null)?.full_name}
             </p>
           </div>
         </div>
+        {account.preferences && (
+          <p className="mt-4 text-sm">
+            <span className="font-medium">Preferences:</span>{" "}
+            <span className="text-muted-foreground">{account.preferences}</span>
+          </p>
+        )}
         {account.notes && (
-          <p className="mt-4 text-sm text-muted-foreground">{account.notes}</p>
+          <p className="mt-2 text-sm text-muted-foreground">{account.notes}</p>
         )}
       </div>
 
       <Tabs defaultValue="contacts">
         <TabsList>
           <TabsTrigger value="contacts">Contacts ({contacts?.length || 0})</TabsTrigger>
-          <TabsTrigger value="deals">Deals ({deals?.length || 0})</TabsTrigger>
+          <TabsTrigger value="deals">Offers ({deals?.length || 0})</TabsTrigger>
           <TabsTrigger value="activities">Activities</TabsTrigger>
           <TabsTrigger value="tasks">Tasks ({tasks?.length || 0})</TabsTrigger>
           <TabsTrigger value="bookings">Bookings ({bookings?.length || 0})</TabsTrigger>
@@ -87,7 +99,10 @@ export default async function AccountDetailPage({ params }: PageProps) {
             <CreateContactDialog accountId={id} />
           </div>
           {!contacts?.length ? (
-            <EmptyState title="No contacts" description="Add decision-makers at this property." />
+            <EmptyState
+              title="No contacts"
+              description="Add people at this company, or guest details for an individual client."
+            />
           ) : (
             <div className="rounded-lg border">
               <table className="w-full">
@@ -127,7 +142,7 @@ export default async function AccountDetailPage({ params }: PageProps) {
 
         <TabsContent value="deals" className="mt-4">
           {!deals?.length ? (
-            <EmptyState title="No deals" description="Create a deal from the Deals page." />
+            <EmptyState title="No offers" description="Create an offer or package from the Offers page." />
           ) : (
             <div className="space-y-2">
               {deals.map((deal) => (
@@ -178,7 +193,7 @@ export default async function AccountDetailPage({ params }: PageProps) {
 
         <TabsContent value="tasks" className="mt-4">
           {!tasks?.length ? (
-            <EmptyState title="No tasks" description="Create follow-up tasks for this account." />
+            <EmptyState title="No tasks" description="Create follow-up tasks for this client." />
           ) : (
             <div className="space-y-2">
               {tasks.map((task) => (
@@ -205,7 +220,7 @@ export default async function AccountDetailPage({ params }: PageProps) {
 
         <TabsContent value="bookings" className="mt-4">
           {!bookings?.length ? (
-            <EmptyState title="No bookings" description="Record contracts and bookings for this account." />
+            <EmptyState title="No bookings" description="Record stays, spa visits, or event bookings for this client." />
           ) : (
             <div className="space-y-2">
               {bookings.map((booking) => (

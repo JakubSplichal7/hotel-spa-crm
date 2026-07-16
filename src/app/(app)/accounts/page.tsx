@@ -5,6 +5,7 @@ import { CreateAccountDialog } from "@/components/accounts/create-account-dialog
 import { AccountFilters } from "@/components/accounts/account-filters";
 import { EmptyState } from "@/components/empty-state";
 import { Badge } from "@/components/ui/badge";
+import { getAccountTypeLabel } from "@/lib/types";
 import Link from "next/link";
 
 interface PageProps {
@@ -13,6 +14,7 @@ interface PageProps {
     type?: string;
     status?: string;
     owner?: string;
+    vip?: string;
   }>;
 }
 
@@ -31,6 +33,7 @@ export default async function AccountsPage({ searchParams }: PageProps) {
   if (params.type && params.type !== "all") query = query.eq("type", params.type);
   if (params.status && params.status !== "all") query = query.eq("status", params.status);
   if (params.owner && params.owner !== "all") query = query.eq("owner_id", params.owner);
+  if (params.vip === "yes") query = query.eq("is_vip", true);
 
   const { data: accounts } = await query;
 
@@ -43,8 +46,10 @@ export default async function AccountsPage({ searchParams }: PageProps) {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Accounts</h1>
-          <p className="text-muted-foreground">Hotels and spas you manage</p>
+          <h1 className="text-3xl font-bold">Clients</h1>
+          <p className="text-muted-foreground">
+            Companies and individual guests you manage
+          </p>
         </div>
         <CreateAccountDialog profiles={profiles || []} />
       </div>
@@ -55,18 +60,19 @@ export default async function AccountsPage({ searchParams }: PageProps) {
 
       {!accounts?.length ? (
         <EmptyState
-          title="No accounts yet"
-          description="Create your first hotel or spa account to get started."
+          title="No clients yet"
+          description="Add your first company or individual guest to start managing relationships."
         />
       ) : (
         <div className="rounded-lg border">
           <table className="w-full">
             <thead>
               <tr className="border-b bg-muted/50">
-                <th className="px-4 py-3 text-left text-sm font-medium">Name</th>
+                <th className="px-4 py-3 text-left text-sm font-medium">Client</th>
                 <th className="px-4 py-3 text-left text-sm font-medium">Type</th>
                 <th className="px-4 py-3 text-left text-sm font-medium">Location</th>
                 <th className="px-4 py-3 text-left text-sm font-medium">Status</th>
+                <th className="px-4 py-3 text-left text-sm font-medium">Loyalty</th>
                 <th className="px-4 py-3 text-left text-sm font-medium">Owner</th>
               </tr>
             </thead>
@@ -74,12 +80,20 @@ export default async function AccountsPage({ searchParams }: PageProps) {
               {accounts.map((account) => (
                 <tr key={account.id} className="border-b hover:bg-muted/30">
                   <td className="px-4 py-3">
-                    <Link href={`/accounts/${account.id}`} className="font-medium text-primary hover:underline">
+                    <Link
+                      href={`/accounts/${account.id}`}
+                      className="font-medium text-primary hover:underline"
+                    >
                       {account.name}
                     </Link>
+                    {account.is_vip && (
+                      <Badge className="ml-2" variant="warning">
+                        VIP
+                      </Badge>
+                    )}
                   </td>
                   <td className="px-4 py-3">
-                    <Badge variant="secondary">{account.type}</Badge>
+                    <Badge variant="secondary">{getAccountTypeLabel(account.type)}</Badge>
                   </td>
                   <td className="px-4 py-3 text-sm text-muted-foreground">
                     {[account.city, account.country].filter(Boolean).join(", ") || "—"}
@@ -90,12 +104,15 @@ export default async function AccountsPage({ searchParams }: PageProps) {
                         account.status === "active"
                           ? "success"
                           : account.status === "prospect"
-                          ? "warning"
-                          : "secondary"
+                            ? "warning"
+                            : "secondary"
                       }
                     >
                       {account.status}
                     </Badge>
+                  </td>
+                  <td className="px-4 py-3 text-sm capitalize">
+                    {account.loyalty_tier || "standard"}
                   </td>
                   <td className="px-4 py-3 text-sm">
                     {(account.owner as { full_name: string } | null)?.full_name || "—"}

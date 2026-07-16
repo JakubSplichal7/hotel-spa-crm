@@ -14,12 +14,15 @@ export async function createAccount(formData: FormData) {
     .insert({
       org_id: profile.org_id,
       name: formData.get("name") as string,
-      type: formData.get("type") as AccountType,
+      type: (formData.get("type") as AccountType) || "company",
       city: (formData.get("city") as string) || null,
       country: (formData.get("country") as string) || null,
       status: (formData.get("status") as AccountStatus) || "prospect",
       owner_id: (formData.get("owner_id") as string) || profile.id,
       notes: (formData.get("notes") as string) || null,
+      is_vip: formData.get("is_vip") === "on",
+      loyalty_tier: (formData.get("loyalty_tier") as string) || "standard",
+      preferences: (formData.get("preferences") as string) || null,
     })
     .select()
     .single();
@@ -44,6 +47,9 @@ export async function updateAccount(id: string, formData: FormData) {
       status: formData.get("status") as AccountStatus,
       owner_id: formData.get("owner_id") as string,
       notes: (formData.get("notes") as string) || null,
+      is_vip: formData.get("is_vip") === "on",
+      loyalty_tier: (formData.get("loyalty_tier") as string) || "standard",
+      preferences: (formData.get("preferences") as string) || null,
     })
     .eq("id", id);
 

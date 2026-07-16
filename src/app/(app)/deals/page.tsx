@@ -37,16 +37,18 @@ export default async function DealsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Deals Pipeline</h1>
-          <p className="text-muted-foreground">Track opportunities through your sales stages</p>
+          <h1 className="text-3xl font-bold">Offers & packages</h1>
+          <p className="text-muted-foreground">
+            Upsells, memberships, and packages for your clients
+          </p>
         </div>
         <CreateDealDialog accounts={accounts || []} profiles={profiles || []} />
       </div>
 
       {!deals?.length ? (
         <EmptyState
-          title="No open deals"
-          description="Create your first deal to start building your pipeline."
+          title="No open offers"
+          description="Create your first offer or package for a client."
         />
       ) : (
         <DealKanban deals={(deals || []) as Deal[]} />

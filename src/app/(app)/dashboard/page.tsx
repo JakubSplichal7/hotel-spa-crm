@@ -75,13 +75,15 @@ export default async function DashboardPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold">Dashboard</h1>
-        <p className="text-muted-foreground">Welcome back, {profile.full_name}</p>
+        <p className="text-muted-foreground">
+          Welcome back, {profile.full_name} — your client overview
+        </p>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Open Deals</CardTitle>
+            <CardTitle className="text-sm font-medium">Open Offers</CardTitle>
             <Handshake className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>

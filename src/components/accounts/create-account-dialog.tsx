@@ -14,7 +14,14 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { NativeSelect } from "@/components/ui/native-select";
-import { ACCOUNT_TYPES, ACCOUNT_STATUSES } from "@/lib/types";
+import {
+  ACCOUNT_TYPES,
+  ACCOUNT_STATUSES,
+  ACCOUNT_TYPE_LABELS,
+  ACCOUNT_STATUS_LABELS,
+  LOYALTY_TIERS,
+  LOYALTY_TIER_LABELS,
+} from "@/lib/types";
 import type { Profile } from "@/lib/types";
 import { Plus } from "lucide-react";
 
@@ -36,25 +43,30 @@ export function CreateAccountDialog({ profiles }: { profiles: Profile[] }) {
       <DialogTrigger asChild>
         <Button>
           <Plus className="mr-2 h-4 w-4" />
-          New Account
+          New Client
         </Button>
       </DialogTrigger>
-      <DialogContent>
+      <DialogContent className="max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Create Account</DialogTitle>
+          <DialogTitle>Create Client</DialogTitle>
         </DialogHeader>
         <form action={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="name">Property name</Label>
-            <Input id="name" name="name" required placeholder="Grand Hotel Riviera" />
+            <Label htmlFor="name">Client name</Label>
+            <Input
+              id="name"
+              name="name"
+              required
+              placeholder="Acme Corp or Jane Smith"
+            />
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="type">Type</Label>
-              <NativeSelect id="type" name="type" defaultValue="hotel">
+              <Label htmlFor="type">Client type</Label>
+              <NativeSelect id="type" name="type" defaultValue="company">
                 {ACCOUNT_TYPES.map((t) => (
                   <option key={t} value={t}>
-                    {t.charAt(0).toUpperCase() + t.slice(1)}
+                    {ACCOUNT_TYPE_LABELS[t]}
                   </option>
                 ))}
               </NativeSelect>
@@ -64,7 +76,7 @@ export function CreateAccountDialog({ profiles }: { profiles: Profile[] }) {
               <NativeSelect id="status" name="status" defaultValue="prospect">
                 {ACCOUNT_STATUSES.map((s) => (
                   <option key={s} value={s}>
-                    {s.charAt(0).toUpperCase() + s.slice(1)}
+                    {ACCOUNT_STATUS_LABELS[s]}
                   </option>
                 ))}
               </NativeSelect>
@@ -73,16 +85,32 @@ export function CreateAccountDialog({ profiles }: { profiles: Profile[] }) {
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="city">City</Label>
-              <Input id="city" name="city" placeholder="Barcelona" />
+              <Input id="city" name="city" placeholder="Prague" />
             </div>
             <div className="space-y-2">
               <Label htmlFor="country">Country</Label>
-              <Input id="country" name="country" placeholder="Spain" />
+              <Input id="country" name="country" placeholder="Czechia" />
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="loyalty_tier">Loyalty tier</Label>
+              <NativeSelect id="loyalty_tier" name="loyalty_tier" defaultValue="standard">
+                {LOYALTY_TIERS.map((t) => (
+                  <option key={t} value={t}>
+                    {LOYALTY_TIER_LABELS[t]}
+                  </option>
+                ))}
+              </NativeSelect>
+            </div>
+            <div className="flex items-end gap-2 pb-2">
+              <input type="checkbox" id="is_vip" name="is_vip" className="rounded" />
+              <Label htmlFor="is_vip">VIP client</Label>
             </div>
           </div>
           {profiles.length > 1 && (
             <div className="space-y-2">
-              <Label htmlFor="owner_id">Owner</Label>
+              <Label htmlFor="owner_id">Account manager</Label>
               <NativeSelect id="owner_id" name="owner_id" defaultValue={profiles[0]?.id}>
                 {profiles.map((p) => (
                   <option key={p.id} value={p.id}>
@@ -93,11 +121,19 @@ export function CreateAccountDialog({ profiles }: { profiles: Profile[] }) {
             </div>
           )}
           <div className="space-y-2">
-            <Label htmlFor="notes">Notes</Label>
-            <Textarea id="notes" name="notes" placeholder="Additional notes..." />
+            <Label htmlFor="preferences">Preferences</Label>
+            <Textarea
+              id="preferences"
+              name="preferences"
+              placeholder="Room type, spa interests, dietary needs, preferred contact time..."
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="notes">Internal notes</Label>
+            <Textarea id="notes" name="notes" placeholder="Anything the team should know..." />
           </div>
           <Button type="submit" className="w-full" disabled={loading}>
-            {loading ? "Creating..." : "Create Account"}
+            {loading ? "Creating..." : "Create Client"}
           </Button>
         </form>
       </DialogContent>

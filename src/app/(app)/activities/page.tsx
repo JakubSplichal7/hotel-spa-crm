@@ -27,7 +27,7 @@ export default async function ActivitiesPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">Activities</h1>
-          <p className="text-muted-foreground">Calls, emails, meetings, and notes</p>
+          <p className="text-muted-foreground">Calls, emails, meetings, and notes with clients</p>
         </div>
         <LogActivityDialog accounts={accounts || []} />
       </div>
@@ -35,7 +35,7 @@ export default async function ActivitiesPage() {
       {!activities?.length ? (
         <EmptyState
           title="No activities logged"
-          description="Start logging your interactions with hotel and spa contacts."
+          description="Start logging your interactions with clients."
         />
       ) : (
         <div className="space-y-3">

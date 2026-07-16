@@ -51,9 +51,9 @@ export function CreateTaskDialog({
             <Input id="title" name="title" required placeholder="Send proposal" />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="account_id">Account (optional)</Label>
+            <Label htmlFor="account_id">Client (optional)</Label>
             <NativeSelect id="account_id" name="account_id" defaultValue="">
-              <option value="">No account</option>
+              <option value="">No client</option>
               {accounts.map((a) => (
                 <option key={a.id} value={a.id}>{a.name}</option>
               ))}

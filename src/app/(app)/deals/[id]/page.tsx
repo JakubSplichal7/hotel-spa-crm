@@ -46,7 +46,7 @@ export default async function DealDetailPage({ params }: PageProps) {
     <div className="space-y-6">
       <div>
         <Link href="/deals" className="text-sm text-muted-foreground hover:text-primary">
-          &larr; Back to pipeline
+          &larr; Back to offers
         </Link>
         <div className="mt-2">
           <h1 className="text-3xl font-bold">{deal.title}</h1>

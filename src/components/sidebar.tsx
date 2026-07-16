@@ -21,8 +21,8 @@ import { ROLE_LABELS } from "@/lib/types";
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/accounts", label: "Accounts", icon: Building2 },
-  { href: "/deals", label: "Deals", icon: Handshake },
+  { href: "/accounts", label: "Clients", icon: Building2 },
+  { href: "/deals", label: "Offers", icon: Handshake },
   { href: "/activities", label: "Activities", icon: Activity },
   { href: "/tasks", label: "Tasks", icon: CheckSquare },
   { href: "/bookings", label: "Bookings", icon: CalendarDays },

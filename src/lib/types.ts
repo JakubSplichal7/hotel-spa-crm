@@ -1,7 +1,9 @@
 export type UserRole = "admin" | "manager" | "rep";
 
-export type AccountType = "hotel" | "spa" | "both";
+/** Client type — company is the main use case; individual for guests */
+export type AccountType = "company" | "individual" | "hotel" | "spa" | "both";
 export type AccountStatus = "prospect" | "active" | "inactive";
+export type LoyaltyTier = "standard" | "silver" | "gold" | "platinum";
 
 export type DealStage =
   | "lead"
@@ -40,6 +42,9 @@ export interface Account {
   status: AccountStatus;
   owner_id: string;
   notes: string | null;
+  is_vip: boolean;
+  loyalty_tier: LoyaltyTier | string | null;
+  preferences: string | null;
   created_at: string;
   updated_at: string;
   owner?: Profile;
@@ -155,12 +160,41 @@ export const ACTIVITY_TYPE_LABELS: Record<ActivityType, string> = {
   note: "Note",
 };
 
-export const ACCOUNT_TYPES: AccountType[] = ["hotel", "spa", "both"];
+export const ACCOUNT_TYPES: AccountType[] = ["company", "individual"];
+
+export const ACCOUNT_TYPE_LABELS: Record<string, string> = {
+  company: "Company",
+  individual: "Individual",
+  hotel: "Company",
+  spa: "Company",
+  both: "Company",
+};
+
 export const ACCOUNT_STATUSES: AccountStatus[] = [
   "prospect",
   "active",
   "inactive",
 ];
+
+export const ACCOUNT_STATUS_LABELS: Record<AccountStatus, string> = {
+  prospect: "Prospect",
+  active: "Active",
+  inactive: "Inactive",
+};
+
+export const LOYALTY_TIERS: LoyaltyTier[] = [
+  "standard",
+  "silver",
+  "gold",
+  "platinum",
+];
+
+export const LOYALTY_TIER_LABELS: Record<LoyaltyTier, string> = {
+  standard: "Standard",
+  silver: "Silver",
+  gold: "Gold",
+  platinum: "Platinum",
+};
 
 export const BOOKING_STATUSES: BookingStatus[] = [
   "draft",
@@ -174,7 +208,7 @@ export const USER_ROLES: UserRole[] = ["admin", "manager", "rep"];
 export const ROLE_LABELS: Record<UserRole, string> = {
   admin: "Admin",
   manager: "Manager",
-  rep: "Account Rep",
+  rep: "Account Manager",
 };
 
 export function getDealStageLabel(stage: string): string {
@@ -183,4 +217,8 @@ export function getDealStageLabel(stage: string): string {
 
 export function getActivityTypeLabel(type: string): string {
   return ACTIVITY_TYPE_LABELS[type as ActivityType] ?? type;
+}
+
+export function getAccountTypeLabel(type: string): string {
+  return ACCOUNT_TYPE_LABELS[type] ?? type;
 }
