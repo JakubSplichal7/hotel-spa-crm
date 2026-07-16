@@ -1,0 +1,93 @@
+import { createClient } from "@/lib/supabase/server";
+import { requireProfile } from "@/lib/auth";
+import { CreateBookingDialog } from "@/components/bookings/create-booking-dialog";
+import { EmptyState } from "@/components/empty-state";
+import { Badge } from "@/components/ui/badge";
+import { formatCurrency, formatDate } from "@/lib/utils";
+import Link from "next/link";
+
+export default async function BookingsPage() {
+  const profile = await requireProfile();
+  const supabase = await createClient();
+
+  const [{ data: bookings }, { data: accounts }] = await Promise.all([
+    supabase
+      .from("bookings")
+      .select("*, account:accounts(id, name)")
+      .eq("org_id", profile.org_id)
+      .order("start_date", { ascending: false }),
+    supabase.from("accounts").select("*").eq("org_id", profile.org_id).order("name"),
+  ]);
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold">Bookings & Contracts</h1>
+          <p className="text-muted-foreground">Active and upcoming agreements</p>
+        </div>
+        <CreateBookingDialog accounts={accounts || []} />
+      </div>
+
+      {!bookings?.length ? (
+        <EmptyState
+          title="No bookings yet"
+          description="Record contracts and bookings linked to your accounts."
+        />
+      ) : (
+        <div className="rounded-lg border">
+          <table className="w-full">
+            <thead>
+              <tr className="border-b bg-muted/50">
+                <th className="px-4 py-3 text-left text-sm font-medium">Title</th>
+                <th className="px-4 py-3 text-left text-sm font-medium">Account</th>
+                <th className="px-4 py-3 text-left text-sm font-medium">Period</th>
+                <th className="px-4 py-3 text-left text-sm font-medium">Value</th>
+                <th className="px-4 py-3 text-left text-sm font-medium">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {bookings.map((booking) => (
+                <tr key={booking.id} className="border-b hover:bg-muted/30">
+                  <td className="px-4 py-3">
+                    <Link href={`/bookings/${booking.id}`} className="font-medium text-primary hover:underline">
+                      {booking.title}
+                    </Link>
+                  </td>
+                  <td className="px-4 py-3 text-sm">
+                    <Link
+                      href={`/accounts/${(booking.account as { id: string }).id}`}
+                      className="hover:underline"
+                    >
+                      {(booking.account as { name: string }).name}
+                    </Link>
+                  </td>
+                  <td className="px-4 py-3 text-sm text-muted-foreground">
+                    {formatDate(booking.start_date)}
+                    {booking.end_date && ` – ${formatDate(booking.end_date)}`}
+                  </td>
+                  <td className="px-4 py-3 font-medium">
+                    {formatCurrency(Number(booking.value), booking.currency)}
+                  </td>
+                  <td className="px-4 py-3">
+                    <Badge
+                      variant={
+                        booking.status === "active"
+                          ? "success"
+                          : booking.status === "draft"
+                          ? "warning"
+                          : "secondary"
+                      }
+                    >
+                      {booking.status}
+                    </Badge>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+}
