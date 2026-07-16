@@ -9,13 +9,15 @@ import type { DealStage } from "@/lib/types";
 import { updateDealStage } from "@/lib/actions/deals";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { EditDealDialog } from "@/components/deals/edit-deal-dialog";
+import type { Deal, Profile } from "@/lib/types";
 
 interface PageProps {
   params: Promise<{ id: string }>;
 }
 
 export default async function DealDetailPage({ params }: PageProps) {
-  await requireProfile();
+  const profile = await requireProfile();
   const { id } = await params;
   const supabase = await createClient();
 
@@ -27,7 +29,7 @@ export default async function DealDetailPage({ params }: PageProps) {
 
   if (!deal) notFound();
 
-  const [{ data: activities }, { data: tasks }] = await Promise.all([
+  const [{ data: activities }, { data: tasks }, { data: profiles }] = await Promise.all([
     supabase
       .from("activities")
       .select("*, creator:profiles!activities_created_by_fkey(full_name)")
@@ -38,25 +40,29 @@ export default async function DealDetailPage({ params }: PageProps) {
       .select("*, assignee:profiles!tasks_assignee_id_fkey(full_name)")
       .eq("deal_id", id)
       .order("due_at"),
+    supabase.from("profiles").select("*").eq("org_id", profile.org_id),
   ]);
 
   const stages: DealStage[] = ["lead", "qualified", "proposal", "negotiation", "won", "lost"];
 
   return (
     <div className="space-y-6">
-      <div>
-        <Link href="/deals" className="text-sm text-muted-foreground hover:text-primary">
-          &larr; Back to offers
-        </Link>
-        <div className="mt-2">
-          <h1 className="text-3xl font-bold">{deal.title}</h1>
-          <div className="mt-2 flex items-center gap-2">
-            <Badge>{getDealStageLabel(deal.stage)}</Badge>
-            <Link href={`/accounts/${(deal.account as { id: string }).id}`} className="text-sm text-primary hover:underline">
-              {(deal.account as { name: string }).name}
-            </Link>
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <Link href="/deals" className="text-sm text-muted-foreground hover:text-primary">
+            &larr; Back to offers
+          </Link>
+          <div className="mt-2">
+            <h1 className="text-3xl font-bold">{deal.title}</h1>
+            <div className="mt-2 flex items-center gap-2">
+              <Badge>{getDealStageLabel(deal.stage)}</Badge>
+              <Link href={`/accounts/${(deal.account as { id: string }).id}`} className="text-sm text-primary hover:underline">
+                {(deal.account as { name: string }).name}
+              </Link>
+            </div>
           </div>
         </div>
+        <EditDealDialog deal={deal as Deal} profiles={(profiles || []) as Profile[]} />
       </div>
 
       <div className="grid gap-6 md:grid-cols-3">

@@ -11,13 +11,15 @@ import { getDealStageLabel, getActivityTypeLabel, getAccountTypeLabel } from "@/
 import Link from "next/link";
 import { deleteContact } from "@/lib/actions/accounts";
 import { Button } from "@/components/ui/button";
+import { EditAccountDialog } from "@/components/accounts/edit-account-dialog";
+import type { Account, Profile } from "@/lib/types";
 
 interface PageProps {
   params: Promise<{ id: string }>;
 }
 
 export default async function AccountDetailPage({ params }: PageProps) {
-  await requireProfile();
+  const profile = await requireProfile();
   const { id } = await params;
   const supabase = await createClient();
 
@@ -35,17 +37,20 @@ export default async function AccountDetailPage({ params }: PageProps) {
     { data: activities },
     { data: tasks },
     { data: bookings },
+    { data: profiles },
   ] = await Promise.all([
     supabase.from("contacts").select("*").eq("account_id", id).order("is_primary", { ascending: false }),
     supabase.from("deals").select("*").eq("account_id", id).order("created_at", { ascending: false }),
     supabase.from("activities").select("*, creator:profiles!activities_created_by_fkey(full_name)").eq("account_id", id).order("occurred_at", { ascending: false }).limit(10),
     supabase.from("tasks").select("*, assignee:profiles!tasks_assignee_id_fkey(full_name)").eq("account_id", id).order("due_at"),
     supabase.from("bookings").select("*").eq("account_id", id).order("start_date", { ascending: false }),
+    supabase.from("profiles").select("*").eq("org_id", profile.org_id),
   ]);
 
   return (
     <div className="space-y-6">
-      <div>
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div>
         <Link href="/accounts" className="text-sm text-muted-foreground hover:text-primary">
           &larr; Back to clients
         </Link>
@@ -83,6 +88,11 @@ export default async function AccountDetailPage({ params }: PageProps) {
         {account.notes && (
           <p className="mt-2 text-sm text-muted-foreground">{account.notes}</p>
         )}
+        </div>
+        <EditAccountDialog
+          account={account as Account}
+          profiles={(profiles || []) as Profile[]}
+        />
       </div>
 
       <Tabs defaultValue="contacts">

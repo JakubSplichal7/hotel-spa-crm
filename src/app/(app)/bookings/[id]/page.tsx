@@ -5,6 +5,9 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import Link from "next/link";
+import { EditBookingDialog } from "@/components/bookings/edit-booking-dialog";
+import { BookingStatusButtons } from "@/components/bookings/booking-status-buttons";
+import type { Booking, BookingStatus } from "@/lib/types";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -25,33 +28,46 @@ export default async function BookingDetailPage({ params }: PageProps) {
 
   return (
     <div className="space-y-6">
-      <div>
-        <Link href="/bookings" className="text-sm text-muted-foreground hover:text-primary">
-          &larr; Back to bookings
-        </Link>
-        <div className="mt-2">
-          <h1 className="text-3xl font-bold">{booking.title}</h1>
-          <div className="mt-2 flex items-center gap-2">
-            <Badge
-              variant={
-                booking.status === "active"
-                  ? "success"
-                  : booking.status === "draft"
-                  ? "warning"
-                  : "secondary"
-              }
-            >
-              {booking.status}
-            </Badge>
-            <Link
-              href={`/accounts/${(booking.account as { id: string }).id}`}
-              className="text-sm text-primary hover:underline"
-            >
-              {(booking.account as { name: string }).name}
-            </Link>
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <Link href="/bookings" className="text-sm text-muted-foreground hover:text-primary">
+            &larr; Back to bookings
+          </Link>
+          <div className="mt-2">
+            <h1 className="text-3xl font-bold">{booking.title}</h1>
+            <div className="mt-2 flex items-center gap-2">
+              <Badge
+                variant={
+                  booking.status === "active"
+                    ? "success"
+                    : booking.status === "draft"
+                      ? "warning"
+                      : "secondary"
+                }
+              >
+                {booking.status}
+              </Badge>
+              <Link
+                href={`/accounts/${(booking.account as { id: string }).id}`}
+                className="text-sm text-primary hover:underline"
+              >
+                {(booking.account as { name: string }).name}
+              </Link>
+            </div>
           </div>
         </div>
+        <EditBookingDialog booking={booking as Booking} />
       </div>
+
+      <Card>
+        <CardContent className="p-6">
+          <p className="mb-3 text-sm font-medium">Update status</p>
+          <BookingStatusButtons
+            bookingId={booking.id}
+            currentStatus={booking.status as BookingStatus}
+          />
+        </CardContent>
+      </Card>
 
       <div className="grid gap-6 md:grid-cols-3">
         <Card>
@@ -81,7 +97,7 @@ export default async function BookingDetailPage({ params }: PageProps) {
       {booking.deal && (
         <Card>
           <CardContent className="p-6">
-            <p className="text-sm text-muted-foreground">Linked Deal</p>
+            <p className="text-sm text-muted-foreground">Linked Offer</p>
             <Link
               href={`/deals/${(booking.deal as { id: string }).id}`}
               className="text-lg font-medium text-primary hover:underline"

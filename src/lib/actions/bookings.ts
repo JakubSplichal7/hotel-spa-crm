@@ -33,6 +33,23 @@ export async function createBooking(formData: FormData) {
   return { data };
 }
 
+export async function updateBookingStatus(id: string, status: BookingStatus) {
+  await requireProfile();
+  const supabase = await createClient();
+
+  const { error } = await supabase
+    .from("bookings")
+    .update({ status })
+    .eq("id", id);
+
+  if (error) return { error: error.message };
+
+  revalidatePath("/bookings");
+  revalidatePath(`/bookings/${id}`);
+  revalidatePath("/dashboard");
+  return { success: true };
+}
+
 export async function updateBooking(id: string, formData: FormData) {
   await requireProfile();
   const supabase = await createClient();
