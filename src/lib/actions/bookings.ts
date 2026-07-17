@@ -186,8 +186,12 @@ export async function confirmLinkedBooking(id: string, formData: FormData) {
   if (!startDate) return { error: "Start date is required to confirm the booking" };
 
   const endDate = (formData.get("end_date") as string) || null;
-  const rangeError = invalidDateRangeError(startDate, endDate);
-  if (rangeError) return { error: rangeError };
+  if (endDate && endDate < startDate) {
+    return {
+      error:
+        "Booking cannot be confirmed: end date cannot be earlier than start date. Please correct the dates and try again.",
+    };
+  }
 
   const dealStage = (booking.deal as { stage: DealStage } | null)?.stage;
   const forcedStatus = (formData.get("status") as BookingStatus) || null;

@@ -47,6 +47,17 @@ export function ConfirmLinkedBookingDialog({
   async function handleSubmit(formData: FormData) {
     setLoading(true);
     setError(null);
+
+    const startDate = (formData.get("start_date") as string) || "";
+    const endDate = (formData.get("end_date") as string) || "";
+    if (startDate && endDate && endDate < startDate) {
+      setError(
+        "Booking cannot be confirmed: end date cannot be earlier than start date. Please correct the dates and try again."
+      );
+      setLoading(false);
+      return;
+    }
+
     const result = await confirmLinkedBooking(booking.id, formData);
     setLoading(false);
     if (result?.error) {
@@ -69,7 +80,10 @@ export function ConfirmLinkedBookingDialog({
         </DialogHeader>
         <form action={handleSubmit} className="space-y-4">
           {error && (
-            <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
+            <div
+              role="alert"
+              className="rounded-md border border-destructive/30 bg-destructive/10 p-3 text-sm font-medium text-destructive"
+            >
               {error}
             </div>
           )}
