@@ -4,13 +4,11 @@ import { notFound } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { formatCurrency, formatDate, formatDateTime } from "@/lib/utils";
-import { getDealStageLabel, getActivityTypeLabel, DEAL_STAGE_LABELS } from "@/lib/types";
-import type { DealStage } from "@/lib/types";
-import { updateDealStage } from "@/lib/actions/deals";
+import { getDealStageLabel, getActivityTypeLabel, getPrimaryBooking } from "@/lib/types";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
 import { EditDealDialog } from "@/components/deals/edit-deal-dialog";
-import type { Deal, Profile } from "@/lib/types";
+import { OfferBookingSection } from "@/components/deals/offer-booking-section";
+import type { Booking, Deal, Profile } from "@/lib/types";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -29,21 +27,32 @@ export default async function DealDetailPage({ params }: PageProps) {
 
   if (!deal) notFound();
 
-  const [{ data: activities }, { data: tasks }, { data: profiles }] = await Promise.all([
-    supabase
-      .from("activities")
-      .select("*, creator:profiles!activities_created_by_fkey(full_name)")
-      .eq("deal_id", id)
-      .order("occurred_at", { ascending: false }),
-    supabase
-      .from("tasks")
-      .select("*, assignee:profiles!tasks_assignee_id_fkey(full_name)")
-      .eq("deal_id", id)
-      .order("due_at"),
-    supabase.from("profiles").select("*").eq("org_id", profile.org_id),
-  ]);
+  const [{ data: activities }, { data: tasks }, { data: profiles }, { data: bookings }] =
+    await Promise.all([
+      supabase
+        .from("activities")
+        .select("*, creator:profiles!activities_created_by_fkey(full_name)")
+        .eq("deal_id", id)
+        .order("occurred_at", { ascending: false }),
+      supabase
+        .from("tasks")
+        .select("*, assignee:profiles!tasks_assignee_id_fkey(full_name)")
+        .eq("deal_id", id)
+        .order("due_at"),
+      supabase.from("profiles").select("*").eq("org_id", profile.org_id),
+      supabase
+        .from("bookings")
+        .select("*")
+        .eq("deal_id", id)
+        .order("created_at", { ascending: true }),
+    ]);
 
-  const stages: DealStage[] = ["lead", "qualified", "proposal", "negotiation", "won", "lost"];
+  const primaryBooking = getPrimaryBooking((bookings || []) as Booking[]);
+  const dealRecord = {
+    ...deal,
+    booking_create_declined: Boolean(deal.booking_create_declined),
+    active_booking_declined: Boolean(deal.active_booking_declined),
+  } as Deal;
 
   return (
     <div className="space-y-6">
@@ -56,20 +65,25 @@ export default async function DealDetailPage({ params }: PageProps) {
             <h1 className="text-3xl font-bold">{deal.title}</h1>
             <div className="mt-2 flex items-center gap-2">
               <Badge>{getDealStageLabel(deal.stage)}</Badge>
-              <Link href={`/accounts/${(deal.account as { id: string }).id}`} className="text-sm text-primary hover:underline">
+              <Link
+                href={`/accounts/${(deal.account as { id: string }).id}`}
+                className="text-sm text-primary hover:underline"
+              >
                 {(deal.account as { name: string }).name}
               </Link>
             </div>
           </div>
         </div>
-        <EditDealDialog deal={deal as Deal} profiles={(profiles || []) as Profile[]} />
+        <EditDealDialog deal={dealRecord} profiles={(profiles || []) as Profile[]} />
       </div>
 
       <div className="grid gap-6 md:grid-cols-3">
         <Card>
           <CardContent className="p-6">
             <p className="text-sm text-muted-foreground">Value</p>
-            <p className="text-2xl font-bold">{formatCurrency(Number(deal.value), deal.currency)}</p>
+            <p className="text-2xl font-bold">
+              {formatCurrency(Number(deal.value), deal.currency)}
+            </p>
           </CardContent>
         </Card>
         <Card>
@@ -90,24 +104,18 @@ export default async function DealDetailPage({ params }: PageProps) {
         </Card>
       </div>
 
-      <Card>
-        <CardContent className="p-6">
-          <p className="mb-3 text-sm font-medium">Update Stage</p>
-          <div className="flex flex-wrap gap-2">
-            {stages.map((stage) => (
-              <form key={stage} action={async () => { "use server"; await updateDealStage(id, stage); }}>
-                <Button
-                  type="submit"
-                  variant={deal.stage === stage ? "default" : "outline"}
-                  size="sm"
-                >
-                  {DEAL_STAGE_LABELS[stage]}
-                </Button>
-              </form>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+      <OfferBookingSection
+        key={`${deal.stage}-${primaryBooking?.id ?? "none"}-${primaryBooking?.status ?? "none"}-${deal.booking_create_declined}-${deal.active_booking_declined}`}
+        deal={dealRecord}
+        booking={
+          primaryBooking
+            ? ({
+                ...primaryBooking,
+                needs_confirmation: Boolean(primaryBooking.needs_confirmation),
+              } as Booking)
+            : null
+        }
+      />
 
       {deal.notes && (
         <Card>
@@ -132,7 +140,9 @@ export default async function DealDetailPage({ params }: PageProps) {
                       <Badge variant="outline">{getActivityTypeLabel(activity.type)}</Badge>
                       <span className="font-medium">{activity.subject}</span>
                     </div>
-                    {activity.body && <p className="mt-2 text-sm text-muted-foreground">{activity.body}</p>}
+                    {activity.body && (
+                      <p className="mt-2 text-sm text-muted-foreground">{activity.body}</p>
+                    )}
                     <p className="mt-2 text-xs text-muted-foreground">
                       {(activity.creator as { full_name: string } | null)?.full_name} &middot;{" "}
                       {formatDateTime(activity.occurred_at)}
@@ -158,7 +168,9 @@ export default async function DealDetailPage({ params }: PageProps) {
                         {(task.assignee as { full_name: string } | null)?.full_name}
                       </p>
                     </div>
-                    <Badge variant={task.status === "done" ? "success" : "warning"}>{task.status}</Badge>
+                    <Badge variant={task.status === "done" ? "success" : "warning"}>
+                      {task.status}
+                    </Badge>
                   </CardContent>
                 </Card>
               ))}

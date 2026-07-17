@@ -13,7 +13,8 @@ export function formatCurrency(value: number, currency = "EUR") {
   }).format(value);
 }
 
-export function formatDate(date: string | Date) {
+export function formatDate(date: string | Date | null | undefined) {
+  if (!date) return "—";
   return new Intl.DateTimeFormat("en-US", {
     year: "numeric",
     month: "short",

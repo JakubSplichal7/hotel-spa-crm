@@ -7,6 +7,7 @@ import { formatCurrency, formatDate } from "@/lib/utils";
 import Link from "next/link";
 import { EditBookingDialog } from "@/components/bookings/edit-booking-dialog";
 import { BookingStatusButtons } from "@/components/bookings/booking-status-buttons";
+import { ConfirmBookingButton } from "@/components/bookings/confirm-booking-button";
 import type { Booking, BookingStatus } from "@/lib/types";
 import { BOOKING_STATUS_LABELS } from "@/lib/types";
 
@@ -21,7 +22,7 @@ export default async function BookingDetailPage({ params }: PageProps) {
 
   const { data: booking } = await supabase
     .from("bookings")
-    .select("*, account:accounts(id, name), deal:deals(id, title)")
+    .select("*, account:accounts(id, name), deal:deals(id, title, stage)")
     .eq("id", id)
     .single();
 
@@ -59,8 +60,43 @@ export default async function BookingDetailPage({ params }: PageProps) {
             </div>
           </div>
         </div>
-        <EditBookingDialog booking={booking as Booking} />
+        <div className="flex flex-wrap gap-2">
+          {(booking.needs_confirmation || booking.status === "draft") && (
+            <ConfirmBookingButton
+              booking={
+                {
+                  ...booking,
+                  needs_confirmation: Boolean(booking.needs_confirmation),
+                } as Booking
+              }
+              dealStage={
+                (booking.deal as { stage?: string } | null)?.stage as
+                  | "proposal"
+                  | "negotiation"
+                  | "won"
+                  | undefined
+              }
+            />
+          )}
+          <EditBookingDialog
+            booking={
+              {
+                ...booking,
+                needs_confirmation: Boolean(booking.needs_confirmation),
+              } as Booking
+            }
+          />
+        </div>
       </div>
+
+      {(booking.needs_confirmation || booking.status === "draft") && booking.deal_id && (
+        <Card>
+          <CardContent className="p-4 text-sm text-amber-800 dark:text-amber-300">
+            This booking was created from an offer and still needs confirmation
+            (dates and status).
+          </CardContent>
+        </Card>
+      )}
 
       <Card>
         <CardContent className="p-6">

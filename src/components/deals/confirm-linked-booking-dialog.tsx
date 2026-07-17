@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { updateBooking } from "@/lib/actions/bookings";
+import { confirmLinkedBooking } from "@/lib/actions/bookings";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -9,43 +9,63 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { NativeSelect } from "@/components/ui/native-select";
-import { BOOKING_STATUSES, BOOKING_STATUS_LABELS } from "@/lib/types";
-import type { Booking } from "@/lib/types";
-import { Pencil } from "lucide-react";
+import {
+  BOOKING_STATUSES,
+  BOOKING_STATUS_LABELS,
+  type Booking,
+  type BookingStatus,
+  type DealStage,
+} from "@/lib/types";
 
-export function EditBookingDialog({ booking }: { booking: Booking }) {
-  const [open, setOpen] = useState(false);
+function defaultStatusForStage(stage?: DealStage | null): BookingStatus {
+  if (stage === "won") return "active";
+  return "option";
+}
+
+export function ConfirmLinkedBookingDialog({
+  booking,
+  dealStage,
+  open,
+  onOpenChange,
+  onConfirmed,
+}: {
+  booking: Booking;
+  dealStage?: DealStage | null;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onConfirmed?: () => void;
+}) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const suggested = defaultStatusForStage(dealStage);
 
   async function handleSubmit(formData: FormData) {
     setLoading(true);
     setError(null);
-    const result = await updateBooking(booking.id, formData);
+    const result = await confirmLinkedBooking(booking.id, formData);
     setLoading(false);
     if (result?.error) {
       setError(result.error);
       return;
     }
-    setOpen(false);
+    onOpenChange(false);
+    onConfirmed?.();
   }
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button variant="outline">
-          <Pencil className="mr-2 h-4 w-4" />
-          Edit booking
-        </Button>
-      </DialogTrigger>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Edit Booking</DialogTitle>
+          <DialogTitle>Confirm booking</DialogTitle>
+          <DialogDescription>
+            Review dates and details. Confirming moves this booking out of Draft
+            {suggested === "active" ? " to Active" : " to Option"}.
+          </DialogDescription>
         </DialogHeader>
         <form action={handleSubmit} className="space-y-4">
           {error && (
@@ -54,24 +74,29 @@ export function EditBookingDialog({ booking }: { booking: Booking }) {
             </div>
           )}
           <div className="space-y-2">
-            <Label htmlFor="title">Title</Label>
-            <Input id="title" name="title" required defaultValue={booking.title} />
+            <Label htmlFor="confirm_title">Title</Label>
+            <Input
+              id="confirm_title"
+              name="title"
+              required
+              defaultValue={booking.title}
+            />
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="start_date">Start date</Label>
+              <Label htmlFor="confirm_start_date">Start date</Label>
               <Input
-                id="start_date"
+                id="confirm_start_date"
                 name="start_date"
                 type="date"
-                required={booking.status !== "draft"}
+                required
                 defaultValue={booking.start_date || ""}
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="end_date">End date</Label>
+              <Label htmlFor="confirm_end_date">End date</Label>
               <Input
-                id="end_date"
+                id="confirm_end_date"
                 name="end_date"
                 type="date"
                 defaultValue={booking.end_date || ""}
@@ -80,9 +105,9 @@ export function EditBookingDialog({ booking }: { booking: Booking }) {
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="value">Value</Label>
+              <Label htmlFor="confirm_value">Value</Label>
               <Input
-                id="value"
+                id="confirm_value"
                 name="value"
                 type="number"
                 min="0"
@@ -91,8 +116,12 @@ export function EditBookingDialog({ booking }: { booking: Booking }) {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="currency">Currency</Label>
-              <NativeSelect id="currency" name="currency" defaultValue={booking.currency || "EUR"}>
+              <Label htmlFor="confirm_currency">Currency</Label>
+              <NativeSelect
+                id="confirm_currency"
+                name="currency"
+                defaultValue={booking.currency || "EUR"}
+              >
                 <option value="EUR">EUR</option>
                 <option value="USD">USD</option>
                 <option value="GBP">GBP</option>
@@ -101,9 +130,13 @@ export function EditBookingDialog({ booking }: { booking: Booking }) {
             </div>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="status">Status</Label>
-            <NativeSelect id="status" name="status" defaultValue={booking.status}>
-              {BOOKING_STATUSES.map((s) => (
+            <Label htmlFor="confirm_status">Status after confirm</Label>
+            <NativeSelect
+              id="confirm_status"
+              name="status"
+              defaultValue={suggested}
+            >
+              {BOOKING_STATUSES.filter((s) => s !== "draft").map((s) => (
                 <option key={s} value={s}>
                   {BOOKING_STATUS_LABELS[s]}
                 </option>
@@ -111,11 +144,15 @@ export function EditBookingDialog({ booking }: { booking: Booking }) {
             </NativeSelect>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="notes">Notes</Label>
-            <Textarea id="notes" name="notes" defaultValue={booking.notes || ""} />
+            <Label htmlFor="confirm_notes">Notes</Label>
+            <Textarea
+              id="confirm_notes"
+              name="notes"
+              defaultValue={booking.notes || ""}
+            />
           </div>
           <Button type="submit" className="w-full" disabled={loading}>
-            {loading ? "Saving..." : "Save changes"}
+            {loading ? "Confirming..." : "Confirm booking"}
           </Button>
         </form>
       </DialogContent>

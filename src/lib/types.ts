@@ -78,10 +78,16 @@ export interface Deal {
   expected_close: string | null;
   owner_id: string;
   notes: string | null;
+  /** Soft flag: user declined creating a linked booking */
+  booking_create_declined?: boolean;
+  /** Soft flag: user declined moving linked booking to Active on Won */
+  active_booking_declined?: boolean;
   created_at: string;
   updated_at: string;
   account?: Account;
   owner?: Profile;
+  /** Primary linked booking when loaded */
+  booking?: Booking | null;
 }
 
 export interface Activity {
@@ -122,15 +128,74 @@ export interface Booking {
   account_id: string;
   deal_id: string | null;
   title: string;
-  start_date: string;
+  start_date: string | null;
   end_date: string | null;
   value: number;
   currency: string;
   status: BookingStatus;
   notes: string | null;
+  /** True until user confirms details after offer-driven create */
+  needs_confirmation?: boolean;
   created_at: string;
   account?: Account;
   deal?: Deal;
+}
+
+/** Stages where a linked booking is expected (soft rule) */
+export const DEAL_STAGES_NEEDING_BOOKING: DealStage[] = [
+  "proposal",
+  "negotiation",
+  "won",
+];
+
+export function dealStageNeedsBooking(stage: DealStage): boolean {
+  return DEAL_STAGES_NEEDING_BOOKING.includes(stage);
+}
+
+/** Pick the primary booking for an offer (1:1 UI; list-ready for future) */
+export function getPrimaryBooking(
+  bookings: Booking[] | null | undefined
+): Booking | null {
+  if (!bookings?.length) return null;
+  const active = bookings.filter((b) => b.status !== "cancelled");
+  const pool = active.length ? active : bookings;
+  return [...pool].sort(
+    (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+  )[0];
+}
+
+export type OfferBookingHealth =
+  | "ok"
+  | "missing_booking"
+  | "needs_confirmation"
+  | "missing_active"
+  | "status_mismatch";
+
+export function getOfferBookingHealth(
+  stage: DealStage,
+  booking: Booking | null | undefined,
+  flags?: { booking_create_declined?: boolean; active_booking_declined?: boolean }
+): OfferBookingHealth {
+  if (!dealStageNeedsBooking(stage)) return "ok";
+  if (!booking) return "missing_booking";
+  if (booking.needs_confirmation || booking.status === "draft") {
+    return "needs_confirmation";
+  }
+  if (stage === "won") {
+    if (booking.status === "active" || booking.status === "completed") return "ok";
+    return flags?.active_booking_declined || booking.status !== "active"
+      ? "missing_active"
+      : "ok";
+  }
+  if (
+    (stage === "proposal" || stage === "negotiation") &&
+    booking.status !== "option" &&
+    booking.status !== "active" &&
+    booking.status !== "completed"
+  ) {
+    return "status_mismatch";
+  }
+  return "ok";
 }
 
 export const DEAL_STAGES: DealStage[] = [
