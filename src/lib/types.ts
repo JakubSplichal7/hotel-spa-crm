@@ -112,7 +112,10 @@ export interface Task {
   account_id: string | null;
   deal_id: string | null;
   title: string;
+  /** Calendar due date (YYYY-MM-DD), no time */
   due_at: string | null;
+  /** Calendar date when marked done (YYYY-MM-DD) */
+  completed_at: string | null;
   status: TaskStatus;
   assignee_id: string;
   created_by: string;

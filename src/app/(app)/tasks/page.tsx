@@ -20,7 +20,7 @@ export default async function TasksPage({ searchParams }: PageProps) {
   const supabase = await createClient();
 
   const today = new Date();
-  today.setHours(0, 0, 0, 0);
+  const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
 
   let openQuery = supabase
     .from("tasks")
@@ -69,7 +69,7 @@ export default async function TasksPage({ searchParams }: PageProps) {
   ]);
 
   const overdueCount = (openTasks || []).filter(
-    (t) => t.due_at && new Date(t.due_at) < today
+    (t) => t.due_at && t.due_at.slice(0, 10) < todayStr
   ).length;
 
   const selectedClient = clientId

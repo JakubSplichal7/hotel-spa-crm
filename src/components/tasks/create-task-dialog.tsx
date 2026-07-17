@@ -101,7 +101,7 @@ export function CreateTaskDialog({
           )}
           <div className="space-y-2">
             <Label htmlFor="due_at">Due date</Label>
-            <Input id="due_at" name="due_at" type="datetime-local" />
+            <Input id="due_at" name="due_at" type="date" />
           </div>
           {profiles.length > 1 && (
             <div className="space-y-2">

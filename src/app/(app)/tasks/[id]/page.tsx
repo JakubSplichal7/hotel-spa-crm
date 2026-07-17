@@ -28,8 +28,11 @@ export default async function TaskDetailPage({ params }: PageProps) {
 
   const deal = task.deal as { id: string; title: string } | null;
   const account = task.account as { id: string; name: string } | null;
+  const dueDay = task.due_at?.slice(0, 10) || null;
+  const today = new Date();
+  const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
   const isOverdue =
-    task.status === "open" && task.due_at && new Date(task.due_at) < new Date();
+    task.status === "open" && dueDay !== null && dueDay < todayStr;
 
   return (
     <div className="space-y-6">
@@ -61,7 +64,7 @@ export default async function TaskDetailPage({ params }: PageProps) {
         <TaskStatusToggle taskId={task.id} status={task.status} />
       </div>
 
-      <div className="grid gap-6 md:grid-cols-3">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardContent className="p-6">
             <p className="text-sm text-muted-foreground">Client</p>
@@ -94,9 +97,17 @@ export default async function TaskDetailPage({ params }: PageProps) {
         </Card>
         <Card>
           <CardContent className="p-6">
-            <p className="text-sm text-muted-foreground">Due</p>
+            <p className="text-sm text-muted-foreground">Due date</p>
             <p className="text-lg font-medium">
               {task.due_at ? formatDate(task.due_at) : "—"}
+            </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-6">
+            <p className="text-sm text-muted-foreground">Done on</p>
+            <p className="text-lg font-medium">
+              {task.completed_at ? formatDate(task.completed_at) : "—"}
             </p>
           </CardContent>
         </Card>

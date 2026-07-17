@@ -11,9 +11,7 @@ export default async function DashboardPage() {
   const supabase = await createClient();
 
   const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const todayEnd = new Date(today);
-  todayEnd.setHours(23, 59, 59, 999);
+  const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
 
   const thirtyDaysFromNow = new Date();
   thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
@@ -36,15 +34,14 @@ export default async function DashboardPage() {
       .eq("org_id", profile.org_id)
       .eq("assignee_id", profile.id)
       .eq("status", "open")
-      .gte("due_at", today.toISOString())
-      .lte("due_at", todayEnd.toISOString()),
+      .eq("due_at", todayStr),
     supabase
       .from("tasks")
       .select("id, title, due_at")
       .eq("org_id", profile.org_id)
       .eq("assignee_id", profile.id)
       .eq("status", "open")
-      .lt("due_at", today.toISOString()),
+      .lt("due_at", todayStr),
     supabase
       .from("activities")
       .select("id, type, subject, occurred_at, account:accounts(name)")
@@ -162,7 +159,7 @@ export default async function DashboardPage() {
                 {tasksDueToday.map((task) => (
                   <li key={task.id} className="flex items-center justify-between text-sm">
                     <span>{task.title}</span>
-                    <span className="text-muted-foreground">{formatDateTime(task.due_at!)}</span>
+                    <span className="text-muted-foreground">{formatDate(task.due_at!)}</span>
                   </li>
                 ))}
               </ul>

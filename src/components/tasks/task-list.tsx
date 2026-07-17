@@ -8,6 +8,14 @@ import { formatDate } from "@/lib/utils";
 import type { Task } from "@/lib/types";
 import Link from "next/link";
 
+function isDueBeforeToday(dueAt: string | null | undefined) {
+  if (!dueAt) return false;
+  const due = dueAt.slice(0, 10);
+  const now = new Date();
+  const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+  return due < today;
+}
+
 export function TaskList({ tasks }: { tasks: Task[] }) {
   const router = useRouter();
 
@@ -26,6 +34,7 @@ export function TaskList({ tasks }: { tasks: Task[] }) {
             <th className="px-4 py-3 text-left text-sm font-medium">Offer</th>
             <th className="px-4 py-3 text-left text-sm font-medium">Assignee</th>
             <th className="px-4 py-3 text-left text-sm font-medium">Due</th>
+            <th className="px-4 py-3 text-left text-sm font-medium">Done on</th>
             <th className="px-4 py-3 text-left text-sm font-medium">Status</th>
             <th className="px-4 py-3 text-left text-sm font-medium">Action</th>
           </tr>
@@ -33,9 +42,7 @@ export function TaskList({ tasks }: { tasks: Task[] }) {
         <tbody>
           {tasks.map((task) => {
             const isOverdue =
-              task.status === "open" &&
-              task.due_at &&
-              new Date(task.due_at) < new Date();
+              task.status === "open" && isDueBeforeToday(task.due_at);
 
             return (
               <tr
@@ -84,6 +91,9 @@ export function TaskList({ tasks }: { tasks: Task[] }) {
                 </td>
                 <td className="px-4 py-3 text-sm text-muted-foreground">
                   {task.due_at ? formatDate(task.due_at) : "—"}
+                </td>
+                <td className="px-4 py-3 text-sm text-muted-foreground">
+                  {task.completed_at ? formatDate(task.completed_at) : "—"}
                 </td>
                 <td className="px-4 py-3">
                   <Badge
