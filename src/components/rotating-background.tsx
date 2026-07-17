@@ -42,8 +42,8 @@ export function RotatingBackground({ className }: { className?: string }) {
         />
       ))}
       {/* Soft wash so tables and text stay readable — keep photos more visible */}
-      <div className="absolute inset-0 bg-gradient-to-b from-white/55 via-white/45 to-white/60" />
-      <div className="absolute inset-0 bg-white/10" />
+      <div className="absolute inset-0 bg-gradient-to-b from-white/35 via-white/25 to-white/40" />
+      <div className="absolute inset-0 bg-white/5" />
     </div>
   );
 }
