@@ -36,6 +36,8 @@ export interface Profile {
   role: UserRole;
   full_name: string;
   email?: string;
+  /** True for invited users until they set their own password */
+  must_change_password?: boolean;
   created_at: string;
 }
 

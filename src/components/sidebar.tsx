@@ -12,6 +12,7 @@ import {
   BarChart3,
   Settings,
   LogOut,
+  KeyRound,
   Lock,
   Unlock,
   SkipForward,
@@ -192,6 +193,18 @@ export function Sidebar({ profile }: { profile: Profile }) {
         <div className="mb-3 px-3">
           <p className="text-sm font-medium">{profile.full_name}</p>
         </div>
+        <Link
+          href="/change-password"
+          className={cn(
+            "mb-1 flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+            pathname.startsWith("/change-password")
+              ? "bg-primary text-primary-foreground"
+              : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+          )}
+        >
+          <KeyRound className="h-4 w-4" />
+          Change password
+        </Link>
         <button
           type="button"
           onClick={handleSignOut}

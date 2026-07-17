@@ -116,6 +116,9 @@ export function SettingsClient({
               <div className="space-y-2">
                 <Label htmlFor="password">Temporary password</Label>
                 <Input id="password" name="password" type="password" required minLength={6} />
+                <p className="text-xs text-muted-foreground">
+                  They will be asked to change this on first login.
+                </p>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="role">Role</Label>
