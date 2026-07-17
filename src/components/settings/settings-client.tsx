@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { inviteUser, updateOrgName, updateUserRole } from "@/lib/actions/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,6 +17,7 @@ import {
 import { NativeSelect } from "@/components/ui/native-select";
 import { USER_ROLES, ROLE_LABELS } from "@/lib/types";
 import type { Organization, Profile } from "@/lib/types";
+import { KeyRound } from "lucide-react";
 
 export function SettingsClient({
   org,
@@ -56,6 +58,23 @@ export function SettingsClient({
             </div>
             <Button type="submit">Save</Button>
           </form>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Your password</CardTitle>
+        </CardHeader>
+        <CardContent className="flex flex-wrap items-center justify-between gap-3">
+          <p className="text-sm text-muted-foreground">
+            Update the password you use to sign in.
+          </p>
+          <Button asChild variant="outline">
+            <Link href="/change-password">
+              <KeyRound className="h-4 w-4" />
+              Change password
+            </Link>
+          </Button>
         </CardContent>
       </Card>
 
