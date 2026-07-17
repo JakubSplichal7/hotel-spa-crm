@@ -6,7 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { formatDate } from "@/lib/utils";
 import {
   formatCompletionDelta,
-  taskCompletionDeltaDays,
+  getTaskDayDelta,
 } from "@/lib/task-dates";
 import Link from "next/link";
 import { TaskStatusToggle } from "@/components/tasks/task-status-toggle";
@@ -37,7 +37,7 @@ export default async function TaskDetailPage({ params }: PageProps) {
   const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
   const isOverdue =
     task.status === "open" && dueDay !== null && dueDay < todayStr;
-  const delta = taskCompletionDeltaDays(task.due_at, task.completed_at);
+  const delta = getTaskDayDelta(task);
 
   return (
     <div className="space-y-6">
@@ -128,12 +128,12 @@ export default async function TaskDetailPage({ params }: PageProps) {
             ) : (
               <p
                 className={`text-lg font-medium ${
-                  delta > 0
+                  delta.late
                     ? "text-red-600 dark:text-red-400"
                     : "text-green-600 dark:text-green-400"
                 }`}
               >
-                {formatCompletionDelta(delta)}
+                {formatCompletionDelta(delta.days)}
               </p>
             )}
           </CardContent>

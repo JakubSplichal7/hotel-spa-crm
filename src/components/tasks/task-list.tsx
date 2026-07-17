@@ -9,7 +9,7 @@ import { CompleteTaskDialog } from "@/components/tasks/complete-task-dialog";
 import { formatDate } from "@/lib/utils";
 import {
   formatCompletionDelta,
-  taskCompletionDeltaDays,
+  getTaskDayDelta,
 } from "@/lib/task-dates";
 import type { Task } from "@/lib/types";
 import Link from "next/link";
@@ -55,10 +55,7 @@ export function TaskList({ tasks }: { tasks: Task[] }) {
             {tasks.map((task) => {
               const isOverdue =
                 task.status === "open" && isDueBeforeToday(task.due_at);
-              const delta = taskCompletionDeltaDays(
-                task.due_at,
-                task.completed_at
-              );
+              const delta = getTaskDayDelta(task);
 
               return (
                 <tr
@@ -117,12 +114,12 @@ export function TaskList({ tasks }: { tasks: Task[] }) {
                     ) : (
                       <span
                         className={
-                          delta > 0
+                          delta.late
                             ? "text-red-600 dark:text-red-400"
                             : "text-green-600 dark:text-green-400"
                         }
                       >
-                        {formatCompletionDelta(delta)}
+                        {formatCompletionDelta(delta.days)}
                       </span>
                     )}
                   </td>
