@@ -46,7 +46,11 @@ export async function createTask(formData: FormData) {
   return { data };
 }
 
-export async function updateTaskStatus(id: string, status: TaskStatus) {
+export async function updateTaskStatus(
+  id: string,
+  status: TaskStatus,
+  completedAt?: string | null
+) {
   await requireProfile();
   const supabase = await createClient();
 
@@ -56,11 +60,16 @@ export async function updateTaskStatus(id: string, status: TaskStatus) {
     .eq("id", id)
     .single();
 
+  let completed_at: string | null = null;
+  if (status === "done") {
+    completed_at = completedAt?.trim() || todayDateString();
+  }
+
   const { error } = await supabase
     .from("tasks")
     .update({
       status,
-      completed_at: status === "done" ? todayDateString() : null,
+      completed_at,
     })
     .eq("id", id);
 

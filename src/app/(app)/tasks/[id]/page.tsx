@@ -61,7 +61,11 @@ export default async function TaskDetailPage({ params }: PageProps) {
             </div>
           </div>
         </div>
-        <TaskStatusToggle taskId={task.id} status={task.status} />
+        <TaskStatusToggle
+          taskId={task.id}
+          status={task.status}
+          taskTitle={task.title}
+        />
       </div>
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
