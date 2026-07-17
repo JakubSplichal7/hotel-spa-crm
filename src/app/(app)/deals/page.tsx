@@ -79,7 +79,7 @@ export default async function DealsPage() {
           description="Create your first offer or package for a client."
         />
       ) : (
-        <div className="rounded-lg border">
+        <div className="rounded-lg border bg-card/95 shadow-sm backdrop-blur-sm">
           <table className="w-full">
             <thead>
               <tr className="border-b bg-muted/50">

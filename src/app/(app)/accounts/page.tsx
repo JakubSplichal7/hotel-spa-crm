@@ -64,7 +64,7 @@ export default async function AccountsPage({ searchParams }: PageProps) {
           description="Add your first company or individual guest to start managing relationships."
         />
       ) : (
-        <div className="rounded-lg border">
+        <div className="rounded-lg border bg-card/95 shadow-sm backdrop-blur-sm">
           <table className="w-full">
             <thead>
               <tr className="border-b bg-muted/50">

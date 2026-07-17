@@ -39,7 +39,7 @@ export default async function BookingsPage() {
           description="Record stays, spa appointments, and events linked to your clients."
         />
       ) : (
-        <div className="rounded-lg border">
+        <div className="rounded-lg border bg-card/95 shadow-sm backdrop-blur-sm">
           <table className="w-full">
             <thead>
               <tr className="border-b bg-muted/50">
