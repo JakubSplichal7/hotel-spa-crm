@@ -136,21 +136,41 @@ export async function inviteUser(formData: FormData) {
     return { error: "Only admins can invite users" };
   }
 
-  const email = formData.get("email") as string;
-  const fullName = formData.get("fullName") as string;
+  const email = (formData.get("email") as string)?.trim();
+  const fullName = (formData.get("fullName") as string)?.trim();
   const role = formData.get("role") as string;
   const password = formData.get("password") as string;
 
-  const { data: authData, error: authError } = await supabase.auth.signUp({
+  if (!email || !fullName || !password) {
+    return { error: "Please fill in all invite fields." };
+  }
+
+  // Use service role so signup does NOT replace the admin's browser session
+  let admin;
+  try {
+    const { createAdminClient } = await import("@/lib/supabase/admin");
+    admin = createAdminClient();
+  } catch (e) {
+    return {
+      error:
+        e instanceof Error
+          ? e.message
+          : "Service role key missing — cannot invite without signing you out.",
+    };
+  }
+
+  const { data: created, error: authError } = await admin.auth.admin.createUser({
     email,
     password,
+    email_confirm: true,
+    user_metadata: { full_name: fullName },
   });
 
   if (authError) return { error: authError.message };
-  if (!authData.user) return { error: "Failed to create user" };
+  if (!created.user) return { error: "Failed to create user" };
 
-  const { error: profileError } = await supabase.from("profiles").insert({
-    id: authData.user.id,
+  const { error: profileError } = await admin.from("profiles").insert({
+    id: created.user.id,
     org_id: profile.org_id,
     role,
     full_name: fullName,
@@ -158,7 +178,11 @@ export async function inviteUser(formData: FormData) {
     must_change_password: true,
   });
 
-  if (profileError) return { error: profileError.message };
+  if (profileError) {
+    // Roll back auth user if profile insert fails
+    await admin.auth.admin.deleteUser(created.user.id);
+    return { error: profileError.message };
+  }
 
   revalidatePath("/settings");
   return { success: true };

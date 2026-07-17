@@ -33,3 +33,14 @@ export function getSupabaseAnonKey() {
   }
   return key;
 }
+
+export function getSupabaseServiceRoleKey() {
+  let key = (process.env.SUPABASE_SERVICE_ROLE_KEY || "").trim();
+  if (
+    (key.startsWith('"') && key.endsWith('"')) ||
+    (key.startsWith("'") && key.endsWith("'"))
+  ) {
+    key = key.slice(1, -1).trim();
+  }
+  return key;
+}
