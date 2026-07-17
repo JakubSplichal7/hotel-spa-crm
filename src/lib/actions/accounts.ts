@@ -21,7 +21,7 @@ export async function createAccount(formData: FormData) {
       owner_id: (formData.get("owner_id") as string) || profile.id,
       notes: (formData.get("notes") as string) || null,
       is_vip: formData.get("is_vip") === "on",
-      loyalty_tier: (formData.get("loyalty_tier") as string) || "standard",
+      loyalty_tier: (formData.get("loyalty_tier") as string) || "jana_splichalova",
       preferences: (formData.get("preferences") as string) || null,
     })
     .select()
@@ -48,7 +48,7 @@ export async function updateAccount(id: string, formData: FormData) {
       owner_id: formData.get("owner_id") as string,
       notes: (formData.get("notes") as string) || null,
       is_vip: formData.get("is_vip") === "on",
-      loyalty_tier: (formData.get("loyalty_tier") as string) || "standard",
+      loyalty_tier: (formData.get("loyalty_tier") as string) || "jana_splichalova",
       preferences: (formData.get("preferences") as string) || null,
     })
     .eq("id", id);

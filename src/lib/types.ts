@@ -3,7 +3,8 @@ export type UserRole = "admin" | "manager" | "rep";
 /** Client type — company is the main use case; individual for guests */
 export type AccountType = "company" | "individual" | "hotel" | "spa" | "both";
 export type AccountStatus = "prospect" | "active" | "inactive";
-export type LoyaltyTier = "standard" | "silver" | "gold" | "platinum";
+/** Stored in accounts.loyalty_tier — acquisition channel */
+export type AcquisitionSource = "jana_splichalova" | "mailbox";
 
 export type DealStage =
   | "lead"
@@ -48,7 +49,7 @@ export interface Account {
   owner_id: string;
   notes: string | null;
   is_vip: boolean;
-  loyalty_tier: LoyaltyTier | string | null;
+  loyalty_tier: AcquisitionSource | string | null;
   preferences: string | null;
   created_at: string;
   updated_at: string;
@@ -255,19 +256,22 @@ export const ACCOUNT_STATUS_LABELS: Record<AccountStatus, string> = {
   inactive: "Inactive",
 };
 
-export const LOYALTY_TIERS: LoyaltyTier[] = [
-  "standard",
-  "silver",
-  "gold",
-  "platinum",
+export const ACQUISITION_SOURCES: AcquisitionSource[] = [
+  "jana_splichalova",
+  "mailbox",
 ];
 
-export const LOYALTY_TIER_LABELS: Record<LoyaltyTier, string> = {
-  standard: "Standard",
-  silver: "Silver",
-  gold: "Gold",
-  platinum: "Platinum",
+export const ACQUISITION_SOURCE_LABELS: Record<AcquisitionSource, string> = {
+  jana_splichalova: "Jana Šplíchalová",
+  mailbox: "Mailbox",
 };
+
+export function getAcquisitionLabel(value: string | null | undefined): string {
+  if (!value) return "—";
+  return (
+    ACQUISITION_SOURCE_LABELS[value as AcquisitionSource] ?? value
+  );
+}
 
 export const BOOKING_STATUSES: BookingStatus[] = [
   "draft",

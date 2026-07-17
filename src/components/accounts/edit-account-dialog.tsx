@@ -20,8 +20,8 @@ import {
   ACCOUNT_STATUSES,
   ACCOUNT_TYPE_LABELS,
   ACCOUNT_STATUS_LABELS,
-  LOYALTY_TIERS,
-  LOYALTY_TIER_LABELS,
+  ACQUISITION_SOURCES,
+  ACQUISITION_SOURCE_LABELS,
 } from "@/lib/types";
 import type { Account, Profile } from "@/lib/types";
 import { Pencil } from "lucide-react";
@@ -104,15 +104,21 @@ export function EditAccountDialog({
           />
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="loyalty_tier">Loyalty tier</Label>
+              <Label htmlFor="loyalty_tier">Acquisition</Label>
               <NativeSelect
                 id="loyalty_tier"
                 name="loyalty_tier"
-                defaultValue={(account.loyalty_tier as string) || "standard"}
+                defaultValue={
+                  ACQUISITION_SOURCES.includes(
+                    account.loyalty_tier as (typeof ACQUISITION_SOURCES)[number]
+                  )
+                    ? (account.loyalty_tier as string)
+                    : "jana_splichalova"
+                }
               >
-                {LOYALTY_TIERS.map((t) => (
+                {ACQUISITION_SOURCES.map((t) => (
                   <option key={t} value={t}>
-                    {LOYALTY_TIER_LABELS[t]}
+                    {ACQUISITION_SOURCE_LABELS[t]}
                   </option>
                 ))}
               </NativeSelect>

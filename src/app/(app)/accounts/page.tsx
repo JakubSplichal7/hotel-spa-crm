@@ -6,7 +6,7 @@ import { AccountFilters } from "@/components/accounts/account-filters";
 import { EmptyState } from "@/components/empty-state";
 import { PageHeader } from "@/components/page-header";
 import { Badge } from "@/components/ui/badge";
-import { getAccountTypeLabel } from "@/lib/types";
+import { getAccountTypeLabel, getAcquisitionLabel } from "@/lib/types";
 import Link from "next/link";
 
 interface PageProps {
@@ -70,7 +70,7 @@ export default async function AccountsPage({ searchParams }: PageProps) {
                 <th className="px-4 py-3 text-left text-sm font-medium">Type</th>
                 <th className="px-4 py-3 text-left text-sm font-medium">Location</th>
                 <th className="px-4 py-3 text-left text-sm font-medium">Status</th>
-                <th className="px-4 py-3 text-left text-sm font-medium">Loyalty</th>
+                <th className="px-4 py-3 text-left text-sm font-medium">Acquisition</th>
                 <th className="px-4 py-3 text-left text-sm font-medium">Owner</th>
               </tr>
             </thead>
@@ -109,8 +109,8 @@ export default async function AccountsPage({ searchParams }: PageProps) {
                       {account.status}
                     </Badge>
                   </td>
-                  <td className="px-4 py-3 text-sm capitalize">
-                    {account.loyalty_tier || "standard"}
+                  <td className="px-4 py-3 text-sm">
+                    {getAcquisitionLabel(account.loyalty_tier)}
                   </td>
                   <td className="px-4 py-3 text-sm">
                     {(account.owner as { full_name: string } | null)?.full_name || "—"}

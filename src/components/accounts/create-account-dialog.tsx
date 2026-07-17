@@ -20,8 +20,8 @@ import {
   ACCOUNT_STATUSES,
   ACCOUNT_TYPE_LABELS,
   ACCOUNT_STATUS_LABELS,
-  LOYALTY_TIERS,
-  LOYALTY_TIER_LABELS,
+  ACQUISITION_SOURCES,
+  ACQUISITION_SOURCE_LABELS,
 } from "@/lib/types";
 import type { Profile } from "@/lib/types";
 import { Plus } from "lucide-react";
@@ -86,11 +86,15 @@ export function CreateAccountDialog({ profiles }: { profiles: Profile[] }) {
           <LocationFields />
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="loyalty_tier">Loyalty tier</Label>
-              <NativeSelect id="loyalty_tier" name="loyalty_tier" defaultValue="standard">
-                {LOYALTY_TIERS.map((t) => (
+              <Label htmlFor="loyalty_tier">Acquisition</Label>
+              <NativeSelect
+                id="loyalty_tier"
+                name="loyalty_tier"
+                defaultValue="jana_splichalova"
+              >
+                {ACQUISITION_SOURCES.map((t) => (
                   <option key={t} value={t}>
-                    {LOYALTY_TIER_LABELS[t]}
+                    {ACQUISITION_SOURCE_LABELS[t]}
                   </option>
                 ))}
               </NativeSelect>

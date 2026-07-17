@@ -7,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CreateContactDialog } from "@/components/accounts/create-contact-dialog";
 import { EmptyState } from "@/components/empty-state";
 import { formatCurrency, formatDate, formatDateTime } from "@/lib/utils";
-import { getDealStageLabel, getActivityTypeLabel, getAccountTypeLabel } from "@/lib/types";
+import { getDealStageLabel, getActivityTypeLabel, getAccountTypeLabel, getAcquisitionLabel } from "@/lib/types";
 import Link from "next/link";
 import { deleteContact } from "@/lib/actions/accounts";
 import { Button } from "@/components/ui/button";
@@ -66,11 +66,11 @@ export default async function AccountDetailPage({ params }: PageProps) {
               {account.status}
             </Badge>
             {account.is_vip && <Badge variant="warning">VIP</Badge>}
-            {account.loyalty_tier && (
-              <Badge variant="outline" className="capitalize bg-background/80">
-                {account.loyalty_tier}
-              </Badge>
-            )}
+              {account.loyalty_tier && (
+                <Badge variant="outline">
+                  {getAcquisitionLabel(account.loyalty_tier)}
+                </Badge>
+              )}
             {(account.city || account.country) && (
               <span className="text-sm font-semibold text-slate-900 [text-shadow:0_1px_2px_rgba(255,255,255,0.95),0_0_10px_rgba(255,255,255,0.8)]">
                 {[account.city, account.country].filter(Boolean).join(", ")}
