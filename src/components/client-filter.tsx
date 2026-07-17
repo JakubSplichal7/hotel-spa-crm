@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { NativeSelect } from "@/components/ui/native-select";
+import { SearchableClientSelect } from "@/components/searchable-client-select";
 import type { Account } from "@/lib/types";
 
 export function ClientFilter({
@@ -27,18 +27,14 @@ export function ClientFilter({
   }
 
   return (
-    <NativeSelect
-      className="w-[220px]"
+    <SearchableClientSelect
+      accounts={accounts}
       value={current}
-      onChange={(e) => updateFilter(e.target.value)}
-      aria-label="Filter by client"
-    >
-      <option value="all">All clients</option>
-      {accounts.map((a) => (
-        <option key={a.id} value={a.id}>
-          {a.name}
-        </option>
-      ))}
-    </NativeSelect>
+      onChange={updateFilter}
+      allowAll
+      allLabel="All clients"
+      placeholder="Type client name…"
+      className="max-w-xs"
+    />
   );
 }

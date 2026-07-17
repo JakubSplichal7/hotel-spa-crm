@@ -14,6 +14,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { NativeSelect } from "@/components/ui/native-select";
+import { SearchableClientSelect } from "@/components/searchable-client-select";
 import { BOOKING_STATUSES, BOOKING_STATUS_LABELS } from "@/lib/types";
 import type { Account } from "@/lib/types";
 import { Plus } from "lucide-react";
@@ -21,16 +22,26 @@ import { Plus } from "lucide-react";
 export function CreateBookingDialog({ accounts }: { accounts: Account[] }) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [accountId, setAccountId] = useState("");
 
   async function handleSubmit(formData: FormData) {
     setLoading(true);
     const result = await createBooking(formData);
     setLoading(false);
-    if (!result?.error) setOpen(false);
+    if (!result?.error) {
+      setOpen(false);
+      setAccountId("");
+    }
   }
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog
+      open={open}
+      onOpenChange={(next) => {
+        setOpen(next);
+        if (next) setAccountId("");
+      }}
+    >
       <DialogTrigger asChild>
         <Button>
           <Plus className="mr-2 h-4 w-4" />
@@ -44,16 +55,24 @@ export function CreateBookingDialog({ accounts }: { accounts: Account[] }) {
         <form action={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="title">Title</Label>
-            <Input id="title" name="title" required placeholder="Corporate retreat – May week" />
+            <Input
+              id="title"
+              name="title"
+              required
+              placeholder="Corporate retreat – May week"
+            />
           </div>
           <div className="space-y-2">
             <Label htmlFor="account_id">Client</Label>
-            <NativeSelect id="account_id" name="account_id" required defaultValue="">
-              <option value="" disabled>Select client</option>
-              {accounts.map((a) => (
-                <option key={a.id} value={a.id}>{a.name}</option>
-              ))}
-            </NativeSelect>
+            <SearchableClientSelect
+              id="account_id"
+              accounts={accounts}
+              value={accountId}
+              onChange={setAccountId}
+              required
+              className="max-w-none"
+              placeholder="Type client name…"
+            />
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
@@ -68,7 +87,14 @@ export function CreateBookingDialog({ accounts }: { accounts: Account[] }) {
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="value">Value</Label>
-              <Input id="value" name="value" type="number" min="0" step="0.01" defaultValue="0" />
+              <Input
+                id="value"
+                name="value"
+                type="number"
+                min="0"
+                step="0.01"
+                defaultValue="0"
+              />
             </div>
             <div className="space-y-2">
               <Label htmlFor="currency">Currency</Label>

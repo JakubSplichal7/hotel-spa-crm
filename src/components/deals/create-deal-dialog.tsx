@@ -19,6 +19,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { NativeSelect } from "@/components/ui/native-select";
+import { SearchableClientSelect } from "@/components/searchable-client-select";
 import {
   DEAL_STAGES,
   DEAL_STAGE_LABELS,
@@ -42,6 +43,7 @@ export function CreateDealDialog({
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [accountId, setAccountId] = useState("");
   const [createdDealId, setCreatedDealId] = useState<string | null>(null);
   const [createdStage, setCreatedStage] = useState<DealStage | null>(null);
   const [askBooking, setAskBooking] = useState(false);
@@ -87,7 +89,13 @@ export function CreateDealDialog({
 
   return (
     <>
-      <Dialog open={open} onOpenChange={setOpen}>
+      <Dialog
+        open={open}
+        onOpenChange={(next) => {
+          setOpen(next);
+          if (next) setAccountId("");
+        }}
+      >
         <DialogTrigger asChild>
           <Button>
             <Plus className="mr-2 h-4 w-4" />
@@ -110,21 +118,15 @@ export function CreateDealDialog({
             </div>
             <div className="space-y-2">
               <Label htmlFor="account_id">Client</Label>
-              <NativeSelect
+              <SearchableClientSelect
                 id="account_id"
-                name="account_id"
+                accounts={accounts}
+                value={accountId}
+                onChange={setAccountId}
                 required
-                defaultValue=""
-              >
-                <option value="" disabled>
-                  Select client
-                </option>
-                {accounts.map((a) => (
-                  <option key={a.id} value={a.id}>
-                    {a.name}
-                  </option>
-                ))}
-              </NativeSelect>
+                className="max-w-none"
+                placeholder="Type client name…"
+              />
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">

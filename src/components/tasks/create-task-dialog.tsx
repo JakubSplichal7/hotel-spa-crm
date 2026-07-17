@@ -14,6 +14,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { NativeSelect } from "@/components/ui/native-select";
+import { SearchableClientSelect } from "@/components/searchable-client-select";
 import type { Account, Profile } from "@/lib/types";
 import { Plus } from "lucide-react";
 
@@ -37,6 +38,7 @@ export function CreateTaskDialog({
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [accountId, setAccountId] = useState(defaultAccountId || "");
 
   async function handleSubmit(formData: FormData) {
     setLoading(true);
@@ -44,6 +46,7 @@ export function CreateTaskDialog({
     setLoading(false);
     if (!result?.error) {
       setOpen(false);
+      setAccountId(defaultAccountId || "");
       router.refresh();
     }
   }
@@ -51,7 +54,13 @@ export function CreateTaskDialog({
   const lockedClient = Boolean(defaultAccountId);
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog
+      open={open}
+      onOpenChange={(next) => {
+        setOpen(next);
+        if (next) setAccountId(defaultAccountId || "");
+      }}
+    >
       <DialogTrigger asChild>
         <Button variant={buttonVariant} size={buttonSize}>
           <Plus className="mr-2 h-4 w-4" />
@@ -80,14 +89,14 @@ export function CreateTaskDialog({
           ) : (
             <div className="space-y-2">
               <Label htmlFor="account_id">Client (optional)</Label>
-              <NativeSelect id="account_id" name="account_id" defaultValue="">
-                <option value="">No client</option>
-                {accounts.map((a) => (
-                  <option key={a.id} value={a.id}>
-                    {a.name}
-                  </option>
-                ))}
-              </NativeSelect>
+              <SearchableClientSelect
+                id="account_id"
+                accounts={accounts}
+                value={accountId}
+                onChange={setAccountId}
+                className="max-w-none"
+                placeholder="Type client name…"
+              />
             </div>
           )}
           <div className="space-y-2">
