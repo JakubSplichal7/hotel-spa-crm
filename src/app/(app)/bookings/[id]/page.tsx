@@ -80,6 +80,7 @@ export default async function BookingDetailPage({ params }: PageProps) {
                   | "proposal"
                   | "negotiation"
                   | "won"
+                  | "completed"
                   | undefined
               }
             />

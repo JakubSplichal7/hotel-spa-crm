@@ -233,6 +233,7 @@ export function OfferBookingSection({
                 "proposal",
                 "negotiation",
                 "won",
+                "completed",
                 "lost",
               ] as DealStage[]
             ).map((stage) => (

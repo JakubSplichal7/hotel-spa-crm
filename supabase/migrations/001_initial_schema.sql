@@ -2,7 +2,7 @@
 CREATE TYPE user_role AS ENUM ('admin', 'manager', 'rep');
 CREATE TYPE account_type AS ENUM ('hotel', 'spa', 'both');
 CREATE TYPE account_status AS ENUM ('prospect', 'active', 'inactive');
-CREATE TYPE deal_stage AS ENUM ('lead', 'qualified', 'proposal', 'negotiation', 'won', 'lost');
+CREATE TYPE deal_stage AS ENUM ('lead', 'qualified', 'proposal', 'negotiation', 'won', 'completed', 'lost');
 CREATE TYPE activity_type AS ENUM ('call', 'email', 'meeting', 'note');
 CREATE TYPE task_status AS ENUM ('open', 'done');
 CREATE TYPE booking_status AS ENUM ('draft', 'active', 'completed', 'cancelled');

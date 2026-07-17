@@ -21,6 +21,7 @@ import { TableExportBar } from "@/components/export-xlsx-button";
 
 function stageBadgeVariant(stage: string) {
   if (stage === "won") return "success" as const;
+  if (stage === "completed") return "success" as const;
   if (stage === "lost") return "destructive" as const;
   if (stage === "proposal" || stage === "negotiation") return "warning" as const;
   return "secondary" as const;

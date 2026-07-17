@@ -23,6 +23,7 @@ import {
 } from "@/lib/types";
 
 function defaultStatusForStage(stage?: DealStage | null): BookingStatus {
+  if (stage === "completed") return "completed";
   if (stage === "won") return "active";
   return "option";
 }
@@ -76,7 +77,12 @@ export function ConfirmLinkedBookingDialog({
           <DialogTitle>Confirm booking</DialogTitle>
           <DialogDescription>
             Review dates and details. Confirming moves this booking out of Draft
-            {suggested === "active" ? " to Active" : " to Option"}.
+            {suggested === "active"
+              ? " to Active"
+              : suggested === "completed"
+                ? " to Completed"
+                : " to Option"}
+            .
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">

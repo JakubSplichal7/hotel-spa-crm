@@ -20,7 +20,9 @@ import {
 } from "@/lib/types";
 import { ConfirmYesNoDialog } from "@/components/deals/confirm-yes-no-dialog";
 
-const OPEN_STAGES = DEAL_STAGES.filter((s) => s !== "won" && s !== "lost");
+const OPEN_STAGES = DEAL_STAGES.filter(
+  (s) => s !== "won" && s !== "completed" && s !== "lost"
+);
 
 type DealWithBooking = Deal & { booking?: Booking | null };
 

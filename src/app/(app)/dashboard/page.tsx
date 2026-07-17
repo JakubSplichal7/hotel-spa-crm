@@ -28,7 +28,7 @@ export default async function DashboardPage() {
       .from("deals")
       .select("id, title, stage, value, currency")
       .eq("org_id", profile.org_id)
-      .not("stage", "in", '("won","lost")'),
+      .not("stage", "in", '("won","completed","lost")'),
     supabase
       .from("tasks")
       .select("id, title, due_at, status")

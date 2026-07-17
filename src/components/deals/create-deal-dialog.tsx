@@ -153,13 +153,13 @@ export function CreateDealDialog({
               <div className="space-y-2">
                 <Label htmlFor="stage">Stage</Label>
                 <NativeSelect id="stage" name="stage" defaultValue="lead">
-                  {DEAL_STAGES.filter((s) => s !== "won" && s !== "lost").map(
-                    (s) => (
-                      <option key={s} value={s}>
-                        {DEAL_STAGE_LABELS[s]}
-                      </option>
-                    )
-                  )}
+                  {DEAL_STAGES.filter(
+                    (s) => s !== "won" && s !== "completed" && s !== "lost"
+                  ).map((s) => (
+                    <option key={s} value={s}>
+                      {DEAL_STAGE_LABELS[s]}
+                    </option>
+                  ))}
                 </NativeSelect>
               </div>
               <div className="space-y-2">

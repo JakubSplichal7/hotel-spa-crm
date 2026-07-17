@@ -6,6 +6,7 @@ import { revalidatePath } from "next/cache";
 import type { BookingStatus, DealStage } from "@/lib/types";
 
 function targetStatusForDealStage(stage: DealStage | null | undefined): BookingStatus {
+  if (stage === "completed") return "completed";
   if (stage === "won") return "active";
   if (stage === "proposal" || stage === "negotiation") return "option";
   return "option";

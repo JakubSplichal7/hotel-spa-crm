@@ -12,6 +12,7 @@ export type DealStage =
   | "proposal"
   | "negotiation"
   | "won"
+  | "completed"
   | "lost";
 
 export type ActivityType = "call" | "email" | "meeting" | "note";
@@ -150,6 +151,7 @@ export const DEAL_STAGES_NEEDING_BOOKING: DealStage[] = [
   "proposal",
   "negotiation",
   "won",
+  "completed",
 ];
 
 export function dealStageNeedsBooking(stage: DealStage): boolean {
@@ -191,6 +193,11 @@ export function getOfferBookingHealth(
       ? "missing_active"
       : "ok";
   }
+  if (stage === "completed") {
+    if (booking.status === "completed") return "ok";
+    if (booking.status === "active") return "status_mismatch";
+    return "missing_active";
+  }
   if (
     (stage === "proposal" || stage === "negotiation") &&
     booking.status !== "option" &&
@@ -208,6 +215,7 @@ export const DEAL_STAGES: DealStage[] = [
   "proposal",
   "negotiation",
   "won",
+  "completed",
   "lost",
 ];
 
@@ -217,6 +225,7 @@ export const DEAL_STAGE_LABELS: Record<DealStage, string> = {
   proposal: "Proposal",
   negotiation: "Negotiation",
   won: "Won",
+  completed: "Completed",
   lost: "Lost",
 };
 

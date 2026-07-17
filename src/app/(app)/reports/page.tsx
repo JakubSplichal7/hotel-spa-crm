@@ -39,8 +39,16 @@ export default async function ReportsPage() {
       .gte("updated_at", startOfMonth.toISOString()),
   ]);
 
-  const pipelineData = (["lead", "qualified", "proposal", "negotiation", "won", "lost"] as DealStage[]).map(
-    (stage) => ({
+  const pipelineData = ([
+    "lead",
+    "qualified",
+    "proposal",
+    "negotiation",
+    "won",
+    "completed",
+    "lost",
+  ] as DealStage[]).map(
+      (stage) => ({
       stage: DEAL_STAGE_LABELS[stage],
       count: (deals || []).filter((d) => d.stage === stage).length,
       value: (deals || [])
@@ -60,7 +68,7 @@ export default async function ReportsPage() {
 
   const wonThisMonth = (wonDeals || []).reduce((sum, d) => sum + Number(d.value), 0);
   const openPipelineValue = (deals || [])
-    .filter((d) => d.stage !== "won" && d.stage !== "lost")
+    .filter((d) => d.stage !== "won" && d.stage !== "completed" && d.stage !== "lost")
     .reduce((sum, d) => sum + Number(d.value), 0);
 
   const monthlyRevenue = [
