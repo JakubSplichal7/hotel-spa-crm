@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
@@ -31,42 +31,20 @@ type PromptKind = "create" | "activate" | "cancel_on_lost" | null;
 export function OfferBookingSection({
   deal,
   booking,
-  autoPrompt = true,
 }: {
   deal: Deal;
   booking: Booking | null;
-  autoPrompt?: boolean;
 }) {
   const router = useRouter();
   const [prompt, setPrompt] = useState<PromptKind>(null);
   const [pendingStage, setPendingStage] = useState<DealStage | null>(null);
   const [loading, setLoading] = useState(false);
   const [confirmBooking, setConfirmBooking] = useState<Booking | null>(null);
-  const [promptedOnce, setPromptedOnce] = useState(false);
 
   const health = getOfferBookingHealth(deal.stage, booking, {
     booking_create_declined: deal.booking_create_declined,
     active_booking_declined: deal.active_booking_declined,
   });
-
-  useEffect(() => {
-    if (!autoPrompt || promptedOnce) return;
-    if (dealStageNeedsBooking(deal.stage) && !booking) {
-      setPrompt("create");
-      setPromptedOnce(true);
-      return;
-    }
-    if (
-      deal.stage === "won" &&
-      booking &&
-      booking.status !== "active" &&
-      booking.status !== "completed" &&
-      booking.status !== "cancelled"
-    ) {
-      setPrompt("activate");
-      setPromptedOnce(true);
-    }
-  }, [autoPrompt, promptedOnce, deal.stage, booking]);
 
   async function handleCreateYes() {
     setLoading(true);
@@ -148,17 +126,16 @@ export function OfferBookingSection({
     setLoading(false);
     router.refresh();
 
-    if ((stage === "proposal" || stage === "negotiation") && !booking) {
-      setPrompt("create");
-    } else if (stage === "won") {
-      if (!booking) setPrompt("create");
-      else if (
-        booking.status !== "active" &&
-        booking.status !== "completed" &&
-        booking.status !== "cancelled"
-      ) {
-        setPrompt("activate");
-      }
+    // Activate prompt only when moving to Won with an existing booking.
+    // Missing booking: user clicks "Create linked booking" — no auto popup.
+    if (
+      stage === "won" &&
+      booking &&
+      booking.status !== "active" &&
+      booking.status !== "completed" &&
+      booking.status !== "cancelled"
+    ) {
+      setPrompt("activate");
     }
   }
 
