@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { requireProfile } from "@/lib/auth";
 import { CreateBookingDialog } from "@/components/bookings/create-booking-dialog";
 import { EmptyState } from "@/components/empty-state";
+import { PageHeader } from "@/components/page-header";
 import { Badge } from "@/components/ui/badge";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import Link from "next/link";
@@ -23,15 +24,12 @@ export default async function BookingsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">Bookings & stays</h1>
-          <p className="text-muted-foreground">
-            Stays, spa visits, and events for your clients
-          </p>
-        </div>
+      <PageHeader
+        title="Bookings & stays"
+        description="Stays, spa visits, and events for your clients"
+      >
         <CreateBookingDialog accounts={accounts || []} />
-      </div>
+      </PageHeader>
 
       {!bookings?.length ? (
         <EmptyState

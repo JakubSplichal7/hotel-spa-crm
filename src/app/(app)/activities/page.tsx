@@ -7,6 +7,7 @@ import { EmptyState } from "@/components/empty-state";
 import { Badge } from "@/components/ui/badge";
 import { formatDateTime } from "@/lib/utils";
 import { getActivityTypeLabel } from "@/lib/types";
+import { PageHeader } from "@/components/page-header";
 import type { Account } from "@/lib/types";
 import Link from "next/link";
 
@@ -62,20 +63,16 @@ export default async function ActivitiesPage({ searchParams }: PageProps) {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold">Activities</h1>
-          <p className="text-muted-foreground">
-            Calls, emails, meetings, and notes with clients
-            {filterHint ? ` · ${filterHint}` : ""}
-          </p>
-        </div>
+      <PageHeader
+        title="Activities"
+        description={`Calls, emails, meetings, and notes with clients${filterHint ? ` · ${filterHint}` : ""}`}
+      >
         <LogActivityDialog
           accounts={(accounts || []) as Account[]}
           defaultAccountId={clientId || undefined}
           defaultDealId={selectedOffer?.id}
         />
-      </div>
+      </PageHeader>
 
       <Suspense fallback={null}>
         <ClientOfferFilter

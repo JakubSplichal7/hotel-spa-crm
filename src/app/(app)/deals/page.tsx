@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { requireProfile } from "@/lib/auth";
 import { CreateDealDialog } from "@/components/deals/create-deal-dialog";
 import { EmptyState } from "@/components/empty-state";
+import { PageHeader } from "@/components/page-header";
 import { Badge } from "@/components/ui/badge";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import {
@@ -63,15 +64,12 @@ export default async function DealsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">Offers & packages</h1>
-          <p className="text-muted-foreground">
-            Upsells, memberships, and packages for your clients
-          </p>
-        </div>
+      <PageHeader
+        title="Offers & packages"
+        description="Upsells, memberships, and packages for your clients"
+      >
         <CreateDealDialog accounts={accounts || []} profiles={profiles || []} />
-      </div>
+      </PageHeader>
 
       {!rows.length ? (
         <EmptyState

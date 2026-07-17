@@ -5,6 +5,7 @@ import { CreateTaskDialog } from "@/components/tasks/create-task-dialog";
 import { TaskList } from "@/components/tasks/task-list";
 import { ClientOfferFilter } from "@/components/client-offer-filter";
 import { EmptyState } from "@/components/empty-state";
+import { PageHeader } from "@/components/page-header";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { Account, Profile, Task } from "@/lib/types";
 
@@ -86,27 +87,28 @@ export default async function TasksPage({ searchParams }: PageProps) {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold">Tasks</h1>
-          <p className="text-muted-foreground">
+      <PageHeader
+        title="Tasks"
+        description={
+          <>
             {openTasks?.length || 0} open
             {overdueCount > 0 && (
-              <span className="text-destructive">
+              <span className="text-red-700">
                 {" "}
                 &middot; {overdueCount} overdue
               </span>
             )}
             {filterHint ? ` · ${filterHint}` : ""}
-          </p>
-        </div>
+          </>
+        }
+      >
         <CreateTaskDialog
           accounts={(accounts || []) as Account[]}
           profiles={(profiles || []) as Profile[]}
           defaultAccountId={clientId || undefined}
           defaultDealId={selectedOffer?.id}
         />
-      </div>
+      </PageHeader>
 
       <Suspense fallback={null}>
         <ClientOfferFilter

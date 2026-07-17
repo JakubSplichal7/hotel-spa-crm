@@ -26,11 +26,11 @@ export function AccountFilters({ profiles }: { profiles: Profile[] }) {
   }
 
   return (
-    <div className="flex flex-wrap gap-3">
+    <div className="flex flex-wrap gap-3 rounded-xl border border-white/70 bg-white/90 p-3 shadow-sm backdrop-blur-md">
       <Input
         placeholder="Search clients..."
         defaultValue={searchParams.get("q") || ""}
-        className="max-w-xs"
+        className="max-w-xs bg-white"
         onChange={(e) => updateFilter("q", e.target.value)}
       />
       <NativeSelect

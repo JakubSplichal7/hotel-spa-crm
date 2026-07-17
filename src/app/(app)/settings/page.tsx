@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { requireAdmin } from "@/lib/auth";
 import { SettingsClient } from "@/components/settings/settings-client";
+import { PageHeader } from "@/components/page-header";
 
 export default async function SettingsPage() {
   const profile = await requireAdmin();
@@ -15,10 +16,10 @@ export default async function SettingsPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">Settings</h1>
-        <p className="text-muted-foreground">Manage your organization and team</p>
-      </div>
+      <PageHeader
+        title="Settings"
+        description="Manage your organization and team"
+      />
       <SettingsClient org={org} profiles={profiles || []} />
     </div>
   );

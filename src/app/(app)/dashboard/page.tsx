@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { formatCurrency, formatDate, formatDateTime } from "@/lib/utils";
 import { getDealStageLabel, getActivityTypeLabel } from "@/lib/types";
 import { Handshake, CheckSquare, Activity, CalendarDays } from "lucide-react";
+import { PageHeader } from "@/components/page-header";
 
 export default async function DashboardPage() {
   const profile = await requireProfile();
@@ -70,12 +71,10 @@ export default async function DashboardPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">Dashboard</h1>
-        <p className="text-muted-foreground">
-          Welcome back, {profile.full_name} — your client overview
-        </p>
-      </div>
+      <PageHeader
+        title="Dashboard"
+        description={`Welcome back, ${profile.full_name} — your client overview`}
+      />
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>

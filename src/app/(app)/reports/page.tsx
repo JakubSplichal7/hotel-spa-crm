@@ -5,6 +5,7 @@ import { PipelineChart, ActivityChart, RevenueChart } from "@/components/reports
 import { formatCurrency } from "@/lib/utils";
 import { DEAL_STAGE_LABELS, ACTIVITY_TYPE_LABELS } from "@/lib/types";
 import type { DealStage, ActivityType } from "@/lib/types";
+import { PageHeader } from "@/components/page-header";
 
 export default async function ReportsPage() {
   const profile = await requireProfile();
@@ -91,10 +92,10 @@ export default async function ReportsPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">Reports</h1>
-        <p className="text-muted-foreground">Pipeline, activity, and booking overview for your clients</p>
-      </div>
+      <PageHeader
+        title="Reports"
+        description="Pipeline, activity, and booking overview for your clients"
+      />
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>

@@ -73,7 +73,7 @@ export function ClientOfferFilter({
   }
 
   return (
-    <div className="flex flex-wrap gap-3">
+    <div className="flex flex-wrap gap-3 rounded-xl border border-white/70 bg-white/90 p-3 shadow-sm backdrop-blur-md">
       <SearchableClientSelect
         accounts={accounts}
         value={clientId}

@@ -4,6 +4,7 @@ import { requireProfile } from "@/lib/auth";
 import { CreateAccountDialog } from "@/components/accounts/create-account-dialog";
 import { AccountFilters } from "@/components/accounts/account-filters";
 import { EmptyState } from "@/components/empty-state";
+import { PageHeader } from "@/components/page-header";
 import { Badge } from "@/components/ui/badge";
 import { getAccountTypeLabel } from "@/lib/types";
 import Link from "next/link";
@@ -44,15 +45,12 @@ export default async function AccountsPage({ searchParams }: PageProps) {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">Clients</h1>
-          <p className="text-muted-foreground">
-            Companies and individual guests you manage
-          </p>
-        </div>
+      <PageHeader
+        title="Clients"
+        description="Companies and individual guests you manage"
+      >
         <CreateAccountDialog profiles={profiles || []} />
-      </div>
+      </PageHeader>
 
       <Suspense>
         <AccountFilters profiles={profiles || []} />
