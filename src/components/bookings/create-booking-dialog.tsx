@@ -23,15 +23,19 @@ export function CreateBookingDialog({ accounts }: { accounts: Account[] }) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [accountId, setAccountId] = useState("");
+  const [error, setError] = useState<string | null>(null);
 
   async function handleSubmit(formData: FormData) {
     setLoading(true);
+    setError(null);
     const result = await createBooking(formData);
     setLoading(false);
-    if (!result?.error) {
-      setOpen(false);
-      setAccountId("");
+    if (result?.error) {
+      setError(result.error);
+      return;
     }
+    setOpen(false);
+    setAccountId("");
   }
 
   return (
@@ -39,7 +43,10 @@ export function CreateBookingDialog({ accounts }: { accounts: Account[] }) {
       open={open}
       onOpenChange={(next) => {
         setOpen(next);
-        if (next) setAccountId("");
+        if (next) {
+          setAccountId("");
+          setError(null);
+        }
       }}
     >
       <DialogTrigger asChild>
@@ -53,6 +60,11 @@ export function CreateBookingDialog({ accounts }: { accounts: Account[] }) {
           <DialogTitle>Create Booking / Stay</DialogTitle>
         </DialogHeader>
         <form action={handleSubmit} className="space-y-4">
+          {error && (
+            <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
+              {error}
+            </div>
+          )}
           <div className="space-y-2">
             <Label htmlFor="title">Title</Label>
             <Input

@@ -11,11 +11,27 @@ function targetStatusForDealStage(stage: DealStage | null | undefined): BookingS
   return "option";
 }
 
+/** Returns an error message when end is before start; null when valid. */
+function invalidDateRangeError(
+  startDate: string | null,
+  endDate: string | null
+): string | null {
+  if (!startDate || !endDate) return null;
+  if (endDate < startDate) {
+    return "End date cannot be earlier than start date";
+  }
+  return null;
+}
+
 export async function createBooking(formData: FormData) {
   const profile = await requireProfile();
   const supabase = await createClient();
 
   const startDate = (formData.get("start_date") as string) || null;
+  const endDate = (formData.get("end_date") as string) || null;
+
+  const rangeError = invalidDateRangeError(startDate, endDate);
+  if (rangeError) return { error: rangeError };
 
   const { data, error } = await supabase
     .from("bookings")
@@ -25,7 +41,7 @@ export async function createBooking(formData: FormData) {
       deal_id: (formData.get("deal_id") as string) || null,
       title: formData.get("title") as string,
       start_date: startDate,
-      end_date: (formData.get("end_date") as string) || null,
+      end_date: endDate,
       value: parseFloat(formData.get("value") as string) || 0,
       currency: (formData.get("currency") as string) || "EUR",
       status: (formData.get("status") as BookingStatus) || "draft",
@@ -72,8 +88,12 @@ export async function updateBooking(id: string, formData: FormData) {
 
   const status = formData.get("status") as BookingStatus;
   const startDate = (formData.get("start_date") as string) || null;
+  const endDate = (formData.get("end_date") as string) || null;
   const dealIdRaw = (formData.get("deal_id") as string) || "";
   const dealId = dealIdRaw.trim() || null;
+
+  const rangeError = invalidDateRangeError(startDate, endDate);
+  if (rangeError) return { error: rangeError };
 
   const { data: existing, error: loadError } = await supabase
     .from("bookings")
@@ -121,7 +141,7 @@ export async function updateBooking(id: string, formData: FormData) {
     .update({
       title: formData.get("title") as string,
       start_date: startDate,
-      end_date: (formData.get("end_date") as string) || null,
+      end_date: endDate,
       value: parseFloat(formData.get("value") as string) || 0,
       currency: (formData.get("currency") as string) || "EUR",
       status,
@@ -165,6 +185,10 @@ export async function confirmLinkedBooking(id: string, formData: FormData) {
   const startDate = (formData.get("start_date") as string) || null;
   if (!startDate) return { error: "Start date is required to confirm the booking" };
 
+  const endDate = (formData.get("end_date") as string) || null;
+  const rangeError = invalidDateRangeError(startDate, endDate);
+  if (rangeError) return { error: rangeError };
+
   const dealStage = (booking.deal as { stage: DealStage } | null)?.stage;
   const forcedStatus = (formData.get("status") as BookingStatus) || null;
   const status = forcedStatus || targetStatusForDealStage(dealStage);
@@ -174,7 +198,7 @@ export async function confirmLinkedBooking(id: string, formData: FormData) {
     .update({
       title: formData.get("title") as string,
       start_date: startDate,
-      end_date: (formData.get("end_date") as string) || null,
+      end_date: endDate,
       value: parseFloat(formData.get("value") as string) || 0,
       currency: (formData.get("currency") as string) || "EUR",
       status,
