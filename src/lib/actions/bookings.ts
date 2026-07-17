@@ -72,6 +72,49 @@ export async function updateBooking(id: string, formData: FormData) {
 
   const status = formData.get("status") as BookingStatus;
   const startDate = (formData.get("start_date") as string) || null;
+  const dealIdRaw = (formData.get("deal_id") as string) || "";
+  const dealId = dealIdRaw.trim() || null;
+
+  const { data: existing, error: loadError } = await supabase
+    .from("bookings")
+    .select("id, account_id, deal_id")
+    .eq("id", id)
+    .single();
+
+  if (loadError || !existing) {
+    return { error: loadError?.message || "Booking not found" };
+  }
+
+  if (dealId) {
+    const { data: deal, error: dealError } = await supabase
+      .from("deals")
+      .select("id, account_id")
+      .eq("id", dealId)
+      .single();
+
+    if (dealError || !deal) {
+      return { error: dealError?.message || "Offer not found" };
+    }
+    if (deal.account_id !== existing.account_id) {
+      return { error: "Offer must belong to the same client as this booking" };
+    }
+
+    const { data: linked } = await supabase
+      .from("bookings")
+      .select("id, status")
+      .eq("deal_id", dealId)
+      .neq("id", id);
+
+    const other = (linked || []).find((b) => b.status !== "cancelled");
+    if (other) {
+      return {
+        error:
+          "That offer already has another booking linked. Unlink it first, or pick a different offer.",
+      };
+    }
+  }
+
+  const previousDealId = existing.deal_id as string | null;
 
   const { data, error } = await supabase
     .from("bookings")
@@ -83,6 +126,7 @@ export async function updateBooking(id: string, formData: FormData) {
       currency: (formData.get("currency") as string) || "EUR",
       status,
       notes: (formData.get("notes") as string) || null,
+      deal_id: dealId,
       ...(status !== "draft" ? { needs_confirmation: false } : {}),
     })
     .eq("id", id)
@@ -91,8 +135,16 @@ export async function updateBooking(id: string, formData: FormData) {
 
   if (error) return { error: error.message };
 
+  if (dealId) {
+    await supabase
+      .from("deals")
+      .update({ booking_create_declined: false })
+      .eq("id", dealId);
+  }
+
   revalidatePath("/bookings");
   revalidatePath(`/bookings/${id}`);
+  if (previousDealId) revalidatePath(`/deals/${previousDealId}`);
   if (data?.deal_id) revalidatePath(`/deals/${data.deal_id}`);
   return { success: true };
 }

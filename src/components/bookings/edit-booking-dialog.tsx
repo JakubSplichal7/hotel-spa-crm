@@ -14,14 +14,24 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { NativeSelect } from "@/components/ui/native-select";
+import { SearchableClientSelect } from "@/components/searchable-client-select";
 import { BOOKING_STATUSES, BOOKING_STATUS_LABELS } from "@/lib/types";
 import type { Booking } from "@/lib/types";
 import { Pencil } from "lucide-react";
 
-export function EditBookingDialog({ booking }: { booking: Booking }) {
+type OfferOption = { id: string; title: string };
+
+export function EditBookingDialog({
+  booking,
+  offers,
+}: {
+  booking: Booking;
+  offers: OfferOption[];
+}) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [dealId, setDealId] = useState(booking.deal_id || "");
 
   async function handleSubmit(formData: FormData) {
     setLoading(true);
@@ -36,7 +46,16 @@ export function EditBookingDialog({ booking }: { booking: Booking }) {
   }
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog
+      open={open}
+      onOpenChange={(next) => {
+        setOpen(next);
+        if (next) {
+          setError(null);
+          setDealId(booking.deal_id || "");
+        }
+      }}
+    >
       <DialogTrigger asChild>
         <Button variant="outline">
           <Pencil className="mr-2 h-4 w-4" />
@@ -56,6 +75,24 @@ export function EditBookingDialog({ booking }: { booking: Booking }) {
           <div className="space-y-2">
             <Label htmlFor="title">Title</Label>
             <Input id="title" name="title" required defaultValue={booking.title} />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="deal_id">Offer</Label>
+            <SearchableClientSelect
+              id="deal_id"
+              name="deal_id"
+              accounts={offers.map((o) => ({ id: o.id, name: o.title }))}
+              value={dealId}
+              onChange={setDealId}
+              allowAll
+              allLabel="No offer linked"
+              placeholder="Type offer name…"
+              emptyLabel="No offers starting with"
+              className="max-w-none"
+            />
+            <p className="text-xs text-muted-foreground">
+              Optional. Link this booking to an offer for the same client.
+            </p>
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">

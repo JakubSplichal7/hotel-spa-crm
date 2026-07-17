@@ -28,6 +28,12 @@ export default async function BookingDetailPage({ params }: PageProps) {
 
   if (!booking) notFound();
 
+  const { data: offers } = await supabase
+    .from("deals")
+    .select("id, title")
+    .eq("account_id", booking.account_id)
+    .order("created_at", { ascending: false });
+
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-4">
@@ -85,6 +91,7 @@ export default async function BookingDetailPage({ params }: PageProps) {
                 needs_confirmation: Boolean(booking.needs_confirmation),
               } as Booking
             }
+            offers={offers || []}
           />
         </div>
       </div>
