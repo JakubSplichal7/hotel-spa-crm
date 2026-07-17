@@ -7,6 +7,10 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { CompleteTaskDialog } from "@/components/tasks/complete-task-dialog";
 import { formatDate } from "@/lib/utils";
+import {
+  formatCompletionDelta,
+  taskCompletionDeltaDays,
+} from "@/lib/task-dates";
 import type { Task } from "@/lib/types";
 import Link from "next/link";
 
@@ -42,6 +46,7 @@ export function TaskList({ tasks }: { tasks: Task[] }) {
               <th className="px-4 py-3 text-left text-sm font-medium">Assignee</th>
               <th className="px-4 py-3 text-left text-sm font-medium">Due</th>
               <th className="px-4 py-3 text-left text-sm font-medium">Done on</th>
+              <th className="px-4 py-3 text-left text-sm font-medium">Δ days</th>
               <th className="px-4 py-3 text-left text-sm font-medium">Status</th>
               <th className="px-4 py-3 text-left text-sm font-medium">Action</th>
             </tr>
@@ -50,6 +55,10 @@ export function TaskList({ tasks }: { tasks: Task[] }) {
             {tasks.map((task) => {
               const isOverdue =
                 task.status === "open" && isDueBeforeToday(task.due_at);
+              const delta = taskCompletionDeltaDays(
+                task.due_at,
+                task.completed_at
+              );
 
               return (
                 <tr
@@ -101,6 +110,21 @@ export function TaskList({ tasks }: { tasks: Task[] }) {
                   </td>
                   <td className="px-4 py-3 text-sm text-muted-foreground">
                     {task.completed_at ? formatDate(task.completed_at) : "—"}
+                  </td>
+                  <td className="px-4 py-3 text-sm font-medium">
+                    {delta === null ? (
+                      <span className="text-muted-foreground">—</span>
+                    ) : (
+                      <span
+                        className={
+                          delta > 0
+                            ? "text-red-600 dark:text-red-400"
+                            : "text-green-600 dark:text-green-400"
+                        }
+                      >
+                        {formatCompletionDelta(delta)}
+                      </span>
+                    )}
                   </td>
                   <td className="px-4 py-3">
                     <Badge

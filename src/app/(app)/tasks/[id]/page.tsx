@@ -4,6 +4,10 @@ import { notFound } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { formatDate } from "@/lib/utils";
+import {
+  formatCompletionDelta,
+  taskCompletionDeltaDays,
+} from "@/lib/task-dates";
 import Link from "next/link";
 import { TaskStatusToggle } from "@/components/tasks/task-status-toggle";
 
@@ -33,6 +37,7 @@ export default async function TaskDetailPage({ params }: PageProps) {
   const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
   const isOverdue =
     task.status === "open" && dueDay !== null && dueDay < todayStr;
+  const delta = taskCompletionDeltaDays(task.due_at, task.completed_at);
 
   return (
     <div className="space-y-6">
@@ -68,7 +73,7 @@ export default async function TaskDetailPage({ params }: PageProps) {
         />
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-5">
         <Card>
           <CardContent className="p-6">
             <p className="text-sm text-muted-foreground">Client</p>
@@ -113,6 +118,24 @@ export default async function TaskDetailPage({ params }: PageProps) {
             <p className="text-lg font-medium">
               {task.completed_at ? formatDate(task.completed_at) : "—"}
             </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-6">
+            <p className="text-sm text-muted-foreground">Δ days</p>
+            {delta === null ? (
+              <p className="text-lg font-medium text-muted-foreground">—</p>
+            ) : (
+              <p
+                className={`text-lg font-medium ${
+                  delta > 0
+                    ? "text-red-600 dark:text-red-400"
+                    : "text-green-600 dark:text-green-400"
+                }`}
+              >
+                {formatCompletionDelta(delta)}
+              </p>
+            )}
           </CardContent>
         </Card>
       </div>
