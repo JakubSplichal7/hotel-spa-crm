@@ -5,12 +5,15 @@ import { useBackground } from "@/components/background-provider";
 import { cn } from "@/lib/utils";
 
 export function RotatingBackground({ className }: { className?: string }) {
-  const { enabled, index } = useBackground();
+  const { enabled, immersive, index } = useBackground();
 
   if (!enabled) {
     return (
       <div
-        className={cn("pointer-events-none absolute inset-0 bg-background", className)}
+        className={cn(
+          "pointer-events-none absolute inset-0 bg-background",
+          className
+        )}
         aria-hidden
       />
     );
@@ -18,7 +21,10 @@ export function RotatingBackground({ className }: { className?: string }) {
 
   return (
     <div
-      className={cn("pointer-events-none absolute inset-0 overflow-hidden", className)}
+      className={cn(
+        "pointer-events-none absolute inset-0 overflow-hidden",
+        className
+      )}
       aria-hidden
     >
       {RESORT_BACKGROUNDS.map((src, i) => (
@@ -31,8 +37,12 @@ export function RotatingBackground({ className }: { className?: string }) {
           style={{ backgroundImage: `url(${src})` }}
         />
       ))}
-      <div className="absolute inset-0 bg-gradient-to-b from-white/35 via-white/25 to-white/40" />
-      <div className="absolute inset-0 bg-white/5" />
+      {!immersive && (
+        <>
+          <div className="absolute inset-0 bg-gradient-to-b from-white/35 via-white/25 to-white/40" />
+          <div className="absolute inset-0 bg-white/5" />
+        </>
+      )}
     </div>
   );
 }

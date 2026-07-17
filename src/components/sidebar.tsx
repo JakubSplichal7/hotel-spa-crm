@@ -17,6 +17,8 @@ import {
   SkipForward,
   ImageOff,
   ImageIcon,
+  Maximize2,
+  Minimize2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
@@ -35,16 +37,52 @@ const navItems = [
   { href: "/reports", label: "Reports", icon: BarChart3 },
 ];
 
+function IconButton({
+  label,
+  onClick,
+  disabled,
+  active,
+  children,
+}: {
+  label: string;
+  onClick: () => void;
+  disabled?: boolean;
+  active?: boolean;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      title={label}
+      aria-label={label}
+      onClick={onClick}
+      disabled={disabled}
+      className={cn(
+        "inline-flex h-9 w-9 items-center justify-center rounded-md transition-colors",
+        disabled
+          ? "cursor-not-allowed text-muted-foreground/35"
+          : active
+            ? "bg-primary text-primary-foreground hover:bg-primary/90"
+            : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+      )}
+    >
+      {children}
+    </button>
+  );
+}
+
 export function Sidebar({ profile }: { profile: Profile }) {
   const pathname = usePathname();
   const router = useRouter();
   const {
     enabled,
     locked,
+    immersive,
     index,
     count,
     toggleEnabled,
     toggleLocked,
+    toggleImmersive,
     next,
   } = useBackground();
 
@@ -99,60 +137,54 @@ export function Sidebar({ profile }: { profile: Profile }) {
         )}
       </nav>
 
-      <div className="border-t p-4">
-        <p className="mb-2 px-3 text-xs font-medium uppercase tracking-wide text-muted-foreground">
-          Background
-        </p>
-        <div className="space-y-1">
-          <button
-            type="button"
+      <div className="border-t p-3">
+        <div className="flex items-center justify-between gap-1 px-1">
+          <IconButton
+            label={enabled ? "Turn photos off" : "Turn photos on"}
             onClick={toggleEnabled}
-            className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+            active={!enabled}
           >
             {enabled ? (
-              <ImageOff className="h-4 w-4" />
-            ) : (
               <ImageIcon className="h-4 w-4" />
+            ) : (
+              <ImageOff className="h-4 w-4" />
             )}
-            {enabled ? "Photos off" : "Photos on"}
-          </button>
-          <button
-            type="button"
+          </IconButton>
+          <IconButton
+            label={locked ? "Unlock photo" : "Lock photo"}
             onClick={toggleLocked}
             disabled={!enabled}
-            className={cn(
-              "flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground",
-              enabled
-                ? "text-muted-foreground"
-                : "cursor-not-allowed text-muted-foreground/40"
-            )}
+            active={locked}
           >
             {locked ? (
               <Lock className="h-4 w-4" />
             ) : (
               <Unlock className="h-4 w-4" />
             )}
-            {locked ? "Unlock photo" : "Lock photo"}
-          </button>
-          <button
-            type="button"
+          </IconButton>
+          <IconButton
+            label={`Next photo (${index + 1}/${count})`}
             onClick={next}
             disabled={!enabled}
-            className={cn(
-              "flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground",
-              enabled
-                ? "text-muted-foreground"
-                : "cursor-not-allowed text-muted-foreground/40"
-            )}
           >
             <SkipForward className="h-4 w-4" />
-            Next photo
-            {enabled && (
-              <span className="ml-auto text-xs tabular-nums opacity-70">
-                {index + 1}/{count}
-              </span>
+          </IconButton>
+          <IconButton
+            label={
+              immersive
+                ? "Show tables and dashboards"
+                : "Photo only (hide tables)"
+            }
+            onClick={toggleImmersive}
+            disabled={!enabled && !immersive}
+            active={immersive}
+          >
+            {immersive ? (
+              <Minimize2 className="h-4 w-4" />
+            ) : (
+              <Maximize2 className="h-4 w-4" />
             )}
-          </button>
+          </IconButton>
         </div>
       </div>
 
