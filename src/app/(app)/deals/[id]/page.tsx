@@ -105,7 +105,6 @@ export default async function DealDetailPage({ params }: PageProps) {
       </div>
 
       <OfferBookingSection
-        key={`${deal.stage}-${primaryBooking?.id ?? "none"}-${primaryBooking?.status ?? "none"}-${deal.booking_create_declined}-${deal.active_booking_declined}`}
         deal={dealRecord}
         booking={
           primaryBooking

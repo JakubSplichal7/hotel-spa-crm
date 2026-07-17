@@ -13,7 +13,6 @@ import { formatCurrency, formatDate } from "@/lib/utils";
 import {
   DEAL_STAGES,
   DEAL_STAGE_LABELS,
-  dealStageNeedsBooking,
   getOfferBookingHealth,
   type Booking,
   type Deal,
@@ -49,11 +48,6 @@ export function DealKanban({ deals }: { deals: DealWithBooking[] }) {
     setLoading(true);
     await updateDealStage(deal.id, stage);
     setLoading(false);
-
-    if (dealStageNeedsBooking(stage)) {
-      router.push(`/deals/${deal.id}`);
-      return;
-    }
     router.refresh();
   }
 

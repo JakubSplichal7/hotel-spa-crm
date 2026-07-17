@@ -26,7 +26,7 @@ import {
   type DealStage,
 } from "@/lib/types";
 
-type PromptKind = "create" | "activate" | "cancel_on_lost" | null;
+type PromptKind = "activate" | "cancel_on_lost" | null;
 
 export function OfferBookingSection({
   deal,
@@ -37,6 +37,8 @@ export function OfferBookingSection({
 }) {
   const router = useRouter();
   const [prompt, setPrompt] = useState<PromptKind>(null);
+  /** Only set by the "Create linked booking" button — never on mount */
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [pendingStage, setPendingStage] = useState<DealStage | null>(null);
   const [loading, setLoading] = useState(false);
   const [confirmBooking, setConfirmBooking] = useState<Booking | null>(null);
@@ -51,7 +53,7 @@ export function OfferBookingSection({
     const result = await createBookingFromDeal(deal.id);
     setLoading(false);
     if (result?.error) return;
-    setPrompt(null);
+    setCreateDialogOpen(false);
     if (result.data) setConfirmBooking(result.data as Booking);
     router.refresh();
   }
@@ -60,7 +62,7 @@ export function OfferBookingSection({
     setLoading(true);
     await declineBookingCreate(deal.id);
     setLoading(false);
-    setPrompt(null);
+    setCreateDialogOpen(false);
     router.refresh();
   }
 
@@ -126,8 +128,6 @@ export function OfferBookingSection({
     setLoading(false);
     router.refresh();
 
-    // Activate prompt only when moving to Won with an existing booking.
-    // Missing booking: user clicks "Create linked booking" — no auto popup.
     if (
       stage === "won" &&
       booking &&
@@ -204,7 +204,7 @@ export function OfferBookingSection({
                 <Button
                   type="button"
                   size="sm"
-                  onClick={() => setPrompt("create")}
+                  onClick={() => setCreateDialogOpen(true)}
                 >
                   Create linked booking
                 </Button>
@@ -251,48 +251,54 @@ export function OfferBookingSection({
         </CardContent>
       </Card>
 
-      <ConfirmYesNoDialog
-        open={prompt === "create"}
-        onOpenChange={(open) => !open && setPrompt(null)}
-        title="Create linked booking?"
-        description="This offer is in a stage that should have a booking. Create a Draft booking now so you can confirm dates and details?"
-        yesLabel="Yes, create"
-        noLabel="No"
-        loading={loading}
-        onYes={handleCreateYes}
-        onNo={handleCreateNo}
-      />
+      {createDialogOpen ? (
+        <ConfirmYesNoDialog
+          open={createDialogOpen}
+          onOpenChange={setCreateDialogOpen}
+          title="Create linked booking?"
+          description="This offer is in a stage that should have a booking. Create a Draft booking now so you can confirm dates and details?"
+          yesLabel="Yes, create"
+          noLabel="No"
+          loading={loading}
+          onYes={handleCreateYes}
+          onNo={handleCreateNo}
+        />
+      ) : null}
 
-      <ConfirmYesNoDialog
-        open={prompt === "activate"}
-        onOpenChange={(open) => !open && setPrompt(null)}
-        title="Set booking to Active?"
-        description="This offer is Won. Move the linked booking to Active?"
-        yesLabel="Yes, set Active"
-        noLabel="No"
-        loading={loading}
-        onYes={handleActivateYes}
-        onNo={handleActivateNo}
-      />
+      {prompt === "activate" ? (
+        <ConfirmYesNoDialog
+          open
+          onOpenChange={(open) => !open && setPrompt(null)}
+          title="Set booking to Active?"
+          description="This offer is Won. Move the linked booking to Active?"
+          yesLabel="Yes, set Active"
+          noLabel="No"
+          loading={loading}
+          onYes={handleActivateYes}
+          onNo={handleActivateNo}
+        />
+      ) : null}
 
-      <ConfirmYesNoDialog
-        open={prompt === "cancel_on_lost"}
-        onOpenChange={(open) => {
-          if (!open) {
-            setPrompt(null);
-            setPendingStage(null);
-          }
-        }}
-        title="Cancel linked booking?"
-        description="This offer is being marked Lost. Cancel the linked booking as well?"
-        yesLabel="Yes, cancel booking"
-        noLabel="Keep booking"
-        loading={loading}
-        onYes={handleLostCancelYes}
-        onNo={handleLostCancelNo}
-      />
+      {prompt === "cancel_on_lost" ? (
+        <ConfirmYesNoDialog
+          open
+          onOpenChange={(open) => {
+            if (!open) {
+              setPrompt(null);
+              setPendingStage(null);
+            }
+          }}
+          title="Cancel linked booking?"
+          description="This offer is being marked Lost. Cancel the linked booking as well?"
+          yesLabel="Yes, cancel booking"
+          noLabel="Keep booking"
+          loading={loading}
+          onYes={handleLostCancelYes}
+          onNo={handleLostCancelNo}
+        />
+      ) : null}
 
-      {confirmBooking && (
+      {confirmBooking ? (
         <ConfirmLinkedBookingDialog
           booking={confirmBooking}
           dealStage={deal.stage === "won" ? "won" : deal.stage}
@@ -300,7 +306,7 @@ export function OfferBookingSection({
           onOpenChange={(open) => !open && setConfirmBooking(null)}
           onConfirmed={() => router.refresh()}
         />
-      )}
+      ) : null}
     </>
   );
 }
