@@ -41,9 +41,9 @@ export function RotatingBackground({ className }: { className?: string }) {
           style={{ backgroundImage: `url(${src})` }}
         />
       ))}
-      {/* Soft wash so tables and text stay readable */}
-      <div className="absolute inset-0 bg-gradient-to-b from-white/85 via-white/80 to-white/90" />
-      <div className="absolute inset-0 bg-white/25 backdrop-blur-[1px]" />
+      {/* Soft wash so tables and text stay readable — keep photos more visible */}
+      <div className="absolute inset-0 bg-gradient-to-b from-white/55 via-white/45 to-white/60" />
+      <div className="absolute inset-0 bg-white/10" />
     </div>
   );
 }
