@@ -8,6 +8,7 @@ import Link from "next/link";
 import { EditBookingDialog } from "@/components/bookings/edit-booking-dialog";
 import { BookingStatusButtons } from "@/components/bookings/booking-status-buttons";
 import type { Booking, BookingStatus } from "@/lib/types";
+import { BOOKING_STATUS_LABELS } from "@/lib/types";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -40,12 +41,14 @@ export default async function BookingDetailPage({ params }: PageProps) {
                 variant={
                   booking.status === "active"
                     ? "success"
-                    : booking.status === "draft"
+                    : booking.status === "option"
                       ? "warning"
-                      : "secondary"
+                      : booking.status === "draft"
+                        ? "warning"
+                        : "secondary"
                 }
               >
-                {booking.status}
+                {BOOKING_STATUS_LABELS[booking.status as BookingStatus] ?? booking.status}
               </Badge>
               <Link
                 href={`/accounts/${(booking.account as { id: string }).id}`}

@@ -14,7 +14,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { NativeSelect } from "@/components/ui/native-select";
-import { BOOKING_STATUSES } from "@/lib/types";
+import { BOOKING_STATUSES, BOOKING_STATUS_LABELS } from "@/lib/types";
 import type { Account } from "@/lib/types";
 import { Plus } from "lucide-react";
 
@@ -84,7 +84,7 @@ export function CreateBookingDialog({ accounts }: { accounts: Account[] }) {
             <NativeSelect id="status" name="status" defaultValue="draft">
               {BOOKING_STATUSES.map((s) => (
                 <option key={s} value={s}>
-                  {s.charAt(0).toUpperCase() + s.slice(1)}
+                  {BOOKING_STATUS_LABELS[s]}
                 </option>
               ))}
             </NativeSelect>

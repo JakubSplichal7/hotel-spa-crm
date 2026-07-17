@@ -5,6 +5,8 @@ import { EmptyState } from "@/components/empty-state";
 import { Badge } from "@/components/ui/badge";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import Link from "next/link";
+import { BOOKING_STATUS_LABELS } from "@/lib/types";
+import type { BookingStatus } from "@/lib/types";
 
 export default async function BookingsPage() {
   const profile = await requireProfile();
@@ -74,12 +76,13 @@ export default async function BookingsPage() {
                       variant={
                         booking.status === "active"
                           ? "success"
-                          : booking.status === "draft"
-                          ? "warning"
-                          : "secondary"
+                          : booking.status === "option" || booking.status === "draft"
+                            ? "warning"
+                            : "secondary"
                       }
                     >
-                      {booking.status}
+                      {BOOKING_STATUS_LABELS[booking.status as BookingStatus] ??
+                        booking.status}
                     </Badge>
                   </td>
                 </tr>

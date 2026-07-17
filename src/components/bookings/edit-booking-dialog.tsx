@@ -14,7 +14,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { NativeSelect } from "@/components/ui/native-select";
-import { BOOKING_STATUSES } from "@/lib/types";
+import { BOOKING_STATUSES, BOOKING_STATUS_LABELS } from "@/lib/types";
 import type { Booking } from "@/lib/types";
 import { Pencil } from "lucide-react";
 
@@ -105,7 +105,7 @@ export function EditBookingDialog({ booking }: { booking: Booking }) {
             <NativeSelect id="status" name="status" defaultValue={booking.status}>
               {BOOKING_STATUSES.map((s) => (
                 <option key={s} value={s}>
-                  {s.charAt(0).toUpperCase() + s.slice(1)}
+                  {BOOKING_STATUS_LABELS[s]}
                 </option>
               ))}
             </NativeSelect>

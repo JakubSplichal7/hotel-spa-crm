@@ -15,7 +15,12 @@ export type DealStage =
 
 export type ActivityType = "call" | "email" | "meeting" | "note";
 export type TaskStatus = "open" | "done";
-export type BookingStatus = "draft" | "active" | "completed" | "cancelled";
+export type BookingStatus =
+  | "draft"
+  | "active"
+  | "completed"
+  | "cancelled"
+  | "option";
 
 export interface Organization {
   id: string;
@@ -199,9 +204,18 @@ export const LOYALTY_TIER_LABELS: Record<LoyaltyTier, string> = {
 export const BOOKING_STATUSES: BookingStatus[] = [
   "draft",
   "active",
+  "option",
   "completed",
   "cancelled",
 ];
+
+export const BOOKING_STATUS_LABELS: Record<BookingStatus, string> = {
+  draft: "Draft",
+  active: "Active",
+  option: "Option",
+  completed: "Completed",
+  cancelled: "Cancelled",
+};
 
 export const USER_ROLES: UserRole[] = ["admin", "manager", "rep"];
 

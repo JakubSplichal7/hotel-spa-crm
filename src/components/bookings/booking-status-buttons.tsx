@@ -3,7 +3,7 @@
 import { useTransition } from "react";
 import { updateBookingStatus } from "@/lib/actions/bookings";
 import { Button } from "@/components/ui/button";
-import { BOOKING_STATUSES } from "@/lib/types";
+import { BOOKING_STATUSES, BOOKING_STATUS_LABELS } from "@/lib/types";
 import type { BookingStatus } from "@/lib/types";
 
 export function BookingStatusButtons({
@@ -30,7 +30,7 @@ export function BookingStatusButtons({
             });
           }}
         >
-          {status.charAt(0).toUpperCase() + status.slice(1)}
+          {BOOKING_STATUS_LABELS[status]}
         </Button>
       ))}
     </div>
