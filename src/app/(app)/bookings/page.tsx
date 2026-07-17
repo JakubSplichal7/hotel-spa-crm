@@ -15,7 +15,7 @@ export default async function BookingsPage() {
   const [{ data: bookings }, { data: accounts }] = await Promise.all([
     supabase
       .from("bookings")
-      .select("*, account:accounts(id, name)")
+      .select("*, account:accounts(id, name), deal:deals(id, title)")
       .eq("org_id", profile.org_id)
       .order("start_date", { ascending: false }),
     supabase.from("accounts").select("*").eq("org_id", profile.org_id).order("name"),
@@ -26,7 +26,9 @@ export default async function BookingsPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">Bookings & stays</h1>
-          <p className="text-muted-foreground">Stays, spa visits, and events for your clients</p>
+          <p className="text-muted-foreground">
+            Stays, spa visits, and events for your clients
+          </p>
         </div>
         <CreateBookingDialog accounts={accounts || []} />
       </div>
@@ -41,8 +43,9 @@ export default async function BookingsPage() {
           <table className="w-full">
             <thead>
               <tr className="border-b bg-muted/50">
-                <th className="px-4 py-3 text-left text-sm font-medium">Title</th>
+                <th className="px-4 py-3 text-left text-sm font-medium">Booking</th>
                 <th className="px-4 py-3 text-left text-sm font-medium">Client</th>
+                <th className="px-4 py-3 text-left text-sm font-medium">Offer</th>
                 <th className="px-4 py-3 text-left text-sm font-medium">Period</th>
                 <th className="px-4 py-3 text-left text-sm font-medium">Value</th>
                 <th className="px-4 py-3 text-left text-sm font-medium">Status</th>
@@ -52,17 +55,32 @@ export default async function BookingsPage() {
               {bookings.map((booking) => (
                 <tr key={booking.id} className="border-b hover:bg-muted/30">
                   <td className="px-4 py-3">
-                    <Link href={`/bookings/${booking.id}`} className="font-medium text-primary hover:underline">
+                    <Link
+                      href={`/bookings/${booking.id}`}
+                      className="font-medium text-primary hover:underline"
+                    >
                       {booking.title}
                     </Link>
                   </td>
                   <td className="px-4 py-3 text-sm">
                     <Link
                       href={`/accounts/${(booking.account as { id: string }).id}`}
-                      className="hover:underline"
+                      className="text-primary hover:underline"
                     >
                       {(booking.account as { name: string }).name}
                     </Link>
+                  </td>
+                  <td className="px-4 py-3 text-sm">
+                    {booking.deal ? (
+                      <Link
+                        href={`/deals/${(booking.deal as { id: string }).id}`}
+                        className="text-primary hover:underline"
+                      >
+                        {(booking.deal as { title: string }).title}
+                      </Link>
+                    ) : (
+                      <span className="text-muted-foreground">—</span>
+                    )}
                   </td>
                   <td className="px-4 py-3 text-sm text-muted-foreground">
                     {formatDate(booking.start_date)}
@@ -76,9 +94,12 @@ export default async function BookingsPage() {
                       variant={
                         booking.status === "active"
                           ? "success"
-                          : booking.status === "option" || booking.status === "draft"
+                          : booking.status === "option" ||
+                              booking.status === "draft"
                             ? "warning"
-                            : "secondary"
+                            : booking.status === "cancelled"
+                              ? "destructive"
+                              : "secondary"
                       }
                     >
                       {BOOKING_STATUS_LABELS[booking.status as BookingStatus] ??

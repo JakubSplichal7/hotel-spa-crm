@@ -5,7 +5,6 @@ import { LogActivityDialog } from "@/components/activities/log-activity-dialog";
 import { ClientOfferFilter } from "@/components/client-offer-filter";
 import { EmptyState } from "@/components/empty-state";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
 import { formatDateTime } from "@/lib/utils";
 import { getActivityTypeLabel } from "@/lib/types";
 import type { Account } from "@/lib/types";
@@ -29,7 +28,7 @@ export default async function ActivitiesPage({ searchParams }: PageProps) {
     )
     .eq("org_id", profile.org_id)
     .order("occurred_at", { ascending: false })
-    .limit(50);
+    .limit(100);
 
   if (clientId) {
     activitiesQuery = activitiesQuery.eq("account_id", clientId);
@@ -102,51 +101,65 @@ export default async function ActivitiesPage({ searchParams }: PageProps) {
           }
         />
       ) : (
-        <div className="space-y-3">
-          {activities.map((activity) => (
-            <Card key={activity.id}>
-              <CardContent className="p-4">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <Badge variant="outline">
-                        {getActivityTypeLabel(activity.type)}
-                      </Badge>
-                      <span className="font-medium">{activity.subject}</span>
-                    </div>
+        <div className="rounded-lg border">
+          <table className="w-full">
+            <thead>
+              <tr className="border-b bg-muted/50">
+                <th className="px-4 py-3 text-left text-sm font-medium">Type</th>
+                <th className="px-4 py-3 text-left text-sm font-medium">Subject</th>
+                <th className="px-4 py-3 text-left text-sm font-medium">Client</th>
+                <th className="px-4 py-3 text-left text-sm font-medium">Offer</th>
+                <th className="px-4 py-3 text-left text-sm font-medium">Logged by</th>
+                <th className="px-4 py-3 text-left text-sm font-medium">When</th>
+              </tr>
+            </thead>
+            <tbody>
+              {activities.map((activity) => (
+                <tr key={activity.id} className="border-b hover:bg-muted/30">
+                  <td className="px-4 py-3">
+                    <Badge variant="outline">
+                      {getActivityTypeLabel(activity.type)}
+                    </Badge>
+                  </td>
+                  <td className="px-4 py-3">
+                    <p className="font-medium">{activity.subject}</p>
                     {activity.body && (
-                      <p className="mt-2 text-sm text-muted-foreground">
+                      <p className="mt-0.5 line-clamp-1 text-sm text-muted-foreground">
                         {activity.body}
                       </p>
                     )}
-                    <p className="mt-2 text-xs text-muted-foreground">
+                  </td>
+                  <td className="px-4 py-3 text-sm">
+                    <Link
+                      href={`/accounts/${(activity.account as { id: string }).id}`}
+                      className="text-primary hover:underline"
+                    >
+                      {(activity.account as { name: string }).name}
+                    </Link>
+                  </td>
+                  <td className="px-4 py-3 text-sm">
+                    {activity.deal ? (
                       <Link
-                        href={`/accounts/${(activity.account as { id: string }).id}`}
+                        href={`/deals/${(activity.deal as { id: string }).id}`}
                         className="text-primary hover:underline"
                       >
-                        {(activity.account as { name: string }).name}
+                        {(activity.deal as { title: string }).title}
                       </Link>
-                      {activity.deal && (
-                        <>
-                          {" "}
-                          &middot; Offer:{" "}
-                          <Link
-                            href={`/deals/${(activity.deal as { id: string }).id}`}
-                            className="text-primary hover:underline"
-                          >
-                            {(activity.deal as { title: string }).title}
-                          </Link>
-                        </>
-                      )}{" "}
-                      &middot;{" "}
-                      {(activity.creator as { full_name: string } | null)?.full_name}{" "}
-                      &middot; {formatDateTime(activity.occurred_at)}
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+                    ) : (
+                      <span className="text-muted-foreground">—</span>
+                    )}
+                  </td>
+                  <td className="px-4 py-3 text-sm">
+                    {(activity.creator as { full_name: string } | null)?.full_name ||
+                      "—"}
+                  </td>
+                  <td className="px-4 py-3 text-sm text-muted-foreground">
+                    {formatDateTime(activity.occurred_at)}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       )}
     </div>
