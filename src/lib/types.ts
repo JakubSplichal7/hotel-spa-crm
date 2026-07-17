@@ -203,8 +203,8 @@ export const LOYALTY_TIER_LABELS: Record<LoyaltyTier, string> = {
 
 export const BOOKING_STATUSES: BookingStatus[] = [
   "draft",
-  "active",
   "option",
+  "active",
   "completed",
   "cancelled",
 ];
