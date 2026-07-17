@@ -152,21 +152,29 @@ export default async function DealDetailPage({ params }: PageProps) {
           ) : (
             <div className="space-y-2">
               {activities.map((activity) => (
-                <Card key={activity.id}>
-                  <CardContent className="p-4">
-                    <div className="flex items-center gap-2">
-                      <Badge variant="outline">{getActivityTypeLabel(activity.type)}</Badge>
-                      <span className="font-medium">{activity.subject}</span>
-                    </div>
-                    {activity.body && (
-                      <p className="mt-2 text-sm text-muted-foreground">{activity.body}</p>
-                    )}
-                    <p className="mt-2 text-xs text-muted-foreground">
-                      {(activity.creator as { full_name: string } | null)?.full_name} &middot;{" "}
-                      {formatDateTime(activity.occurred_at)}
-                    </p>
-                  </CardContent>
-                </Card>
+                <Link key={activity.id} href={`/activities/${activity.id}`} className="block">
+                  <Card className="hover:bg-muted/30">
+                    <CardContent className="p-4">
+                      <div className="flex items-center gap-2">
+                        <Badge variant="outline">
+                          {getActivityTypeLabel(activity.type)}
+                        </Badge>
+                        <span className="font-medium text-primary hover:underline">
+                          {activity.subject}
+                        </span>
+                      </div>
+                      {activity.body && (
+                        <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">
+                          {activity.body}
+                        </p>
+                      )}
+                      <p className="mt-2 text-xs text-muted-foreground">
+                        {(activity.creator as { full_name: string } | null)?.full_name}{" "}
+                        &middot; {formatDateTime(activity.occurred_at)}
+                      </p>
+                    </CardContent>
+                  </Card>
+                </Link>
               ))}
             </div>
           )}
@@ -196,19 +204,23 @@ export default async function DealDetailPage({ params }: PageProps) {
           ) : (
             <div className="space-y-2">
               {tasks.map((task) => (
-                <Card key={task.id}>
-                  <CardContent className="flex items-center justify-between p-4">
-                    <div>
-                      <p className="font-medium">{task.title}</p>
-                      <p className="text-sm text-muted-foreground">
-                        {(task.assignee as { full_name: string } | null)?.full_name}
-                      </p>
-                    </div>
-                    <Badge variant={task.status === "done" ? "success" : "warning"}>
-                      {task.status}
-                    </Badge>
-                  </CardContent>
-                </Card>
+                <Link key={task.id} href={`/tasks/${task.id}`} className="block">
+                  <Card className="hover:bg-muted/30">
+                    <CardContent className="flex items-center justify-between p-4">
+                      <div>
+                        <p className="font-medium text-primary hover:underline">
+                          {task.title}
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          {(task.assignee as { full_name: string } | null)?.full_name}
+                        </p>
+                      </div>
+                      <Badge variant={task.status === "done" ? "success" : "warning"}>
+                        {task.status}
+                      </Badge>
+                    </CardContent>
+                  </Card>
+                </Link>
               ))}
             </div>
           )}

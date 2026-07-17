@@ -48,6 +48,7 @@ export async function updateTaskStatus(id: string, status: TaskStatus) {
   if (error) return { error: error.message };
 
   revalidatePath("/tasks");
+  revalidatePath(`/tasks/${id}`);
   revalidatePath("/dashboard");
   return { success: true };
 }

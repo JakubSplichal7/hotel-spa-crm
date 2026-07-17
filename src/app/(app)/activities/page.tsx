@@ -122,7 +122,12 @@ export default async function ActivitiesPage({ searchParams }: PageProps) {
                     </Badge>
                   </td>
                   <td className="px-4 py-3">
-                    <p className="font-medium">{activity.subject}</p>
+                    <Link
+                      href={`/activities/${activity.id}`}
+                      className="font-medium text-primary hover:underline"
+                    >
+                      {activity.subject}
+                    </Link>
                     {activity.body && (
                       <p className="mt-0.5 line-clamp-1 text-sm text-muted-foreground">
                         {activity.body}

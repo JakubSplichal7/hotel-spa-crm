@@ -45,13 +45,14 @@ export function TaskList({ tasks }: { tasks: Task[] }) {
                 }`}
               >
                 <td className="px-4 py-3">
-                  <p
-                    className={`font-medium ${
+                  <Link
+                    href={`/tasks/${task.id}`}
+                    className={`font-medium text-primary hover:underline ${
                       task.status === "done" ? "line-through" : ""
                     }`}
                   >
                     {task.title}
-                  </p>
+                  </Link>
                 </td>
                 <td className="px-4 py-3 text-sm">
                   {task.account ? (
