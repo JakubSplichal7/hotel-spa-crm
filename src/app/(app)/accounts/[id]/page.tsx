@@ -49,14 +49,17 @@ export default async function AccountDetailPage({ params }: PageProps) {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div>
-        <Link href="/accounts" className="text-sm text-muted-foreground hover:text-primary">
-          &larr; Back to clients
-        </Link>
-        <div className="mt-2 flex items-start justify-between">
-          <div>
-            <h1 className="text-3xl font-bold">{account.name}</h1>
+      <Link
+        href="/accounts"
+        className="inline-block text-sm font-semibold text-slate-900 [text-shadow:0_1px_2px_rgba(255,255,255,0.95),0_0_10px_rgba(255,255,255,0.8)] hover:text-primary"
+      >
+        &larr; Back to clients
+      </Link>
+
+      <Card>
+        <CardContent className="flex flex-wrap items-start justify-between gap-4 p-6">
+          <div className="min-w-0">
+            <h1 className="text-3xl font-bold tracking-tight">{account.name}</h1>
             <div className="mt-2 flex flex-wrap items-center gap-2">
               <Badge variant="secondary">{getAccountTypeLabel(account.type)}</Badge>
               <Badge variant={account.status === "active" ? "success" : "warning"}>
@@ -77,26 +80,25 @@ export default async function AccountDetailPage({ params }: PageProps) {
             <p className="mt-1 text-sm text-muted-foreground">
               Account manager: {(account.owner as { full_name: string } | null)?.full_name}
             </p>
+            {account.preferences && (
+              <p className="mt-4 text-sm">
+                <span className="font-medium">Preferences:</span>{" "}
+                <span className="text-muted-foreground">{account.preferences}</span>
+              </p>
+            )}
+            {account.notes && (
+              <p className="mt-2 text-sm text-muted-foreground">{account.notes}</p>
+            )}
           </div>
-        </div>
-        {account.preferences && (
-          <p className="mt-4 text-sm">
-            <span className="font-medium">Preferences:</span>{" "}
-            <span className="text-muted-foreground">{account.preferences}</span>
-          </p>
-        )}
-        {account.notes && (
-          <p className="mt-2 text-sm text-muted-foreground">{account.notes}</p>
-        )}
-        </div>
-        <EditAccountDialog
-          account={account as Account}
-          profiles={(profiles || []) as Profile[]}
-        />
-      </div>
+          <EditAccountDialog
+            account={account as Account}
+            profiles={(profiles || []) as Profile[]}
+          />
+        </CardContent>
+      </Card>
 
       <Tabs defaultValue="contacts">
-        <TabsList>
+        <TabsList className="bg-muted/95 shadow-sm backdrop-blur-sm">
           <TabsTrigger value="contacts">Contacts ({contacts?.length || 0})</TabsTrigger>
           <TabsTrigger value="deals">Offers ({deals?.length || 0})</TabsTrigger>
           <TabsTrigger value="activities">Activities</TabsTrigger>
