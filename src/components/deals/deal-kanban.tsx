@@ -14,6 +14,7 @@ import {
   DEAL_STAGES,
   DEAL_STAGE_LABELS,
   getOfferBookingHealth,
+  offerBookingHealthLabel,
   type Booking,
   type Deal,
   type DealStage,
@@ -96,6 +97,7 @@ export function DealKanban({ deals }: { deals: DealWithBooking[] }) {
                 const health = getOfferBookingHealth(deal.stage, deal.booking, {
                   booking_create_declined: deal.booking_create_declined,
                   active_booking_declined: deal.active_booking_declined,
+                  completed_booking_declined: deal.completed_booking_declined,
                 });
                 return (
                   <Card key={deal.id} className="cursor-pointer hover:shadow-md">
@@ -113,14 +115,9 @@ export function DealKanban({ deals }: { deals: DealWithBooking[] }) {
                             Close: {formatDate(deal.expected_close)}
                           </p>
                         )}
-                        {health === "missing_booking" && (
+                        {health !== "ok" && (
                           <Badge variant="warning" className="mt-2">
-                            Missing booking
-                          </Badge>
-                        )}
-                        {health === "needs_confirmation" && (
-                          <Badge variant="warning" className="mt-2">
-                            Booking needs confirm
+                            {offerBookingHealthLabel(health)}
                           </Badge>
                         )}
                       </Link>

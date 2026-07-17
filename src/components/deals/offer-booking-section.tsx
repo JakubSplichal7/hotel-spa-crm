@@ -6,9 +6,12 @@ import Link from "next/link";
 import {
   activateBookingForDeal,
   cancelBookingForLostDeal,
+  completeBookingForDeal,
   createBookingFromDeal,
   declineActiveBooking,
   declineBookingCreate,
+  declineCompletedBooking,
+  setOptionBookingForDeal,
   updateDealStage,
 } from "@/lib/actions/deals";
 import { Button } from "@/components/ui/button";
@@ -21,12 +24,13 @@ import {
   DEAL_STAGE_LABELS,
   dealStageNeedsBooking,
   getOfferBookingHealth,
+  offerBookingHealthLabel,
   type Booking,
   type Deal,
   type DealStage,
 } from "@/lib/types";
 
-type PromptKind = "activate" | "cancel_on_lost" | null;
+type PromptKind = "option" | "activate" | "complete" | "cancel_on_lost" | null;
 
 export function OfferBookingSection({
   deal,
@@ -46,6 +50,7 @@ export function OfferBookingSection({
   const health = getOfferBookingHealth(deal.stage, booking, {
     booking_create_declined: deal.booking_create_declined,
     active_booking_declined: deal.active_booking_declined,
+    completed_booking_declined: deal.completed_booking_declined,
   });
 
   async function handleCreateYes() {
@@ -66,6 +71,24 @@ export function OfferBookingSection({
     router.refresh();
   }
 
+  async function handleOptionYes() {
+    setLoading(true);
+    const result = await setOptionBookingForDeal(deal.id);
+    setLoading(false);
+    if (result?.error === "confirm_required" && booking) {
+      setPrompt(null);
+      setConfirmBooking(booking);
+      return;
+    }
+    if (result?.error) return;
+    setPrompt(null);
+    router.refresh();
+  }
+
+  async function handleOptionNo() {
+    setPrompt(null);
+  }
+
   async function handleActivateYes() {
     setLoading(true);
     const result = await activateBookingForDeal(deal.id);
@@ -83,6 +106,28 @@ export function OfferBookingSection({
   async function handleActivateNo() {
     setLoading(true);
     await declineActiveBooking(deal.id);
+    setLoading(false);
+    setPrompt(null);
+    router.refresh();
+  }
+
+  async function handleCompleteYes() {
+    setLoading(true);
+    const result = await completeBookingForDeal(deal.id);
+    setLoading(false);
+    if (result?.error === "confirm_required" && booking) {
+      setPrompt(null);
+      setConfirmBooking(booking);
+      return;
+    }
+    if (result?.error) return;
+    setPrompt(null);
+    router.refresh();
+  }
+
+  async function handleCompleteNo() {
+    setLoading(true);
+    await declineCompletedBooking(deal.id);
     setLoading(false);
     setPrompt(null);
     router.refresh();
@@ -129,13 +174,32 @@ export function OfferBookingSection({
     router.refresh();
 
     if (
+      (stage === "proposal" || stage === "negotiation") &&
+      booking &&
+      booking.status !== "option" &&
+      booking.status !== "cancelled"
+    ) {
+      setPrompt("option");
+      return;
+    }
+
+    if (
       stage === "won" &&
       booking &&
       booking.status !== "active" &&
-      booking.status !== "completed" &&
       booking.status !== "cancelled"
     ) {
       setPrompt("activate");
+      return;
+    }
+
+    if (
+      stage === "completed" &&
+      booking &&
+      booking.status !== "completed" &&
+      booking.status !== "cancelled"
+    ) {
+      setPrompt("complete");
     }
   }
 
@@ -146,12 +210,7 @@ export function OfferBookingSection({
           <div className="flex flex-wrap items-center justify-between gap-2">
             <p className="text-sm font-medium">Linked booking</p>
             {health !== "ok" && (
-              <Badge variant="warning">
-                {health === "missing_booking" && "Missing booking"}
-                {health === "needs_confirmation" && "Needs confirmation"}
-                {health === "missing_active" && "No Active booking"}
-                {health === "status_mismatch" && "Status mismatch"}
-              </Badge>
+              <Badge variant="warning">{offerBookingHealthLabel(health)}</Badge>
             )}
           </div>
 
@@ -177,9 +236,23 @@ export function OfferBookingSection({
                     Confirm booking
                   </Button>
                 )}
+                {(deal.stage === "proposal" || deal.stage === "negotiation") &&
+                  booking.status !== "option" &&
+                  booking.status !== "cancelled" &&
+                  !booking.needs_confirmation &&
+                  booking.status !== "draft" && (
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      onClick={() => setPrompt("option")}
+                    >
+                      Set Option
+                    </Button>
+                  )}
                 {deal.stage === "won" &&
                   booking.status !== "active" &&
-                  booking.status !== "completed" && (
+                  booking.status !== "cancelled" && (
                     <Button
                       type="button"
                       size="sm"
@@ -187,6 +260,18 @@ export function OfferBookingSection({
                       onClick={() => setPrompt("activate")}
                     >
                       Set Active
+                    </Button>
+                  )}
+                {deal.stage === "completed" &&
+                  booking.status !== "completed" &&
+                  booking.status !== "cancelled" && (
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      onClick={() => setPrompt("complete")}
+                    >
+                      Set Completed
                     </Button>
                   )}
               </div>
@@ -217,6 +302,22 @@ export function OfferBookingSection({
             (!booking || booking.status !== "active") && (
               <p className="text-sm text-amber-700 dark:text-amber-400">
                 Flag: this offer does not have an Active booking.
+              </p>
+            )}
+
+          {deal.stage === "completed" &&
+            deal.completed_booking_declined &&
+            (!booking || booking.status !== "completed") && (
+              <p className="text-sm text-amber-700 dark:text-amber-400">
+                Flag: this offer does not have a Completed booking.
+              </p>
+            )}
+
+          {(deal.stage === "proposal" || deal.stage === "negotiation") &&
+            deal.booking_create_declined &&
+            !booking && (
+              <p className="text-sm text-amber-700 dark:text-amber-400">
+                Flag: this offer does not have an Option booking.
               </p>
             )}
         </CardContent>
@@ -266,6 +367,20 @@ export function OfferBookingSection({
         />
       ) : null}
 
+      {prompt === "option" ? (
+        <ConfirmYesNoDialog
+          open
+          onOpenChange={(open) => !open && setPrompt(null)}
+          title="Set booking to Option?"
+          description="This offer is at Proposal/Negotiation. Move the linked booking to Option?"
+          yesLabel="Yes, set Option"
+          noLabel="No"
+          loading={loading}
+          onYes={handleOptionYes}
+          onNo={handleOptionNo}
+        />
+      ) : null}
+
       {prompt === "activate" ? (
         <ConfirmYesNoDialog
           open
@@ -277,6 +392,20 @@ export function OfferBookingSection({
           loading={loading}
           onYes={handleActivateYes}
           onNo={handleActivateNo}
+        />
+      ) : null}
+
+      {prompt === "complete" ? (
+        <ConfirmYesNoDialog
+          open
+          onOpenChange={(open) => !open && setPrompt(null)}
+          title="Set booking to Completed?"
+          description="This offer is Completed. Move the linked booking to Completed?"
+          yesLabel="Yes, set Completed"
+          noLabel="No"
+          loading={loading}
+          onYes={handleCompleteYes}
+          onNo={handleCompleteNo}
         />
       ) : null}
 
@@ -302,7 +431,7 @@ export function OfferBookingSection({
       {confirmBooking ? (
         <ConfirmLinkedBookingDialog
           booking={confirmBooking}
-          dealStage={deal.stage === "won" ? "won" : deal.stage}
+          dealStage={deal.stage}
           open={!!confirmBooking}
           onOpenChange={(open) => !open && setConfirmBooking(null)}
           onConfirmed={() => router.refresh()}

@@ -9,6 +9,7 @@ import {
   getDealStageLabel,
   getPrimaryBooking,
   getOfferBookingHealth,
+  offerBookingHealthLabel,
   DEAL_STAGE_LABELS,
   BOOKING_STATUS_LABELS,
   type Booking,
@@ -62,6 +63,7 @@ export default async function DealsPage() {
     const health = getOfferBookingHealth(deal.stage, booking, {
       booking_create_declined: Boolean(deal.booking_create_declined),
       active_booking_declined: Boolean(deal.active_booking_declined),
+      completed_booking_declined: Boolean(deal.completed_booking_declined),
     });
     return { deal, booking, health };
   });
@@ -106,17 +108,11 @@ export default async function DealsPage() {
               Currency: deal.currency || "",
               "Expected close": deal.expected_close || "",
               Booking:
-                health === "missing_booking"
-                  ? "Missing booking"
-                  : health === "needs_confirmation"
-                    ? "Needs confirm"
-                    : health === "missing_active"
-                      ? "No Active"
-                      : health === "status_mismatch"
-                        ? "Mismatch"
-                        : booking
-                          ? "Linked"
-                          : "",
+                health === "ok"
+                  ? booking
+                    ? "Linked"
+                    : ""
+                  : offerBookingHealthLabel(health),
               "Booking status": booking
                 ? BOOKING_STATUS_LABELS[booking.status as BookingStatus] ??
                   booking.status
@@ -174,27 +170,18 @@ export default async function DealsPage() {
                     {deal.expected_close ? formatDate(deal.expected_close) : "—"}
                   </td>
                   <td className="px-4 py-3">
-                    {health === "missing_booking" && (
-                      <Badge variant="warning">Missing booking</Badge>
-                    )}
-                    {health === "needs_confirmation" && (
-                      <Badge variant="warning">Needs confirm</Badge>
-                    )}
-                    {health === "missing_active" && (
-                      <Badge variant="warning">No Active</Badge>
-                    )}
-                    {health === "status_mismatch" && (
-                      <Badge variant="warning">Mismatch</Badge>
-                    )}
-                    {health === "ok" && booking && (
+                    {health !== "ok" ? (
+                      <Badge variant="warning">
+                        {offerBookingHealthLabel(health)}
+                      </Badge>
+                    ) : booking ? (
                       <Link
                         href={`/bookings/${booking.id}`}
                         className="text-sm text-primary hover:underline"
                       >
                         Linked
                       </Link>
-                    )}
-                    {health === "ok" && !booking && (
+                    ) : (
                       <span className="text-sm text-muted-foreground">—</span>
                     )}
                   </td>

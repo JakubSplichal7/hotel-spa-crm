@@ -84,6 +84,8 @@ export interface Deal {
   booking_create_declined?: boolean;
   /** Soft flag: user declined moving linked booking to Active on Won */
   active_booking_declined?: boolean;
+  /** Soft flag: user declined moving linked booking to Completed on Completed */
+  completed_booking_declined?: boolean;
   created_at: string;
   updated_at: string;
   account?: Account;
@@ -170,43 +172,72 @@ export function getPrimaryBooking(
   )[0];
 }
 
+/** Expected booking status for offer stages (soft pairing rule) */
+export function expectedBookingStatusForStage(
+  stage: DealStage
+): BookingStatus | null {
+  if (stage === "proposal" || stage === "negotiation") return "option";
+  if (stage === "won") return "active";
+  if (stage === "completed") return "completed";
+  return null;
+}
+
 export type OfferBookingHealth =
   | "ok"
   | "missing_booking"
   | "needs_confirmation"
+  | "missing_option"
   | "missing_active"
+  | "missing_completed"
   | "status_mismatch";
 
 export function getOfferBookingHealth(
   stage: DealStage,
   booking: Booking | null | undefined,
-  flags?: { booking_create_declined?: boolean; active_booking_declined?: boolean }
+  flags?: {
+    booking_create_declined?: boolean;
+    active_booking_declined?: boolean;
+    completed_booking_declined?: boolean;
+  }
 ): OfferBookingHealth {
-  if (!dealStageNeedsBooking(stage)) return "ok";
+  const expected = expectedBookingStatusForStage(stage);
+  if (!expected) return "ok";
+
   if (!booking) return "missing_booking";
   if (booking.needs_confirmation || booking.status === "draft") {
     return "needs_confirmation";
   }
-  if (stage === "won") {
-    if (booking.status === "active" || booking.status === "completed") return "ok";
-    return flags?.active_booking_declined || booking.status !== "active"
-      ? "missing_active"
-      : "ok";
+  if (booking.status === expected) return "ok";
+
+  if (stage === "proposal" || stage === "negotiation") {
+    return "missing_option";
   }
-  if (stage === "completed") {
-    if (booking.status === "completed") return "ok";
-    if (booking.status === "active") return "status_mismatch";
+  if (stage === "won") {
     return "missing_active";
   }
-  if (
-    (stage === "proposal" || stage === "negotiation") &&
-    booking.status !== "option" &&
-    booking.status !== "active" &&
-    booking.status !== "completed"
-  ) {
-    return "status_mismatch";
+  if (stage === "completed") {
+    return "missing_completed";
   }
-  return "ok";
+  return "status_mismatch";
+}
+
+export function offerBookingHealthLabel(health: OfferBookingHealth): string {
+  switch (health) {
+    case "missing_booking":
+      return "Missing booking";
+    case "needs_confirmation":
+      return "Needs confirmation";
+    case "missing_option":
+      return "No Option booking";
+    case "missing_active":
+      return "No Active booking";
+    case "missing_completed":
+      return "No Completed booking";
+    case "status_mismatch":
+      return "Status mismatch";
+    default:
+      return "";
+  }
 }
 
 export const DEAL_STAGES: DealStage[] = [

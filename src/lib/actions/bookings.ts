@@ -221,6 +221,7 @@ export async function confirmLinkedBooking(id: string, formData: FormData) {
   if (booking.deal_id) {
     const dealUpdate: Record<string, boolean> = { booking_create_declined: false };
     if (status === "active") dealUpdate.active_booking_declined = false;
+    if (status === "completed") dealUpdate.completed_booking_declined = false;
     await supabase.from("deals").update(dealUpdate).eq("id", booking.deal_id);
     revalidatePath(`/deals/${booking.deal_id}`);
   }

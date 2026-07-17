@@ -50,6 +50,7 @@ export async function updateDealStage(id: string, stage: DealStage) {
     .update({
       stage,
       ...(stage !== "won" ? { active_booking_declined: false } : {}),
+      ...(stage !== "completed" ? { completed_booking_declined: false } : {}),
       ...(dealStageNeedsBooking(stage) ? {} : { booking_create_declined: false }),
     })
     .eq("id", id)
@@ -79,6 +80,7 @@ export async function updateDeal(id: string, formData: FormData) {
       owner_id: formData.get("owner_id") as string,
       notes: (formData.get("notes") as string) || null,
       ...(stage !== "won" ? { active_booking_declined: false } : {}),
+      ...(stage !== "completed" ? { completed_booking_declined: false } : {}),
     })
     .eq("id", id);
 
@@ -224,6 +226,98 @@ export async function declineActiveBooking(dealId: string) {
   revalidatePath("/deals");
   revalidatePath(`/deals/${dealId}`);
   return { success: true };
+}
+
+export async function completeBookingForDeal(dealId: string) {
+  await requireProfile();
+  const supabase = await createClient();
+
+  const { data: bookings } = await supabase
+    .from("bookings")
+    .select("*")
+    .eq("deal_id", dealId)
+    .order("created_at", { ascending: true });
+
+  const booking = getPrimaryBooking(bookings || []);
+  if (!booking) return { error: "No linked booking found" };
+
+  if (booking.needs_confirmation || booking.status === "draft" || !booking.start_date) {
+    return {
+      error: "confirm_required",
+      bookingId: booking.id,
+      message: "Confirm booking details before setting Completed.",
+    };
+  }
+
+  const { error } = await supabase
+    .from("bookings")
+    .update({ status: "completed" satisfies BookingStatus, needs_confirmation: false })
+    .eq("id", booking.id);
+
+  if (error) return { error: error.message };
+
+  await supabase
+    .from("deals")
+    .update({ completed_booking_declined: false })
+    .eq("id", dealId);
+
+  await revalidateDealPaths(dealId, booking.account_id);
+  revalidatePath(`/bookings/${booking.id}`);
+  return { success: true, data: booking };
+}
+
+export async function declineCompletedBooking(dealId: string) {
+  await requireProfile();
+  const supabase = await createClient();
+
+  const { error } = await supabase
+    .from("deals")
+    .update({ completed_booking_declined: true })
+    .eq("id", dealId);
+
+  if (error) return { error: error.message };
+
+  revalidatePath("/deals");
+  revalidatePath(`/deals/${dealId}`);
+  return { success: true };
+}
+
+export async function setOptionBookingForDeal(dealId: string) {
+  await requireProfile();
+  const supabase = await createClient();
+
+  const { data: bookings } = await supabase
+    .from("bookings")
+    .select("*")
+    .eq("deal_id", dealId)
+    .order("created_at", { ascending: true });
+
+  const booking = getPrimaryBooking(bookings || []);
+  if (!booking) return { error: "No linked booking found" };
+
+  if (booking.needs_confirmation || booking.status === "draft" || !booking.start_date) {
+    return {
+      error: "confirm_required",
+      bookingId: booking.id,
+      message: "Confirm booking details before setting Option.",
+    };
+  }
+
+  const { error } = await supabase
+    .from("bookings")
+    .update({ status: "option" satisfies BookingStatus, needs_confirmation: false })
+    .eq("id", booking.id);
+
+  if (error) return { error: error.message };
+
+  await supabase
+    .from("deals")
+    .update({ booking_create_declined: false })
+    .eq("id", dealId);
+
+  await revalidateDealPaths(dealId, booking.account_id);
+  revalidatePath(`/bookings/${booking.id}`);
+  return { success: true, data: booking };
 }
 
 export async function cancelBookingForLostDeal(dealId: string) {

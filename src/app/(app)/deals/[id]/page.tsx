@@ -54,6 +54,7 @@ export default async function DealDetailPage({ params }: PageProps) {
     ...deal,
     booking_create_declined: Boolean(deal.booking_create_declined),
     active_booking_declined: Boolean(deal.active_booking_declined),
+    completed_booking_declined: Boolean(deal.completed_booking_declined),
   } as Deal;
 
   return (
