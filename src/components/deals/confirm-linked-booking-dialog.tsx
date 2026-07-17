@@ -44,9 +44,9 @@ export function ConfirmLinkedBookingDialog({
   const [error, setError] = useState<string | null>(null);
   const suggested = defaultStatusForStage(dealStage);
 
-  async function handleSubmit(formData: FormData) {
-    setLoading(true);
-    setError(null);
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
 
     const startDate = (formData.get("start_date") as string) || "";
     const endDate = (formData.get("end_date") as string) || "";
@@ -54,10 +54,11 @@ export function ConfirmLinkedBookingDialog({
       setError(
         "Booking cannot be confirmed: end date cannot be earlier than start date. Please correct the dates and try again."
       );
-      setLoading(false);
       return;
     }
 
+    setLoading(true);
+    setError(null);
     const result = await confirmLinkedBooking(booking.id, formData);
     setLoading(false);
     if (result?.error) {
@@ -78,7 +79,7 @@ export function ConfirmLinkedBookingDialog({
             {suggested === "active" ? " to Active" : " to Option"}.
           </DialogDescription>
         </DialogHeader>
-        <form action={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4">
           {error && (
             <div
               role="alert"

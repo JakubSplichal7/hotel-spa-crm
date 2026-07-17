@@ -33,7 +33,19 @@ export function EditBookingDialog({
   const [error, setError] = useState<string | null>(null);
   const [dealId, setDealId] = useState(booking.deal_id || "");
 
-  async function handleSubmit(formData: FormData) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+
+    const startDate = (formData.get("start_date") as string) || "";
+    const endDate = (formData.get("end_date") as string) || "";
+    if (startDate && endDate && endDate < startDate) {
+      setError(
+        "End date cannot be earlier than start date. Please correct the dates and try again."
+      );
+      return;
+    }
+
     setLoading(true);
     setError(null);
     const result = await updateBooking(booking.id, formData);
@@ -66,9 +78,12 @@ export function EditBookingDialog({
         <DialogHeader>
           <DialogTitle>Edit Booking</DialogTitle>
         </DialogHeader>
-        <form action={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4">
           {error && (
-            <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
+            <div
+              role="alert"
+              className="rounded-md border border-destructive/30 bg-destructive/10 p-3 text-sm font-medium text-destructive"
+            >
               {error}
             </div>
           )}

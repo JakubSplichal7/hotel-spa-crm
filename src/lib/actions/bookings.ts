@@ -18,7 +18,7 @@ function invalidDateRangeError(
 ): string | null {
   if (!startDate || !endDate) return null;
   if (endDate < startDate) {
-    return "End date cannot be earlier than start date";
+    return "End date cannot be earlier than start date. Please correct the dates and try again.";
   }
   return null;
 }
@@ -30,8 +30,12 @@ export async function createBooking(formData: FormData) {
   const startDate = (formData.get("start_date") as string) || null;
   const endDate = (formData.get("end_date") as string) || null;
 
-  const rangeError = invalidDateRangeError(startDate, endDate);
-  if (rangeError) return { error: rangeError };
+  if (startDate && endDate && endDate < startDate) {
+    return {
+      error:
+        "Booking cannot be created: end date cannot be earlier than start date. Please correct the dates and try again.",
+    };
+  }
 
   const { data, error } = await supabase
     .from("bookings")

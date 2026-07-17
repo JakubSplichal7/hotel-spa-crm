@@ -19,13 +19,27 @@ import { BOOKING_STATUSES, BOOKING_STATUS_LABELS } from "@/lib/types";
 import type { Account } from "@/lib/types";
 import { Plus } from "lucide-react";
 
+const DATE_RANGE_ERROR =
+  "Booking cannot be created: end date cannot be earlier than start date. Please correct the dates and try again.";
+
 export function CreateBookingDialog({ accounts }: { accounts: Account[] }) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [accountId, setAccountId] = useState("");
   const [error, setError] = useState<string | null>(null);
 
-  async function handleSubmit(formData: FormData) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const form = e.currentTarget;
+    const formData = new FormData(form);
+
+    const startDate = (formData.get("start_date") as string) || "";
+    const endDate = (formData.get("end_date") as string) || "";
+    if (startDate && endDate && endDate < startDate) {
+      setError(DATE_RANGE_ERROR);
+      return;
+    }
+
     setLoading(true);
     setError(null);
     const result = await createBooking(formData);
@@ -36,6 +50,7 @@ export function CreateBookingDialog({ accounts }: { accounts: Account[] }) {
     }
     setOpen(false);
     setAccountId("");
+    form.reset();
   }
 
   return (
@@ -59,9 +74,12 @@ export function CreateBookingDialog({ accounts }: { accounts: Account[] }) {
         <DialogHeader>
           <DialogTitle>Create Booking / Stay</DialogTitle>
         </DialogHeader>
-        <form action={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4">
           {error && (
-            <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
+            <div
+              role="alert"
+              className="rounded-md border border-destructive/30 bg-destructive/10 p-3 text-sm font-medium text-destructive"
+            >
               {error}
             </div>
           )}
