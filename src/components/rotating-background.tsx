@@ -1,30 +1,20 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import {
-  BACKGROUND_ROTATE_MS,
-  RESORT_BACKGROUNDS,
-} from "@/lib/backgrounds";
+import { RESORT_BACKGROUNDS } from "@/lib/backgrounds";
+import { useBackground } from "@/components/background-provider";
 import { cn } from "@/lib/utils";
 
 export function RotatingBackground({ className }: { className?: string }) {
-  const [index, setIndex] = useState(0);
+  const { enabled, index } = useBackground();
 
-  useEffect(() => {
-    // Warm the browser cache for smoother swaps
-    RESORT_BACKGROUNDS.forEach((src) => {
-      const img = new Image();
-      img.src = src;
-    });
-  }, []);
-
-  useEffect(() => {
-    if (RESORT_BACKGROUNDS.length < 2) return;
-    const id = window.setInterval(() => {
-      setIndex((i) => (i + 1) % RESORT_BACKGROUNDS.length);
-    }, BACKGROUND_ROTATE_MS);
-    return () => window.clearInterval(id);
-  }, []);
+  if (!enabled) {
+    return (
+      <div
+        className={cn("pointer-events-none absolute inset-0 bg-background", className)}
+        aria-hidden
+      />
+    );
+  }
 
   return (
     <div
@@ -41,7 +31,6 @@ export function RotatingBackground({ className }: { className?: string }) {
           style={{ backgroundImage: `url(${src})` }}
         />
       ))}
-      {/* Soft wash so tables and text stay readable — keep photos more visible */}
       <div className="absolute inset-0 bg-gradient-to-b from-white/35 via-white/25 to-white/40" />
       <div className="absolute inset-0 bg-white/5" />
     </div>
