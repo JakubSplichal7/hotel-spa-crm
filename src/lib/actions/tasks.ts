@@ -31,6 +31,8 @@ export async function createTask(formData: FormData) {
 
   revalidatePath("/tasks");
   revalidatePath("/dashboard");
+  if (accountId) revalidatePath(`/accounts/${accountId}`);
+  if (dealId) revalidatePath(`/deals/${dealId}`);
   return { data };
 }
 

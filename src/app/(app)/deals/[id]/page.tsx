@@ -8,7 +8,9 @@ import { getDealStageLabel, getActivityTypeLabel, getPrimaryBooking } from "@/li
 import Link from "next/link";
 import { EditDealDialog } from "@/components/deals/edit-deal-dialog";
 import { OfferBookingSection } from "@/components/deals/offer-booking-section";
-import type { Booking, Deal, Profile } from "@/lib/types";
+import { LogActivityDialog } from "@/components/activities/log-activity-dialog";
+import { CreateTaskDialog } from "@/components/tasks/create-task-dialog";
+import type { Account, Booking, Deal, Profile } from "@/lib/types";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -127,7 +129,24 @@ export default async function DealDetailPage({ params }: PageProps) {
 
       <div className="grid gap-6 lg:grid-cols-2">
         <div>
-          <h2 className="mb-4 text-lg font-semibold">Activities</h2>
+          <div className="mb-4 flex items-center justify-between gap-2">
+            <h2 className="text-lg font-semibold">Activities</h2>
+            <LogActivityDialog
+              accounts={
+                [
+                  {
+                    id: (deal.account as { id: string }).id,
+                    name: (deal.account as { name: string }).name,
+                  },
+                ] as Account[]
+              }
+              defaultAccountId={deal.account_id}
+              defaultDealId={deal.id}
+              buttonVariant="outline"
+              buttonSize="sm"
+              buttonLabel="Log activity"
+            />
+          </div>
           {!activities?.length ? (
             <p className="text-sm text-muted-foreground">No activities logged</p>
           ) : (
@@ -153,9 +172,27 @@ export default async function DealDetailPage({ params }: PageProps) {
           )}
         </div>
         <div>
-          <h2 className="mb-4 text-lg font-semibold">Tasks</h2>
+          <div className="mb-4 flex items-center justify-between gap-2">
+            <h2 className="text-lg font-semibold">Tasks</h2>
+            <CreateTaskDialog
+              accounts={
+                [
+                  {
+                    id: (deal.account as { id: string }).id,
+                    name: (deal.account as { name: string }).name,
+                  },
+                ] as Account[]
+              }
+              profiles={(profiles || []) as Profile[]}
+              defaultAccountId={deal.account_id}
+              defaultDealId={deal.id}
+              buttonVariant="outline"
+              buttonSize="sm"
+              buttonLabel="New task"
+            />
+          </div>
           {!tasks?.length ? (
-            <p className="text-sm text-muted-foreground">No tasks for this deal</p>
+            <p className="text-sm text-muted-foreground">No tasks for this offer</p>
           ) : (
             <div className="space-y-2">
               {tasks.map((task) => (
