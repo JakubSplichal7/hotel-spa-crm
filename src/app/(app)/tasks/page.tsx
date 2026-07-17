@@ -3,19 +3,20 @@ import { createClient } from "@/lib/supabase/server";
 import { requireProfile } from "@/lib/auth";
 import { CreateTaskDialog } from "@/components/tasks/create-task-dialog";
 import { TaskList } from "@/components/tasks/task-list";
-import { ClientFilter } from "@/components/client-filter";
+import { ClientOfferFilter } from "@/components/client-offer-filter";
 import { EmptyState } from "@/components/empty-state";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { Account, Profile, Task } from "@/lib/types";
 
 interface PageProps {
-  searchParams: Promise<{ client?: string }>;
+  searchParams: Promise<{ client?: string; offer?: string }>;
 }
 
 export default async function TasksPage({ searchParams }: PageProps) {
   const profile = await requireProfile();
   const params = await searchParams;
   const clientId = params.client && params.client !== "all" ? params.client : null;
+  const offerId = params.offer && params.offer !== "all" ? params.offer : null;
   const supabase = await createClient();
 
   const today = new Date();
@@ -44,14 +45,28 @@ export default async function TasksPage({ searchParams }: PageProps) {
     openQuery = openQuery.eq("account_id", clientId);
     doneQuery = doneQuery.eq("account_id", clientId);
   }
+  if (clientId && offerId) {
+    openQuery = openQuery.eq("deal_id", offerId);
+    doneQuery = doneQuery.eq("deal_id", offerId);
+  }
 
-  const [{ data: openTasks }, { data: doneTasks }, { data: accounts }, { data: profiles }] =
-    await Promise.all([
-      openQuery,
-      doneQuery,
-      supabase.from("accounts").select("*").eq("org_id", profile.org_id).order("name"),
-      supabase.from("profiles").select("*").eq("org_id", profile.org_id),
-    ]);
+  const [
+    { data: openTasks },
+    { data: doneTasks },
+    { data: accounts },
+    { data: profiles },
+    { data: offers },
+  ] = await Promise.all([
+    openQuery,
+    doneQuery,
+    supabase.from("accounts").select("*").eq("org_id", profile.org_id).order("name"),
+    supabase.from("profiles").select("*").eq("org_id", profile.org_id),
+    supabase
+      .from("deals")
+      .select("id, title, account_id")
+      .eq("org_id", profile.org_id)
+      .order("title"),
+  ]);
 
   const overdueCount = (openTasks || []).filter(
     (t) => t.due_at && new Date(t.due_at) < today
@@ -60,6 +75,14 @@ export default async function TasksPage({ searchParams }: PageProps) {
   const selectedClient = clientId
     ? (accounts || []).find((a) => a.id === clientId)
     : null;
+  const selectedOffer =
+    clientId && offerId
+      ? (offers || []).find((o) => o.id === offerId && o.account_id === clientId)
+      : null;
+
+  const filterHint = [selectedClient?.name, selectedOffer?.title]
+    .filter(Boolean)
+    .join(" · ");
 
   return (
     <div className="space-y-6">
@@ -74,18 +97,23 @@ export default async function TasksPage({ searchParams }: PageProps) {
                 &middot; {overdueCount} overdue
               </span>
             )}
-            {selectedClient ? ` · ${selectedClient.name}` : ""}
+            {filterHint ? ` · ${filterHint}` : ""}
           </p>
         </div>
         <CreateTaskDialog
           accounts={(accounts || []) as Account[]}
           profiles={(profiles || []) as Profile[]}
           defaultAccountId={clientId || undefined}
+          defaultDealId={selectedOffer?.id}
         />
       </div>
 
       <Suspense fallback={null}>
-        <ClientFilter accounts={(accounts || []) as Account[]} basePath="/tasks" />
+        <ClientOfferFilter
+          accounts={(accounts || []) as Account[]}
+          offers={offers || []}
+          basePath="/tasks"
+        />
       </Suspense>
 
       <Tabs defaultValue="open">
@@ -96,10 +124,16 @@ export default async function TasksPage({ searchParams }: PageProps) {
         <TabsContent value="open" className="mt-4">
           {!openTasks?.length ? (
             <EmptyState
-              title={clientId ? "No open tasks for this client" : "No open tasks"}
+              title={
+                selectedOffer
+                  ? "No open tasks for this offer"
+                  : clientId
+                    ? "No open tasks for this client"
+                    : "No open tasks"
+              }
               description={
                 clientId
-                  ? "Try another client or create a new task."
+                  ? "Try another filter or create a new task."
                   : "Create a follow-up task to stay on track."
               }
             />
@@ -111,9 +145,11 @@ export default async function TasksPage({ searchParams }: PageProps) {
           {!doneTasks?.length ? (
             <EmptyState
               title={
-                clientId
-                  ? "No completed tasks for this client"
-                  : "No completed tasks"
+                selectedOffer
+                  ? "No completed tasks for this offer"
+                  : clientId
+                    ? "No completed tasks for this client"
+                    : "No completed tasks"
               }
               description="Completed tasks will appear here."
             />

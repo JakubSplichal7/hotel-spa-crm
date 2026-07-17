@@ -22,6 +22,7 @@ export function SearchableClientSelect({
   placeholder = "Type to find a client…",
   allowAll = false,
   allLabel = "All clients",
+  emptyLabel = "No clients starting with",
   required = false,
   className,
   id,
@@ -34,6 +35,7 @@ export function SearchableClientSelect({
   /** When true, empty selection means "all" (for filters) */
   allowAll?: boolean;
   allLabel?: string;
+  emptyLabel?: string;
   required?: boolean;
   className?: string;
   id?: string;
@@ -180,7 +182,7 @@ export function SearchableClientSelect({
           )}
           {filtered.length === 0 ? (
             <li className="px-3 py-2 text-sm text-muted-foreground">
-              No clients starting with “{query.trim()}”
+              {emptyLabel} “{query.trim()}”
             </li>
           ) : (
             filtered.map((a) => (
