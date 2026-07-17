@@ -114,7 +114,7 @@ export default async function AccountDetailPage({ params }: PageProps) {
               description="Add people at this company, or guest details for an individual client."
             />
           ) : (
-            <div className="rounded-lg border">
+            <div className="rounded-lg border bg-card/95 shadow-sm backdrop-blur-sm">
               <table className="w-full">
                 <thead>
                   <tr className="border-b bg-muted/50">
@@ -127,7 +127,7 @@ export default async function AccountDetailPage({ params }: PageProps) {
                 </thead>
                 <tbody>
                   {contacts.map((contact) => (
-                    <tr key={contact.id} className="border-b">
+                    <tr key={contact.id} className="border-b hover:bg-muted/30">
                       <td className="px-4 py-3 font-medium">
                         {contact.name}
                         {contact.is_primary && (
