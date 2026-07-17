@@ -8,6 +8,7 @@ import { formatCurrency, formatDate } from "@/lib/utils";
 import Link from "next/link";
 import { BOOKING_STATUS_LABELS } from "@/lib/types";
 import type { BookingStatus } from "@/lib/types";
+import { TableExportBar } from "@/components/export-xlsx-button";
 
 export default async function BookingsPage() {
   const profile = await requireProfile();
@@ -37,7 +38,35 @@ export default async function BookingsPage() {
           description="Record stays, spa appointments, and events linked to your clients."
         />
       ) : (
-        <div className="rounded-lg border bg-card/95 shadow-sm backdrop-blur-sm">
+        <div>
+          <TableExportBar
+            filename="bookings"
+            columns={[
+              "Booking",
+              "Client",
+              "Offer",
+              "Start date",
+              "End date",
+              "Value",
+              "Currency",
+              "Status",
+            ]}
+            rows={bookings.map((booking) => ({
+              Booking: booking.title,
+              Client: (booking.account as { name: string }).name,
+              Offer: booking.deal
+                ? (booking.deal as { title: string }).title
+                : "",
+              "Start date": booking.start_date || "",
+              "End date": booking.end_date || "",
+              Value: Number(booking.value),
+              Currency: booking.currency || "",
+              Status:
+                BOOKING_STATUS_LABELS[booking.status as BookingStatus] ??
+                booking.status,
+            }))}
+          />
+          <div className="rounded-lg border bg-card/95 shadow-sm backdrop-blur-sm">
           <table className="w-full">
             <thead>
               <tr className="border-b bg-muted/50">
@@ -108,6 +137,7 @@ export default async function BookingsPage() {
               ))}
             </tbody>
           </table>
+          </div>
         </div>
       )}
     </div>

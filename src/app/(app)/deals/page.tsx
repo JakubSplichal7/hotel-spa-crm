@@ -10,11 +10,14 @@ import {
   getPrimaryBooking,
   getOfferBookingHealth,
   DEAL_STAGE_LABELS,
+  BOOKING_STATUS_LABELS,
   type Booking,
+  type BookingStatus,
   type Deal,
   type DealStage,
 } from "@/lib/types";
 import Link from "next/link";
+import { TableExportBar } from "@/components/export-xlsx-button";
 
 function stageBadgeVariant(stage: string) {
   if (stage === "won") return "success" as const;
@@ -77,7 +80,51 @@ export default async function DealsPage() {
           description="Create your first offer or package for a client."
         />
       ) : (
-        <div className="rounded-lg border bg-card/95 shadow-sm backdrop-blur-sm">
+        <div>
+          <TableExportBar
+            filename="offers"
+            columns={[
+              "Offer",
+              "Client",
+              "Stage",
+              "Value",
+              "Currency",
+              "Expected close",
+              "Booking",
+              "Booking status",
+              "Owner",
+            ]}
+            rows={rows.map(({ deal, booking, health }) => ({
+              Offer: deal.title,
+              Client:
+                (deal.account as { name?: string } | null)?.name || "",
+              Stage:
+                DEAL_STAGE_LABELS[deal.stage as DealStage] ??
+                getDealStageLabel(deal.stage),
+              Value: Number(deal.value),
+              Currency: deal.currency || "",
+              "Expected close": deal.expected_close || "",
+              Booking:
+                health === "missing_booking"
+                  ? "Missing booking"
+                  : health === "needs_confirmation"
+                    ? "Needs confirm"
+                    : health === "missing_active"
+                      ? "No Active"
+                      : health === "status_mismatch"
+                        ? "Mismatch"
+                        : booking
+                          ? "Linked"
+                          : "",
+              "Booking status": booking
+                ? BOOKING_STATUS_LABELS[booking.status as BookingStatus] ??
+                  booking.status
+                : "",
+              Owner:
+                (deal.owner as { full_name: string } | null)?.full_name || "",
+            }))}
+          />
+          <div className="rounded-lg border bg-card/95 shadow-sm backdrop-blur-sm">
           <table className="w-full">
             <thead>
               <tr className="border-b bg-muted/50">
@@ -157,6 +204,7 @@ export default async function DealsPage() {
               ))}
             </tbody>
           </table>
+          </div>
         </div>
       )}
     </div>

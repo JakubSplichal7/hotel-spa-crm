@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { formatDateTime } from "@/lib/utils";
 import { getActivityTypeLabel } from "@/lib/types";
 import { PageHeader } from "@/components/page-header";
+import { TableExportBar } from "@/components/export-xlsx-button";
 import type { Account } from "@/lib/types";
 import Link from "next/link";
 
@@ -98,7 +99,33 @@ export default async function ActivitiesPage({ searchParams }: PageProps) {
           }
         />
       ) : (
-        <div className="rounded-lg border bg-card/95 shadow-sm backdrop-blur-sm">
+        <div>
+          <TableExportBar
+            filename="activities"
+            columns={[
+              "Type",
+              "Subject",
+              "Body",
+              "Client",
+              "Offer",
+              "Logged by",
+              "When",
+            ]}
+            rows={activities.map((activity) => ({
+              Type: getActivityTypeLabel(activity.type),
+              Subject: activity.subject,
+              Body: activity.body || "",
+              Client: (activity.account as { name: string }).name,
+              Offer: activity.deal
+                ? (activity.deal as { title: string }).title
+                : "",
+              "Logged by":
+                (activity.creator as { full_name: string } | null)?.full_name ||
+                "",
+              When: formatDateTime(activity.occurred_at),
+            }))}
+          />
+          <div className="rounded-lg border bg-card/95 shadow-sm backdrop-blur-sm">
           <table className="w-full">
             <thead>
               <tr className="border-b bg-muted/50">
@@ -162,6 +189,7 @@ export default async function ActivitiesPage({ searchParams }: PageProps) {
               ))}
             </tbody>
           </table>
+          </div>
         </div>
       )}
     </div>

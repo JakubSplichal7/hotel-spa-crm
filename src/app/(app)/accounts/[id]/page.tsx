@@ -12,6 +12,7 @@ import Link from "next/link";
 import { deleteContact } from "@/lib/actions/accounts";
 import { Button } from "@/components/ui/button";
 import { EditAccountDialog } from "@/components/accounts/edit-account-dialog";
+import { TableExportBar } from "@/components/export-xlsx-button";
 import type { Account, Profile } from "@/lib/types";
 
 interface PageProps {
@@ -116,7 +117,19 @@ export default async function AccountDetailPage({ params }: PageProps) {
               description="Add people at this company, or guest details for an individual client."
             />
           ) : (
-            <div className="rounded-lg border bg-card/95 shadow-sm backdrop-blur-sm">
+            <div>
+              <TableExportBar
+                filename={`contacts-${account.name}`}
+                columns={["Name", "Title", "Email", "Phone", "Primary"]}
+                rows={contacts.map((contact) => ({
+                  Name: contact.name,
+                  Title: contact.title || "",
+                  Email: contact.email || "",
+                  Phone: contact.phone || "",
+                  Primary: contact.is_primary ? "Yes" : "No",
+                }))}
+              />
+              <div className="rounded-lg border bg-card/95 shadow-sm backdrop-blur-sm">
               <table className="w-full">
                 <thead>
                   <tr className="border-b bg-muted/50">
@@ -148,6 +161,7 @@ export default async function AccountDetailPage({ params }: PageProps) {
                   ))}
                 </tbody>
               </table>
+              </div>
             </div>
           )}
         </TabsContent>

@@ -12,6 +12,7 @@ import {
   getTaskDayDelta,
 } from "@/lib/task-dates";
 import type { Task } from "@/lib/types";
+import { TableExportBar } from "@/components/export-xlsx-button";
 import Link from "next/link";
 
 function isDueBeforeToday(dueAt: string | null | undefined) {
@@ -36,6 +37,41 @@ export function TaskList({ tasks }: { tasks: Task[] }) {
 
   return (
     <>
+      <TableExportBar
+        filename={
+          tasks[0]?.status === "done" ? "tasks-completed" : "tasks-open"
+        }
+        columns={[
+          "Task",
+          "Client",
+          "Offer",
+          "Assignee",
+          "Due",
+          "Done on",
+          "Delta days",
+          "Status",
+        ]}
+        rows={tasks.map((task) => {
+          const isOverdue =
+            task.status === "open" && isDueBeforeToday(task.due_at);
+          const delta = getTaskDayDelta(task);
+          return {
+            Task: task.title,
+            Client: task.account
+              ? (task.account as { name: string }).name
+              : "",
+            Offer: task.deal ? (task.deal as { title: string }).title : "",
+            Assignee:
+              (task.assignee as { full_name: string } | undefined)?.full_name ||
+              "",
+            Due: task.due_at ? formatDate(task.due_at) : "",
+            "Done on": task.completed_at ? formatDate(task.completed_at) : "",
+            "Delta days":
+              delta === null ? "" : formatCompletionDelta(delta.days),
+            Status: isOverdue ? "overdue" : task.status,
+          };
+        })}
+      />
       <div className="rounded-lg border bg-card/95 shadow-sm backdrop-blur-sm">
         <table className="w-full">
           <thead>

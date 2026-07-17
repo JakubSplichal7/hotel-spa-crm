@@ -7,6 +7,7 @@ import { EmptyState } from "@/components/empty-state";
 import { PageHeader } from "@/components/page-header";
 import { Badge } from "@/components/ui/badge";
 import { getAccountTypeLabel, getAcquisitionLabel } from "@/lib/types";
+import { TableExportBar } from "@/components/export-xlsx-button";
 import Link from "next/link";
 
 interface PageProps {
@@ -62,7 +63,31 @@ export default async function AccountsPage({ searchParams }: PageProps) {
           description="Add your first company or individual guest to start managing relationships."
         />
       ) : (
-        <div className="rounded-lg border bg-card/95 shadow-sm backdrop-blur-sm">
+        <div>
+          <TableExportBar
+            filename="clients"
+            columns={[
+              "Client",
+              "Type",
+              "Location",
+              "Status",
+              "Acquisition",
+              "Owner",
+              "VIP",
+            ]}
+            rows={accounts.map((account) => ({
+              Client: account.name,
+              Type: getAccountTypeLabel(account.type),
+              Location:
+                [account.city, account.country].filter(Boolean).join(", ") || "",
+              Status: account.status,
+              Acquisition: getAcquisitionLabel(account.loyalty_tier),
+              Owner:
+                (account.owner as { full_name: string } | null)?.full_name || "",
+              VIP: account.is_vip ? "Yes" : "No",
+            }))}
+          />
+          <div className="rounded-lg border bg-card/95 shadow-sm backdrop-blur-sm">
           <table className="w-full">
             <thead>
               <tr className="border-b bg-muted/50">
@@ -119,6 +144,7 @@ export default async function AccountsPage({ searchParams }: PageProps) {
               ))}
             </tbody>
           </table>
+          </div>
         </div>
       )}
     </div>
