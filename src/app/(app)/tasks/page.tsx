@@ -17,13 +17,13 @@ export default async function TasksPage() {
     await Promise.all([
       supabase
         .from("tasks")
-        .select("*, account:accounts(id, name), assignee:profiles!tasks_assignee_id_fkey(full_name)")
+        .select("*, account:accounts(id, name), deal:deals(id, title), assignee:profiles!tasks_assignee_id_fkey(full_name)")
         .eq("org_id", profile.org_id)
         .eq("status", "open")
         .order("due_at", { ascending: true }),
       supabase
         .from("tasks")
-        .select("*, account:accounts(id, name), assignee:profiles!tasks_assignee_id_fkey(full_name)")
+        .select("*, account:accounts(id, name), deal:deals(id, title), assignee:profiles!tasks_assignee_id_fkey(full_name)")
         .eq("org_id", profile.org_id)
         .eq("status", "done")
         .order("created_at", { ascending: false })

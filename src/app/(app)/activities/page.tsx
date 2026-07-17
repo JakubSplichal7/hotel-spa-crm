@@ -15,7 +15,7 @@ export default async function ActivitiesPage() {
   const [{ data: activities }, { data: accounts }] = await Promise.all([
     supabase
       .from("activities")
-      .select("*, account:accounts(id, name), creator:profiles!activities_created_by_fkey(full_name)")
+      .select("*, account:accounts(id, name), deal:deals(id, title), creator:profiles!activities_created_by_fkey(full_name)")
       .eq("org_id", profile.org_id)
       .order("occurred_at", { ascending: false })
       .limit(50),
@@ -58,10 +58,23 @@ export default async function ActivitiesPage() {
                       >
                         {(activity.account as { name: string }).name}
                       </Link>
-                      {" "}&middot;{" "}
+                      {activity.deal && (
+                        <>
+                          {" "}
+                          &middot; Offer:{" "}
+                          <Link
+                            href={`/deals/${(activity.deal as { id: string }).id}`}
+                            className="text-primary hover:underline"
+                          >
+                            {(activity.deal as { title: string }).title}
+                          </Link>
+                        </>
+                      )}
+                      {" "}
+                      &middot;{" "}
                       {(activity.creator as { full_name: string } | null)?.full_name}
-                      {" "}&middot;{" "}
-                      {formatDateTime(activity.occurred_at)}
+                      {" "}
+                      &middot; {formatDateTime(activity.occurred_at)}
                     </p>
                   </div>
                 </div>

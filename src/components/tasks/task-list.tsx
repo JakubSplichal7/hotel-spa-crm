@@ -38,12 +38,25 @@ export function TaskList({ tasks }: { tasks: Task[] }) {
                     {(task.assignee as { full_name: string } | undefined)?.full_name}
                     {task.account && (
                       <>
-                        {" "}&middot;{" "}
+                        {" "}
+                        &middot;{" "}
                         <Link
                           href={`/accounts/${(task.account as { id: string }).id}`}
                           className="text-primary hover:underline"
                         >
                           {(task.account as { name: string }).name}
+                        </Link>
+                      </>
+                    )}
+                    {task.deal && (
+                      <>
+                        {" "}
+                        &middot; Offer:{" "}
+                        <Link
+                          href={`/deals/${(task.deal as { id: string }).id}`}
+                          className="text-primary hover:underline"
+                        >
+                          {(task.deal as { title: string }).title}
                         </Link>
                       </>
                     )}
