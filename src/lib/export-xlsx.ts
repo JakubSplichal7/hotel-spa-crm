@@ -227,16 +227,238 @@ export function rowsFromRecords(
 
 export function downloadXlsx(filename: string, rows: CellValue[][]) {
   const bytes = buildXlsx(rows);
-  const blob = new Blob([bytes], {
-    type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-  });
+  triggerDownload(filename, "xlsx", bytes, XLSX_MIME);
+}
+
+const XLSX_MIME =
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+
+function safeBaseName(filename: string): string {
+  return filename.replace(/[\\/:*?"<>|]+/g, "-").trim() || "export";
+}
+
+function triggerDownload(
+  filename: string,
+  ext: string,
+  data: BlobPart,
+  mime: string
+) {
+  const blob = data instanceof Blob ? data : new Blob([data], { type: mime });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  const safe = filename.replace(/[\\/:*?"<>|]+/g, "-").trim() || "export";
-  a.download = safe.endsWith(".xlsx") ? safe : `${safe}.xlsx`;
+  const base = safeBaseName(filename).replace(/\.(xlsx|pdf|xml)$/i, "");
+  a.download = `${base}.${ext}`;
   document.body.appendChild(a);
   a.click();
   a.remove();
   URL.revokeObjectURL(url);
+}
+
+function xmlTagName(header: string, index: number): string {
+  let name = header
+    .trim()
+    .replace(/[^\w.-]+/g, "_")
+    .replace(/^[^A-Za-z_]/, "_");
+  if (!name) name = `col_${index + 1}`;
+  return name;
+}
+
+/** Simple tabular XML export */
+export function buildXml(rows: CellValue[][]): string {
+  const [headers = [], ...data] = rows;
+  const tags = headers.map((h, i) => xmlTagName(String(h ?? `col_${i + 1}`), i));
+
+  const body = data
+    .map((row) => {
+      const fields = tags
+        .map((tag, i) => {
+          const raw = row[i];
+          const text =
+            raw === null || raw === undefined ? "" : xmlEscape(String(raw));
+          return `    <${tag}>${text}</${tag}>`;
+        })
+        .join("\n");
+      return `  <row>\n${fields}\n  </row>`;
+    })
+    .join("\n");
+
+  return (
+    `<?xml version="1.0" encoding="UTF-8"?>\n` +
+    `<export generatedAt="${new Date().toISOString()}">\n` +
+    `${body}\n` +
+    `</export>\n`
+  );
+}
+
+export function downloadXml(filename: string, rows: CellValue[][]) {
+  triggerDownload(filename, "xml", buildXml(rows), "application/xml;charset=utf-8");
+}
+
+function pdfEscape(text: string): string {
+  return text.replace(/\\/g, "\\\\").replace(/\(/g, "\\(").replace(/\)/g, "\\)");
+}
+
+/** Fold to Latin-1-ish ASCII so Helvetica PDF stays valid (xlsx/xml keep Unicode). */
+function toPdfSafe(text: string): string {
+  return text
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^\x20-\x7E]/g, "?");
+}
+
+function cellText(value: CellValue): string {
+  if (value === null || value === undefined) return "";
+  return String(value).replace(/\s+/g, " ").trim();
+}
+
+/** Minimal multi-page PDF table (Helvetica). */
+export function buildPdf(rows: CellValue[][], title = "Export"): Uint8Array {
+  const pageWidth = 842; // A4 landscape
+  const pageHeight = 595;
+  const margin = 36;
+  const fontSize = 8;
+  const lineHeight = 11;
+  const usableWidth = pageWidth - margin * 2;
+
+  const [headers = [], ...dataRows] = rows;
+  const colCount = Math.max(headers.length, 1);
+  const colWidth = usableWidth / colCount;
+
+  const encoder = new TextEncoder();
+  const pages: string[] = [];
+
+  function drawTablePage(pageRows: CellValue[][]): string {
+    const lines: string[] = [];
+    lines.push("BT");
+    let y = pageHeight - margin;
+
+    const drawRow = (row: CellValue[], font: "F1" | "F2") => {
+      lines.push(`/${font} ${font === "F2" ? 8 : fontSize} Tf`);
+      for (let c = 0; c < colCount; c++) {
+        const x = margin + c * colWidth;
+        const maxChars = Math.max(4, Math.floor(colWidth / 4.5));
+        let text = toPdfSafe(cellText(row[c]));
+        if (text.length > maxChars) text = `${text.slice(0, maxChars - 1)}...`;
+        lines.push(
+          `1 0 0 1 ${x.toFixed(2)} ${y.toFixed(2)} Tm (${pdfEscape(text)}) Tj`
+        );
+      }
+      y -= lineHeight;
+    };
+
+    lines.push(`/F2 11 Tf`);
+    lines.push(
+      `1 0 0 1 ${margin.toFixed(2)} ${y.toFixed(2)} Tm (${pdfEscape(toPdfSafe(title))}) Tj`
+    );
+    y -= lineHeight + 4;
+    drawRow(headers, "F2");
+    y -= 2;
+
+    for (const row of pageRows) {
+      if (y < margin + lineHeight) break;
+      drawRow(row, "F1");
+    }
+
+    lines.push("ET");
+    return lines.join("\n");
+  }
+
+  let remaining = [...dataRows];
+  do {
+    const titleSpace = lineHeight + 4;
+    const headerSpace = lineHeight + 2;
+    const available = pageHeight - margin * 2 - titleSpace - headerSpace;
+    const rowsPerPage = Math.max(1, Math.floor(available / lineHeight));
+    const chunk = remaining.splice(0, rowsPerPage);
+    pages.push(drawTablePage(chunk));
+  } while (remaining.length > 0);
+
+  if (pages.length === 0) {
+    pages.push(drawTablePage([]));
+  }
+
+  const objects: string[] = [];
+  const fontF1 = 3;
+  const fontF2 = 4;
+  let nextObj = 5;
+  const pageObjectNumbers: number[] = [];
+
+  for (const content of pages) {
+    const contentObj = nextObj++;
+    const pageObj = nextObj++;
+    pageObjectNumbers.push(pageObj);
+
+    objects[contentObj] =
+      `${contentObj} 0 obj\n<< /Length ${encoder.encode(content).length} >>\nstream\n${content}\nendstream\nendobj\n`;
+
+    objects[pageObj] =
+      `${pageObj} 0 obj\n` +
+      `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${pageWidth} ${pageHeight}] ` +
+      `/Resources << /Font << /F1 ${fontF1} 0 R /F2 ${fontF2} 0 R >> >> ` +
+      `/Contents ${contentObj} 0 R >>\nendobj\n`;
+  }
+
+  objects[1] = `1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n`;
+  objects[3] =
+    `3 0 obj\n<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>\nendobj\n`;
+  objects[4] =
+    `4 0 obj\n<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>\nendobj\n`;
+
+  const kidsRef = pageObjectNumbers.map((n) => `${n} 0 R`).join(" ");
+  objects[2] =
+    `2 0 obj\n<< /Type /Pages /Kids [${kidsRef}] /Count ${pageObjectNumbers.length} >>\nendobj\n`;
+
+  const parts: Uint8Array[] = [];
+  const header = encoder.encode("%PDF-1.4\n");
+  parts.push(header);
+  let offset = header.length;
+  const offsets: number[] = [0];
+
+  const maxObj = nextObj - 1;
+  for (let i = 1; i <= maxObj; i++) {
+    offsets[i] = offset;
+    const chunk = encoder.encode(objects[i]);
+    parts.push(chunk);
+    offset += chunk.length;
+  }
+
+  const xrefStart = offset;
+  let xref = `xref\n0 ${maxObj + 1}\n`;
+  xref += `0000000000 65535 f \n`;
+  for (let i = 1; i <= maxObj; i++) {
+    xref += `${String(offsets[i]).padStart(10, "0")} 00000 n \n`;
+  }
+  xref +=
+    `trailer\n<< /Size ${maxObj + 1} /Root 1 0 R >>\n` +
+    `startxref\n${xrefStart}\n%%EOF\n`;
+  parts.push(encoder.encode(xref));
+
+  const total = parts.reduce((s, p) => s + p.length, 0);
+  const out = new Uint8Array(total);
+  let o = 0;
+  for (const p of parts) {
+    out.set(p, o);
+    o += p.length;
+  }
+  return out;
+}
+
+export function downloadPdf(filename: string, rows: CellValue[][], title?: string) {
+  const base = safeBaseName(filename).replace(/\.(xlsx|pdf|xml)$/i, "");
+  const bytes = buildPdf(rows, title || base);
+  triggerDownload(filename, "pdf", bytes, "application/pdf");
+}
+
+export type ExportFormat = "xlsx" | "pdf" | "xml";
+
+export function downloadTableExport(
+  format: ExportFormat,
+  filename: string,
+  rows: CellValue[][],
+  title?: string
+) {
+  if (format === "xlsx") downloadXlsx(filename, rows);
+  else if (format === "pdf") downloadPdf(filename, rows, title);
+  else downloadXml(filename, rows);
 }
