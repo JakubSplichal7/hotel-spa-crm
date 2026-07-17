@@ -71,7 +71,7 @@ export function ExportMenuButton({
   }
 
   return (
-    <DropdownMenu>
+    <DropdownMenu modal={false}>
       <DropdownMenuTrigger asChild>
         <Button type="button" variant="outline" size="sm" disabled={empty}>
           <Download className="h-4 w-4" />
@@ -79,7 +79,7 @@ export function ExportMenuButton({
           <ChevronDown className="h-4 w-4 opacity-70" />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-56">
+      <DropdownMenuContent align="end" sideOffset={6} className="z-[200] w-56 bg-background">
         <DropdownMenuLabel>Export format</DropdownMenuLabel>
         <DropdownMenuSeparator />
         {FORMATS.map((item) => (
@@ -115,7 +115,7 @@ export function TableExportBar({
   title?: string;
 }) {
   return (
-    <div className="mb-2 flex justify-end">
+    <div className="relative z-20 mb-2 flex justify-end">
       <ExportMenuButton
         filename={filename}
         rows={rows}
