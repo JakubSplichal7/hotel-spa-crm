@@ -146,6 +146,8 @@ export function CreateDealDialog({
                   <option value="EUR">EUR</option>
                   <option value="USD">USD</option>
                   <option value="GBP">GBP</option>
+                  <option value="CZK">CZK</option>
+                  <option value="GBP">GBP</option>
                 </NativeSelect>
               </div>
             </div>
