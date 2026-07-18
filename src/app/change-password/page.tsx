@@ -7,7 +7,11 @@ export default async function ChangePasswordPage() {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-muted/30 p-6">
-      <ChangePasswordForm required={required} />
+      <ChangePasswordForm
+        required={required}
+        email={profile.email}
+        fullName={profile.full_name}
+      />
     </div>
   );
 }

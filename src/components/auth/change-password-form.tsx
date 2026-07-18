@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { changePassword } from "@/lib/actions/auth";
+import { changePassword, signOut } from "@/lib/actions/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -10,12 +10,17 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export function ChangePasswordForm({
   required = false,
+  email,
+  fullName,
 }: {
   required?: boolean;
+  email?: string | null;
+  fullName?: string | null;
 }) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [signingOut, setSigningOut] = useState(false);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -32,20 +37,34 @@ export function ChangePasswordForm({
     router.refresh();
   }
 
+  async function handleSignOut() {
+    setSigningOut(true);
+    await signOut();
+  }
+
   return (
     <Card className="w-full max-w-md">
       <CardHeader>
         <CardTitle>
           {required ? "Set a new password" : "Change password"}
         </CardTitle>
+        {(fullName || email) && (
+          <p className="text-sm text-muted-foreground">
+            Signed in as{" "}
+            <span className="font-medium text-foreground">
+              {fullName || email}
+            </span>
+            {fullName && email ? ` (${email})` : null}
+          </p>
+        )}
         {required ? (
           <p className="text-sm text-muted-foreground">
-            You signed in with a temporary password. Please choose a new one to
-            continue.
+            This account was invited with a temporary password. Choose a new
+            one to continue — or sign out if this is not your account.
           </p>
         ) : null}
       </CardHeader>
-      <CardContent>
+      <CardContent className="space-y-4">
         <form onSubmit={handleSubmit} className="space-y-4">
           {error && (
             <div
@@ -81,6 +100,18 @@ export function ChangePasswordForm({
             {loading ? "Saving..." : "Save password"}
           </Button>
         </form>
+
+        <div className="border-t pt-4">
+          <Button
+            type="button"
+            variant="outline"
+            className="w-full"
+            disabled={signingOut}
+            onClick={handleSignOut}
+          >
+            {signingOut ? "Signing out..." : "Not you? Sign out"}
+          </Button>
+        </div>
       </CardContent>
     </Card>
   );
