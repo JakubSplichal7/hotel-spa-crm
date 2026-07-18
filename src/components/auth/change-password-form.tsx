@@ -59,8 +59,8 @@ export function ChangePasswordForm({
         )}
         {required ? (
           <p className="text-sm text-muted-foreground">
-            This account was invited with a temporary password. Choose a new
-            one to continue — or sign out if this is not your account.
+            This account uses a temporary password. Choose a new one to continue
+            — or sign out if this is not your account.
           </p>
         ) : null}
       </CardHeader>

@@ -16,6 +16,9 @@ export function createAdminClient() {
     auth: {
       autoRefreshToken: false,
       persistSession: false,
+      // Isolate from the browser/SSR session storage key
+      storageKey: "sb-admin-service-role",
+      detectSessionInUrl: false,
     },
   });
 }

@@ -2,7 +2,9 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { inviteUser, updateOrgName, updateUserRole } from "@/lib/actions/auth";
+import { useRouter } from "next/navigation";
+import { updateOrgName, updateUserRole } from "@/lib/actions/auth";
+import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -26,18 +28,79 @@ export function SettingsClient({
   org: Organization;
   profiles: Profile[];
 }) {
+  const router = useRouter();
   const [inviteError, setInviteError] = useState<string | null>(null);
   const [inviteSuccess, setInviteSuccess] = useState(false);
+  const [inviteLoading, setInviteLoading] = useState(false);
 
-  async function handleInvite(formData: FormData) {
+  async function handleInvite(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    e.stopPropagation();
     setInviteError(null);
     setInviteSuccess(false);
-    const result = await inviteUser(formData);
-    if (result?.error) {
-      setInviteError(result.error);
-    } else {
+    setInviteLoading(true);
+
+    const form = e.currentTarget;
+    const formData = new FormData(form);
+    const invitedEmail = String(formData.get("email") || "")
+      .trim()
+      .toLowerCase();
+
+    try {
+      const supabase = createClient();
+      const {
+        data: { user: beforeUser },
+      } = await supabase.auth.getUser();
+
+      const res = await fetch("/api/invite", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "same-origin",
+        body: JSON.stringify({
+          fullName: formData.get("fullName"),
+          email: formData.get("email"),
+          password: formData.get("password"),
+          role: formData.get("role"),
+        }),
+      });
+      const result = await res.json();
+
+      if (!res.ok || result?.error) {
+        setInviteError(result?.error || "Invite failed");
+        setInviteLoading(false);
+        return;
+      }
+
+      // Stay on Settings — never navigate to change-password after invite
+      const {
+        data: { user: afterUser },
+      } = await supabase.auth.getUser();
+
+      const swapped =
+        !afterUser ||
+        !beforeUser ||
+        afterUser.id !== beforeUser.id ||
+        afterUser.email?.toLowerCase() === invitedEmail ||
+        (result.adminId && afterUser.id !== result.adminId);
+
+      if (swapped) {
+        await supabase.auth.signOut();
+        window.location.href =
+          "/login?message=" +
+          encodeURIComponent(
+            "User was created, but your session changed. Sign in again with your admin account."
+          );
+        return;
+      }
+
       setInviteSuccess(true);
+      form.reset();
+      // Soft refresh list only — stay on /settings as the same admin
+      router.refresh();
+    } catch {
+      setInviteError("Invite failed. Please try again.");
     }
+    setInviteLoading(false);
   }
 
   async function handleRoleChange(userId: string, role: string) {
@@ -53,7 +116,9 @@ export function SettingsClient({
         <CardContent>
           <form action={updateOrgName} className="flex gap-3">
             <div className="flex-1">
-              <Label htmlFor="name" className="sr-only">Organization name</Label>
+              <Label htmlFor="name" className="sr-only">
+                Organization name
+              </Label>
               <Input id="name" name="name" defaultValue={org.name} />
             </div>
             <Button type="submit">Save</Button>
@@ -85,7 +150,10 @@ export function SettingsClient({
         <CardContent>
           <div className="space-y-3">
             {profiles.map((p) => (
-              <div key={p.id} className="flex items-center justify-between rounded-lg border p-3">
+              <div
+                key={p.id}
+                className="flex items-center justify-between rounded-lg border p-3"
+              >
                 <div>
                   <p className="font-medium">{p.full_name}</p>
                   <p className="text-sm text-muted-foreground">{p.email}</p>
@@ -99,7 +167,9 @@ export function SettingsClient({
                   </SelectTrigger>
                   <SelectContent>
                     {USER_ROLES.map((r) => (
-                      <SelectItem key={r} value={r}>{ROLE_LABELS[r]}</SelectItem>
+                      <SelectItem key={r} value={r}>
+                        {ROLE_LABELS[r]}
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -114,12 +184,18 @@ export function SettingsClient({
           <CardTitle>Invite User</CardTitle>
         </CardHeader>
         <CardContent>
-          <form action={handleInvite} className="space-y-4">
+          <form onSubmit={handleInvite} className="space-y-4">
             {inviteError && (
-              <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">{inviteError}</div>
+              <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
+                {inviteError}
+              </div>
             )}
             {inviteSuccess && (
-              <div className="rounded-md bg-green-50 p-3 text-sm text-green-800">User invited successfully</div>
+              <div className="rounded-md bg-green-50 p-3 text-sm text-green-800">
+                User created. Share the email and temporary password with them —
+                they must change the password on first login. You stay signed in
+                as admin.
+              </div>
             )}
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
@@ -134,21 +210,32 @@ export function SettingsClient({
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="password">Temporary password</Label>
-                <Input id="password" name="password" type="password" required minLength={6} />
+                <Input
+                  id="password"
+                  name="password"
+                  type="password"
+                  required
+                  minLength={6}
+                />
                 <p className="text-xs text-muted-foreground">
-                  They will be asked to change this on first login.
+                  Give this to them offline. They will be asked to change it on
+                  first login.
                 </p>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="role">Role</Label>
                 <NativeSelect id="role" name="role" defaultValue="rep">
                   {USER_ROLES.map((r) => (
-                    <option key={r} value={r}>{ROLE_LABELS[r]}</option>
+                    <option key={r} value={r}>
+                      {ROLE_LABELS[r]}
+                    </option>
                   ))}
                 </NativeSelect>
               </div>
             </div>
-            <Button type="submit">Invite User</Button>
+            <Button type="submit" disabled={inviteLoading}>
+              {inviteLoading ? "Creating user..." : "Invite User"}
+            </Button>
           </form>
         </CardContent>
       </Card>

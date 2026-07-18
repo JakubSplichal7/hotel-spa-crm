@@ -118,74 +118,12 @@ export async function signOut() {
   redirect("/login");
 }
 
-export async function inviteUser(formData: FormData) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) return { error: "Not authenticated" };
-
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("org_id, role")
-    .eq("id", user.id)
-    .single();
-
-  if (!profile || profile.role !== "admin") {
-    return { error: "Only admins can invite users" };
-  }
-
-  const email = (formData.get("email") as string)?.trim();
-  const fullName = (formData.get("fullName") as string)?.trim();
-  const role = formData.get("role") as string;
-  const password = formData.get("password") as string;
-
-  if (!email || !fullName || !password) {
-    return { error: "Please fill in all invite fields." };
-  }
-
-  // Use service role so signup does NOT replace the admin's browser session
-  let admin;
-  try {
-    const { createAdminClient } = await import("@/lib/supabase/admin");
-    admin = createAdminClient();
-  } catch (e) {
-    return {
-      error:
-        e instanceof Error
-          ? e.message
-          : "Service role key missing — cannot invite without signing you out.",
-    };
-  }
-
-  const { data: created, error: authError } = await admin.auth.admin.createUser({
-    email,
-    password,
-    email_confirm: true,
-    user_metadata: { full_name: fullName },
-  });
-
-  if (authError) return { error: authError.message };
-  if (!created.user) return { error: "Failed to create user" };
-
-  const { error: profileError } = await admin.from("profiles").insert({
-    id: created.user.id,
-    org_id: profile.org_id,
-    role,
-    full_name: fullName,
-    email,
-    must_change_password: true,
-  });
-
-  if (profileError) {
-    // Roll back auth user if profile insert fails
-    await admin.auth.admin.deleteUser(created.user.id);
-    return { error: profileError.message };
-  }
-
-  revalidatePath("/settings");
-  return { success: true };
+/** @deprecated Use POST /api/invite — this must not run in the browser session path. */
+export async function inviteUser() {
+  return {
+    error:
+      "Invite must go through /api/invite so your admin session is not replaced.",
+  };
 }
 
 export async function updateOrgName(formData: FormData) {

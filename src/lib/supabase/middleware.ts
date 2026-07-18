@@ -3,6 +3,13 @@ import { NextResponse, type NextRequest } from "next/server";
 import { getSupabaseAnonKey, getSupabaseUrl } from "@/lib/supabase/env";
 
 export async function updateSession(request: NextRequest) {
+  const pathname = request.nextUrl.pathname;
+
+  // Invite must not run session refresh / Set-Cookie in middleware
+  if (pathname.startsWith("/api/invite")) {
+    return NextResponse.next({ request });
+  }
+
   let supabaseResponse = NextResponse.next({ request });
 
   const supabase = createServerClient(getSupabaseUrl(), getSupabaseAnonKey(), {
@@ -29,12 +36,15 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const pathname = request.nextUrl.pathname;
   const isAuthPage =
     pathname.startsWith("/login") || pathname.startsWith("/signup");
   const isChangePassword = pathname.startsWith("/change-password");
+  const isAuthCallback = pathname.startsWith("/auth/callback");
   const isPublicPath =
-    isAuthPage || pathname === "/" || pathname.startsWith("/api/");
+    isAuthPage ||
+    isAuthCallback ||
+    pathname === "/" ||
+    pathname.startsWith("/api/");
   const isServerAction = request.headers.has("next-action");
 
   // Not logged in → only protect app pages
