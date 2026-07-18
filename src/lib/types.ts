@@ -15,6 +15,9 @@ export type DealStage =
   | "completed"
   | "lost";
 
+/** Why an offer was marked Lost */
+export type DealLostReason = "price" | "date" | "capacity" | "services";
+
 export type ActivityType = "call" | "email" | "meeting" | "note";
 export type TaskStatus = "open" | "done";
 export type BookingStatus =
@@ -82,6 +85,10 @@ export interface Deal {
   expected_close: string | null;
   owner_id: string;
   notes: string | null;
+  /** Required when stage is lost */
+  lost_reason?: DealLostReason | null;
+  /** Required free-text detail when stage is lost */
+  lost_comment?: string | null;
   /** Soft flag: user declined creating a linked booking */
   booking_create_declined?: boolean;
   /** Soft flag: user declined moving linked booking to Active on Won */
@@ -261,6 +268,25 @@ export const DEAL_STAGE_LABELS: Record<DealStage, string> = {
   completed: "Completed",
   lost: "Lost",
 };
+
+export const DEAL_LOST_REASONS: DealLostReason[] = [
+  "price",
+  "date",
+  "capacity",
+  "services",
+];
+
+export const DEAL_LOST_REASON_LABELS: Record<DealLostReason, string> = {
+  price: "Price",
+  date: "Date",
+  capacity: "Capacity",
+  services: "Services",
+};
+
+export function getDealLostReasonLabel(reason: string | null | undefined): string {
+  if (!reason) return "—";
+  return DEAL_LOST_REASON_LABELS[reason as DealLostReason] ?? reason;
+}
 
 export const ACTIVITY_TYPES: ActivityType[] = [
   "call",

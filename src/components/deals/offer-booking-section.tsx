@@ -19,6 +19,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { ConfirmYesNoDialog } from "@/components/deals/confirm-yes-no-dialog";
 import { ConfirmLinkedBookingDialog } from "@/components/deals/confirm-linked-booking-dialog";
+import { MarkLostDialog } from "@/components/deals/mark-lost-dialog";
 import {
   BOOKING_STATUS_LABELS,
   DEAL_STAGE_LABELS,
@@ -27,6 +28,7 @@ import {
   offerBookingHealthLabel,
   type Booking,
   type Deal,
+  type DealLostReason,
   type DealStage,
 } from "@/lib/types";
 
@@ -43,8 +45,13 @@ export function OfferBookingSection({
   const [prompt, setPrompt] = useState<PromptKind>(null);
   /** Only set by the "Create linked booking" button — never on mount */
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
-  const [pendingStage, setPendingStage] = useState<DealStage | null>(null);
+  const [lostDialogOpen, setLostDialogOpen] = useState(false);
+  const [pendingLost, setPendingLost] = useState<{
+    lostReason: DealLostReason;
+    lostComment: string;
+  } | null>(null);
   const [loading, setLoading] = useState(false);
+  const [stageError, setStageError] = useState<string | null>(null);
   const [confirmBooking, setConfirmBooking] = useState<Booking | null>(null);
 
   const health = getOfferBookingHealth(deal.stage, booking, {
@@ -52,6 +59,19 @@ export function OfferBookingSection({
     active_booking_declined: deal.active_booking_declined,
     completed_booking_declined: deal.completed_booking_declined,
   });
+
+  async function applyLost(lost: {
+    lostReason: DealLostReason;
+    lostComment: string;
+  }) {
+    const result = await updateDealStage(deal.id, "lost", lost);
+    if (result?.error) {
+      setStageError(result.error);
+      return false;
+    }
+    setStageError(null);
+    return true;
+  }
 
   async function handleCreateYes() {
     setLoading(true);
@@ -134,43 +154,70 @@ export function OfferBookingSection({
   }
 
   async function handleLostCancelYes() {
+    if (!pendingLost) return;
     setLoading(true);
     await cancelBookingForLostDeal(deal.id);
-    if (pendingStage) await updateDealStage(deal.id, pendingStage);
+    const ok = await applyLost(pendingLost);
     setLoading(false);
-    setPendingStage(null);
+    if (!ok) return;
+    setPendingLost(null);
     setPrompt(null);
     router.refresh();
   }
 
   async function handleLostCancelNo() {
-    if (pendingStage) {
-      setLoading(true);
-      await updateDealStage(deal.id, pendingStage);
-      setLoading(false);
-    }
-    setPendingStage(null);
+    if (!pendingLost) return;
+    setLoading(true);
+    const ok = await applyLost(pendingLost);
+    setLoading(false);
+    if (!ok) return;
+    setPendingLost(null);
     setPrompt(null);
     router.refresh();
   }
 
-  async function handleStageClick(stage: DealStage) {
-    if (stage === deal.stage || loading) return;
+  async function handleLostConfirm(lost: {
+    lostReason: DealLostReason;
+    lostComment: string;
+  }) {
+    setLostDialogOpen(false);
 
     if (
-      stage === "lost" &&
       booking &&
       booking.status !== "cancelled" &&
       booking.status !== "completed"
     ) {
-      setPendingStage("lost");
+      setPendingLost(lost);
       setPrompt("cancel_on_lost");
       return;
     }
 
     setLoading(true);
-    await updateDealStage(deal.id, stage);
+    const ok = await applyLost(lost);
     setLoading(false);
+    if (!ok) {
+      setLostDialogOpen(true);
+      return;
+    }
+    router.refresh();
+  }
+
+  async function handleStageClick(stage: DealStage) {
+    if (stage === deal.stage || loading) return;
+    setStageError(null);
+
+    if (stage === "lost") {
+      setLostDialogOpen(true);
+      return;
+    }
+
+    setLoading(true);
+    const result = await updateDealStage(deal.id, stage);
+    setLoading(false);
+    if (result?.error) {
+      setStageError(result.error);
+      return;
+    }
     router.refresh();
 
     if (
@@ -326,6 +373,11 @@ export function OfferBookingSection({
       <Card>
         <CardContent className="p-6">
           <p className="mb-3 text-sm font-medium">Update Stage</p>
+          {stageError && (
+            <div className="mb-3 rounded-md bg-destructive/10 p-3 text-sm text-destructive">
+              {stageError}
+            </div>
+          )}
           <div className="flex flex-wrap gap-2">
             {(
               [
@@ -352,6 +404,15 @@ export function OfferBookingSection({
           </div>
         </CardContent>
       </Card>
+
+      <MarkLostDialog
+        open={lostDialogOpen}
+        onOpenChange={setLostDialogOpen}
+        loading={loading}
+        defaultReason={deal.lost_reason}
+        defaultComment={deal.lost_comment}
+        onConfirm={handleLostConfirm}
+      />
 
       {createDialogOpen ? (
         <ConfirmYesNoDialog
@@ -415,7 +476,7 @@ export function OfferBookingSection({
           onOpenChange={(open) => {
             if (!open) {
               setPrompt(null);
-              setPendingStage(null);
+              setPendingLost(null);
             }
           }}
           title="Cancel linked booking?"

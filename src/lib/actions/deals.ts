@@ -3,8 +3,12 @@
 import { createClient } from "@/lib/supabase/server";
 import { requireProfile } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
-import type { BookingStatus, DealStage } from "@/lib/types";
-import { dealStageNeedsBooking, getPrimaryBooking } from "@/lib/types";
+import type { BookingStatus, DealLostReason, DealStage } from "@/lib/types";
+import {
+  DEAL_LOST_REASONS,
+  dealStageNeedsBooking,
+  getPrimaryBooking,
+} from "@/lib/types";
 
 async function revalidateDealPaths(dealId: string, accountId?: string) {
   revalidatePath("/deals");
@@ -12,6 +16,30 @@ async function revalidateDealPaths(dealId: string, accountId?: string) {
   revalidatePath("/bookings");
   revalidatePath("/dashboard");
   if (accountId) revalidatePath(`/accounts/${accountId}`);
+}
+
+function parseLostFields(input?: {
+  lostReason?: string | null;
+  lostComment?: string | null;
+}):
+  | { ok: true; reason: DealLostReason; comment: string }
+  | { ok: false; error: string } {
+  const reason = String(input?.lostReason || "").trim() as DealLostReason;
+  const comment = String(input?.lostComment || "").trim();
+
+  if (!DEAL_LOST_REASONS.includes(reason)) {
+    return {
+      ok: false,
+      error: "Select a lost reason (Price, Date, Capacity, or Services).",
+    };
+  }
+  if (!comment) {
+    return {
+      ok: false,
+      error: "Add a short comment explaining why the offer was lost.",
+    };
+  }
+  return { ok: true, reason, comment };
 }
 
 export async function createDeal(formData: FormData) {
@@ -41,14 +69,30 @@ export async function createDeal(formData: FormData) {
   return { data };
 }
 
-export async function updateDealStage(id: string, stage: DealStage) {
+export async function updateDealStage(
+  id: string,
+  stage: DealStage,
+  lost?: { lostReason?: string | null; lostComment?: string | null }
+) {
   await requireProfile();
   const supabase = await createClient();
+
+  let lostReason: DealLostReason | null = null;
+  let lostComment: string | null = null;
+
+  if (stage === "lost") {
+    const parsed = parseLostFields(lost);
+    if (!parsed.ok) return { error: parsed.error };
+    lostReason = parsed.reason;
+    lostComment = parsed.comment;
+  }
 
   const { data: deal, error } = await supabase
     .from("deals")
     .update({
       stage,
+      lost_reason: lostReason,
+      lost_comment: lostComment,
       ...(stage !== "won" ? { active_booking_declined: false } : {}),
       ...(stage !== "completed" ? { completed_booking_declined: false } : {}),
       ...(dealStageNeedsBooking(stage) ? {} : { booking_create_declined: false }),
@@ -69,6 +113,19 @@ export async function updateDeal(id: string, formData: FormData) {
 
   const stage = formData.get("stage") as DealStage;
 
+  let lostReason: DealLostReason | null = null;
+  let lostComment: string | null = null;
+
+  if (stage === "lost") {
+    const parsed = parseLostFields({
+      lostReason: formData.get("lost_reason") as string | null,
+      lostComment: formData.get("lost_comment") as string | null,
+    });
+    if (!parsed.ok) return { error: parsed.error };
+    lostReason = parsed.reason;
+    lostComment = parsed.comment;
+  }
+
   const { error } = await supabase
     .from("deals")
     .update({
@@ -79,6 +136,8 @@ export async function updateDeal(id: string, formData: FormData) {
       expected_close: (formData.get("expected_close") as string) || null,
       owner_id: formData.get("owner_id") as string,
       notes: (formData.get("notes") as string) || null,
+      lost_reason: lostReason,
+      lost_comment: lostComment,
       ...(stage !== "won" ? { active_booking_declined: false } : {}),
       ...(stage !== "completed" ? { completed_booking_declined: false } : {}),
     })

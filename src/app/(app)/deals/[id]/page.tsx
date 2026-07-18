@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { formatCurrency, formatDate, formatDateTime } from "@/lib/utils";
-import { getDealStageLabel, getActivityTypeLabel, getPrimaryBooking } from "@/lib/types";
+import { getDealStageLabel, getActivityTypeLabel, getPrimaryBooking, getDealLostReasonLabel } from "@/lib/types";
 import Link from "next/link";
 import { EditDealDialog } from "@/components/deals/edit-deal-dialog";
 import { OfferBookingSection } from "@/components/deals/offer-booking-section";
@@ -55,6 +55,8 @@ export default async function DealDetailPage({ params }: PageProps) {
     booking_create_declined: Boolean(deal.booking_create_declined),
     active_booking_declined: Boolean(deal.active_booking_declined),
     completed_booking_declined: Boolean(deal.completed_booking_declined),
+    lost_reason: deal.lost_reason ?? null,
+    lost_comment: deal.lost_comment ?? null,
   } as Deal;
 
   return (
@@ -118,6 +120,20 @@ export default async function DealDetailPage({ params }: PageProps) {
             : null
         }
       />
+
+      {deal.stage === "lost" && (deal.lost_reason || deal.lost_comment) && (
+        <Card>
+          <CardContent className="p-6">
+            <p className="text-sm font-medium">Lost reason</p>
+            <p className="mt-1 font-semibold">
+              {getDealLostReasonLabel(deal.lost_reason)}
+            </p>
+            {deal.lost_comment && (
+              <p className="mt-2 text-muted-foreground">{deal.lost_comment}</p>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       {deal.notes && (
         <Card>
