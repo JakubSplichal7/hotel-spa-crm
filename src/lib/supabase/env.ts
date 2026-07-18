@@ -23,24 +23,22 @@ export function getSupabaseUrl() {
   return url.replace(/\/+$/, "");
 }
 
-export function getSupabaseAnonKey() {
-  let key = (process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "").trim();
-  if (
-    (key.startsWith('"') && key.endsWith('"')) ||
-    (key.startsWith("'") && key.endsWith("'"))
-  ) {
-    key = key.slice(1, -1).trim();
+/** Strip quotes / Bearer / accidental paste-duplicates from a JWT env value. */
+function normalizeJwtEnv(raw: string) {
+  let key = raw.trim().replace(/^["']|["']$/g, "").trim();
+  if (key.toLowerCase().startsWith("bearer ")) {
+    key = key.slice(7).trim();
   }
-  return key;
+  // Accidental paste of the same key multiple times (spaces/newlines)
+  const parts = key.split(/[\s,;]+/).filter(Boolean);
+  const jwt = parts.find((p) => p.split(".").length === 3) || parts[0] || "";
+  return jwt;
+}
+
+export function getSupabaseAnonKey() {
+  return normalizeJwtEnv(process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "");
 }
 
 export function getSupabaseServiceRoleKey() {
-  let key = (process.env.SUPABASE_SERVICE_ROLE_KEY || "").trim();
-  if (
-    (key.startsWith('"') && key.endsWith('"')) ||
-    (key.startsWith("'") && key.endsWith("'"))
-  ) {
-    key = key.slice(1, -1).trim();
-  }
-  return key;
+  return normalizeJwtEnv(process.env.SUPABASE_SERVICE_ROLE_KEY || "");
 }
