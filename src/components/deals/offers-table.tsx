@@ -92,7 +92,7 @@ export function OffersTable({ rows }: { rows: OfferTableRow[] }) {
             : "",
           Owner:
             (deal.owner as { full_name: string } | null)?.full_name || "",
-        })}
+        }))}
       />
       <div className="overflow-x-auto rounded-lg border bg-card/95 shadow-sm backdrop-blur-sm">
         <table className="w-full">
