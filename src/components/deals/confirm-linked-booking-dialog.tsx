@@ -14,6 +14,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { NativeSelect } from "@/components/ui/native-select";
+import { FormError } from "@/components/form-error";
+import { validateRequired } from "@/lib/form-validation";
 import {
   BOOKING_STATUSES,
   BOOKING_STATUS_LABELS,
@@ -47,7 +49,18 @@ export function ConfirmLinkedBookingDialog({
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    const formData = new FormData(e.currentTarget);
+    setError(null);
+    const form = e.currentTarget;
+    const formData = new FormData(form);
+
+    const missing = validateRequired(formData, [
+      { name: "title", label: "Title" },
+      { name: "start_date", label: "Start date" },
+    ]);
+    if (missing) {
+      setError(missing);
+      return;
+    }
 
     const startDate = (formData.get("start_date") as string) || "";
     const endDate = (formData.get("end_date") as string) || "";
@@ -59,7 +72,6 @@ export function ConfirmLinkedBookingDialog({
     }
 
     setLoading(true);
-    setError(null);
     const result = await confirmLinkedBooking(booking.id, formData);
     setLoading(false);
     if (result?.error) {
@@ -71,7 +83,13 @@ export function ConfirmLinkedBookingDialog({
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog
+      open={open}
+      onOpenChange={(next) => {
+        onOpenChange(next);
+        if (next) setError(null);
+      }}
+    >
       <DialogContent className="max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Confirm booking</DialogTitle>
@@ -85,15 +103,8 @@ export function ConfirmLinkedBookingDialog({
             .
           </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {error && (
-            <div
-              role="alert"
-              className="rounded-md border border-destructive/30 bg-destructive/10 p-3 text-sm font-medium text-destructive"
-            >
-              {error}
-            </div>
-          )}
+        <form onSubmit={handleSubmit} noValidate className="space-y-4">
+          <FormError message={error} />
           <div className="space-y-2">
             <Label htmlFor="confirm_title">Title</Label>
             <Input

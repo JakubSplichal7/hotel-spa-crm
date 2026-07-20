@@ -15,6 +15,8 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { NativeSelect } from "@/components/ui/native-select";
+import { FormError } from "@/components/form-error";
+import { validateRequired } from "@/lib/form-validation";
 import {
   DEAL_LOST_REASONS,
   DEAL_LOST_REASON_LABELS,
@@ -43,14 +45,31 @@ export function EditDealDialog({
   );
   const [lostComment, setLostComment] = useState(deal.lost_comment || "");
 
-  async function handleSubmit(formData: FormData) {
-    setLoading(true);
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
     setError(null);
+    const form = e.currentTarget;
+    const formData = new FormData(form);
     formData.set("stage", stage);
     if (stage === "lost") {
       formData.set("lost_reason", lostReason);
       formData.set("lost_comment", lostComment);
     }
+
+    const requiredFields = [{ name: "title", label: "Offer title" }];
+    if (stage === "lost") {
+      requiredFields.push(
+        { name: "lost_reason", label: "Lost reason" },
+        { name: "lost_comment", label: "Lost details" }
+      );
+    }
+    const missing = validateRequired(formData, requiredFields);
+    if (missing) {
+      setError(missing);
+      return;
+    }
+
+    setLoading(true);
     const result = await updateDeal(deal.id, formData);
     setLoading(false);
     if (result?.error) {
@@ -84,12 +103,8 @@ export function EditDealDialog({
         <DialogHeader>
           <DialogTitle>Edit Offer</DialogTitle>
         </DialogHeader>
-        <form action={handleSubmit} className="space-y-4">
-          {error && (
-            <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
-              {error}
-            </div>
-          )}
+        <form onSubmit={handleSubmit} noValidate className="space-y-4">
+          <FormError message={error} />
           <div className="space-y-2">
             <Label htmlFor="title">Offer title</Label>
             <Input id="title" name="title" required defaultValue={deal.title} />

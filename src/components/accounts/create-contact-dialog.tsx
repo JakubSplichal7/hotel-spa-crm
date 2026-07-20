@@ -12,22 +12,47 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { FormError } from "@/components/form-error";
+import { validateRequired } from "@/lib/form-validation";
 import { Plus } from "lucide-react";
 
 export function CreateContactDialog({ accountId }: { accountId: string }) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  async function handleSubmit(formData: FormData) {
-    setLoading(true);
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setError(null);
+    const form = e.currentTarget;
+    const formData = new FormData(form);
+    const missing = validateRequired(formData, [
+      { name: "name", label: "Name" },
+    ]);
+    if (missing) {
+      setError(missing);
+      return;
+    }
     formData.set("account_id", accountId);
+    setLoading(true);
     const result = await createContact(formData);
     setLoading(false);
-    if (!result?.error) setOpen(false);
+    if (result?.error) {
+      setError(result.error);
+      return;
+    }
+    setOpen(false);
+    form.reset();
   }
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog
+      open={open}
+      onOpenChange={(next) => {
+        setOpen(next);
+        if (next) setError(null);
+      }}
+    >
       <DialogTrigger asChild>
         <Button size="sm" variant="outline">
           <Plus className="mr-2 h-4 w-4" />
@@ -38,7 +63,8 @@ export function CreateContactDialog({ accountId }: { accountId: string }) {
         <DialogHeader>
           <DialogTitle>Add Contact</DialogTitle>
         </DialogHeader>
-        <form action={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} noValidate className="space-y-4">
+          <FormError message={error} />
           <div className="space-y-2">
             <Label htmlFor="name">Name</Label>
             <Input id="name" name="name" required />

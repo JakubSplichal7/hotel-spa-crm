@@ -15,6 +15,8 @@ import {
 } from "@/components/ui/dialog";
 import { NativeSelect } from "@/components/ui/native-select";
 import { SearchableClientSelect } from "@/components/searchable-client-select";
+import { FormError } from "@/components/form-error";
+import { validateRequired } from "@/lib/form-validation";
 import { BOOKING_STATUSES, BOOKING_STATUS_LABELS } from "@/lib/types";
 import type { Booking } from "@/lib/types";
 import { Pencil } from "lucide-react";
@@ -35,7 +37,19 @@ export function EditBookingDialog({
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    const formData = new FormData(e.currentTarget);
+    setError(null);
+    const form = e.currentTarget;
+    const formData = new FormData(form);
+
+    const requiredFields = [{ name: "title", label: "Title" }];
+    if (booking.status !== "draft") {
+      requiredFields.push({ name: "start_date", label: "Start date" });
+    }
+    const missing = validateRequired(formData, requiredFields);
+    if (missing) {
+      setError(missing);
+      return;
+    }
 
     const startDate = (formData.get("start_date") as string) || "";
     const endDate = (formData.get("end_date") as string) || "";
@@ -47,7 +61,6 @@ export function EditBookingDialog({
     }
 
     setLoading(true);
-    setError(null);
     const result = await updateBooking(booking.id, formData);
     setLoading(false);
     if (result?.error) {
@@ -78,15 +91,8 @@ export function EditBookingDialog({
         <DialogHeader>
           <DialogTitle>Edit Booking</DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {error && (
-            <div
-              role="alert"
-              className="rounded-md border border-destructive/30 bg-destructive/10 p-3 text-sm font-medium text-destructive"
-            >
-              {error}
-            </div>
-          )}
+        <form onSubmit={handleSubmit} noValidate className="space-y-4">
+          <FormError message={error} />
           <div className="space-y-2">
             <Label htmlFor="title">Title</Label>
             <Input id="title" name="title" required defaultValue={booking.title} />

@@ -20,6 +20,8 @@ import {
 } from "@/components/ui/dialog";
 import { NativeSelect } from "@/components/ui/native-select";
 import { SearchableClientSelect } from "@/components/searchable-client-select";
+import { FormError } from "@/components/form-error";
+import { validateRequired } from "@/lib/form-validation";
 import {
   DEAL_STAGES,
   DEAL_STAGE_LABELS,
@@ -43,20 +45,39 @@ export function CreateDealDialog({
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [accountId, setAccountId] = useState("");
   const [createdDealId, setCreatedDealId] = useState<string | null>(null);
   const [createdStage, setCreatedStage] = useState<DealStage | null>(null);
   const [askBooking, setAskBooking] = useState(false);
   const [confirmBooking, setConfirmBooking] = useState<Booking | null>(null);
 
-  async function handleSubmit(formData: FormData) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setError(null);
+    const form = e.currentTarget;
+    const formData = new FormData(form);
+    const missing = validateRequired(formData, [
+      { name: "title", label: "Offer title" },
+      { name: "account_id", label: "Client" },
+    ]);
+    if (missing) {
+      setError(missing);
+      return;
+    }
     setLoading(true);
     const stage = ((formData.get("stage") as DealStage) || "lead") as DealStage;
     const result = await createDeal(formData);
     setLoading(false);
-    if (result?.error || !result?.data) return;
+    if (result?.error) {
+      setError(result.error);
+      return;
+    }
+    if (!result?.data) return;
 
     setOpen(false);
+    setAccountId("");
+    form.reset();
     router.refresh();
 
     if (dealStageNeedsBooking(stage)) {
@@ -93,7 +114,10 @@ export function CreateDealDialog({
         open={open}
         onOpenChange={(next) => {
           setOpen(next);
-          if (next) setAccountId("");
+          if (next) {
+            setAccountId("");
+            setError(null);
+          }
         }}
       >
         <DialogTrigger asChild>
@@ -106,7 +130,8 @@ export function CreateDealDialog({
           <DialogHeader>
             <DialogTitle>Create Offer / Package</DialogTitle>
           </DialogHeader>
-          <form action={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} noValidate className="space-y-4">
+            <FormError message={error} />
             <div className="space-y-2">
               <Label htmlFor="title">Offer title</Label>
               <Input

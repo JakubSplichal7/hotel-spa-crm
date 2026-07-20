@@ -15,6 +15,8 @@ import {
 } from "@/components/ui/dialog";
 import { NativeSelect } from "@/components/ui/native-select";
 import { SearchableClientSelect } from "@/components/searchable-client-select";
+import { FormError } from "@/components/form-error";
+import { validateRequired } from "@/lib/form-validation";
 import { BOOKING_STATUSES, BOOKING_STATUS_LABELS } from "@/lib/types";
 import type { Account } from "@/lib/types";
 import { Plus } from "lucide-react";
@@ -30,8 +32,19 @@ export function CreateBookingDialog({ accounts }: { accounts: Account[] }) {
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    setError(null);
     const form = e.currentTarget;
     const formData = new FormData(form);
+
+    const missing = validateRequired(formData, [
+      { name: "title", label: "Title" },
+      { name: "account_id", label: "Client" },
+      { name: "start_date", label: "Start date" },
+    ]);
+    if (missing) {
+      setError(missing);
+      return;
+    }
 
     const startDate = (formData.get("start_date") as string) || "";
     const endDate = (formData.get("end_date") as string) || "";
@@ -41,7 +54,6 @@ export function CreateBookingDialog({ accounts }: { accounts: Account[] }) {
     }
 
     setLoading(true);
-    setError(null);
     const result = await createBooking(formData);
     setLoading(false);
     if (result?.error) {
@@ -74,15 +86,8 @@ export function CreateBookingDialog({ accounts }: { accounts: Account[] }) {
         <DialogHeader>
           <DialogTitle>Create Booking / Stay</DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {error && (
-            <div
-              role="alert"
-              className="rounded-md border border-destructive/30 bg-destructive/10 p-3 text-sm font-medium text-destructive"
-            >
-              {error}
-            </div>
-          )}
+        <form onSubmit={handleSubmit} noValidate className="space-y-4">
+          <FormError message={error} />
           <div className="space-y-2">
             <Label htmlFor="title">Title</Label>
             <Input

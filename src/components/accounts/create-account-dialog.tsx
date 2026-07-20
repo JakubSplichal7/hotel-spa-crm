@@ -15,6 +15,8 @@ import {
 } from "@/components/ui/dialog";
 import { NativeSelect } from "@/components/ui/native-select";
 import { LocationFields } from "@/components/accounts/location-fields";
+import { FormError } from "@/components/form-error";
+import { validateRequired } from "@/lib/form-validation";
 import {
   ACCOUNT_TYPES,
   ACCOUNT_STATUSES,
@@ -29,18 +31,39 @@ import { Plus } from "lucide-react";
 export function CreateAccountDialog({ profiles }: { profiles: Profile[] }) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  async function handleSubmit(formData: FormData) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setError(null);
+    const form = e.currentTarget;
+    const formData = new FormData(form);
+    const missing = validateRequired(formData, [
+      { name: "name", label: "Client name" },
+    ]);
+    if (missing) {
+      setError(missing);
+      return;
+    }
     setLoading(true);
     const result = await createAccount(formData);
     setLoading(false);
-    if (!result?.error) {
-      setOpen(false);
+    if (result?.error) {
+      setError(result.error);
+      return;
     }
+    setOpen(false);
+    form.reset();
   }
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog
+      open={open}
+      onOpenChange={(next) => {
+        setOpen(next);
+        if (next) setError(null);
+      }}
+    >
       <DialogTrigger asChild>
         <Button>
           <Plus className="mr-2 h-4 w-4" />
@@ -51,7 +74,8 @@ export function CreateAccountDialog({ profiles }: { profiles: Profile[] }) {
         <DialogHeader>
           <DialogTitle>Create Client</DialogTitle>
         </DialogHeader>
-        <form action={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} noValidate className="space-y-4">
+          <FormError message={error} />
           <div className="space-y-2">
             <Label htmlFor="name">Client name</Label>
             <Input

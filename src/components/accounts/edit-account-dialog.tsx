@@ -15,6 +15,8 @@ import {
 } from "@/components/ui/dialog";
 import { NativeSelect } from "@/components/ui/native-select";
 import { LocationFields } from "@/components/accounts/location-fields";
+import { FormError } from "@/components/form-error";
+import { validateRequired } from "@/lib/form-validation";
 import {
   ACCOUNT_TYPES,
   ACCOUNT_STATUSES,
@@ -37,9 +39,19 @@ export function EditAccountDialog({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  async function handleSubmit(formData: FormData) {
-    setLoading(true);
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
     setError(null);
+    const form = e.currentTarget;
+    const formData = new FormData(form);
+    const missing = validateRequired(formData, [
+      { name: "name", label: "Client name" },
+    ]);
+    if (missing) {
+      setError(missing);
+      return;
+    }
+    setLoading(true);
     const result = await updateAccount(account.id, formData);
     setLoading(false);
     if (result?.error) {
@@ -55,7 +67,13 @@ export function EditAccountDialog({
       : "company";
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog
+      open={open}
+      onOpenChange={(next) => {
+        setOpen(next);
+        if (next) setError(null);
+      }}
+    >
       <DialogTrigger asChild>
         <Button variant="outline">
           <Pencil className="mr-2 h-4 w-4" />
@@ -66,12 +84,8 @@ export function EditAccountDialog({
         <DialogHeader>
           <DialogTitle>Edit Client</DialogTitle>
         </DialogHeader>
-        <form action={handleSubmit} className="space-y-4">
-          {error && (
-            <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
-              {error}
-            </div>
-          )}
+        <form onSubmit={handleSubmit} noValidate className="space-y-4">
+          <FormError message={error} />
           <div className="space-y-2">
             <Label htmlFor="name">Client name</Label>
             <Input id="name" name="name" required defaultValue={account.name} />

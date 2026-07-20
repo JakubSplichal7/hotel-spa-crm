@@ -13,6 +13,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { FormError } from "@/components/form-error";
+import { validateRequired } from "@/lib/form-validation";
 
 function todayDateString() {
   const now = new Date();
@@ -38,14 +40,20 @@ export function CompleteTaskDialog({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  async function handleConfirm() {
-    if (!completedAt) {
-      setError("Please choose a date");
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setError(null);
+    const formData = new FormData(e.currentTarget);
+    const missing = validateRequired(formData, [
+      { name: "completed_at", label: "Done on" },
+    ]);
+    if (missing) {
+      setError(missing);
       return;
     }
+    const date = String(formData.get("completed_at") || "").trim();
     setLoading(true);
-    setError(null);
-    const result = await updateTaskStatus(taskId, "done", completedAt);
+    const result = await updateTaskStatus(taskId, "done", date);
     setLoading(false);
     if (result?.error) {
       setError(result.error);
@@ -75,16 +83,13 @@ export function CompleteTaskDialog({
               : "Choose the date you completed this task."}
           </DialogDescription>
         </DialogHeader>
-        <div className="space-y-4">
-          {error && (
-            <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
-              {error}
-            </div>
-          )}
+        <form onSubmit={handleSubmit} noValidate className="space-y-4">
+          <FormError message={error} />
           <div className="space-y-2">
             <Label htmlFor="completed_at">Done on</Label>
             <Input
               id="completed_at"
+              name="completed_at"
               type="date"
               required
               value={completedAt}
@@ -100,11 +105,11 @@ export function CompleteTaskDialog({
             >
               Cancel
             </Button>
-            <Button type="button" disabled={loading} onClick={handleConfirm}>
+            <Button type="submit" disabled={loading}>
               {loading ? "Saving..." : "Mark done"}
             </Button>
           </div>
-        </div>
+        </form>
       </DialogContent>
     </Dialog>
   );

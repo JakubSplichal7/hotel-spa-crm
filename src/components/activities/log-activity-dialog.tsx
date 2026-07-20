@@ -16,6 +16,8 @@ import {
 } from "@/components/ui/dialog";
 import { NativeSelect } from "@/components/ui/native-select";
 import { SearchableClientSelect } from "@/components/searchable-client-select";
+import { FormError } from "@/components/form-error";
+import { validateRequired } from "@/lib/form-validation";
 import { ACTIVITY_TYPES, ACTIVITY_TYPE_LABELS } from "@/lib/types";
 import type { Account } from "@/lib/types";
 import { Plus } from "lucide-react";
@@ -43,9 +45,26 @@ export function LogActivityDialog({
   const [error, setError] = useState<string | null>(null);
   const [accountId, setAccountId] = useState(defaultAccountId || "");
 
-  async function handleSubmit(formData: FormData) {
-    setLoading(true);
+  const lockedClient = Boolean(defaultAccountId);
+  const clientOptional = Boolean(defaultEventId) && !lockedClient;
+
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
     setError(null);
+    const form = e.currentTarget;
+    const formData = new FormData(form);
+
+    const requiredFields = [{ name: "subject", label: "Subject" }];
+    if (!lockedClient && !clientOptional) {
+      requiredFields.push({ name: "account_id", label: "Client" });
+    }
+    const missing = validateRequired(formData, requiredFields);
+    if (missing) {
+      setError(missing);
+      return;
+    }
+
+    setLoading(true);
     const result = await createActivity(formData);
     setLoading(false);
     if (result?.error) {
@@ -54,11 +73,9 @@ export function LogActivityDialog({
     }
     setOpen(false);
     setAccountId(defaultAccountId || "");
+    form.reset();
     router.refresh();
   }
-
-  const lockedClient = Boolean(defaultAccountId);
-  const clientOptional = Boolean(defaultEventId) && !lockedClient;
 
   return (
     <Dialog
@@ -81,12 +98,8 @@ export function LogActivityDialog({
         <DialogHeader>
           <DialogTitle>Log Activity</DialogTitle>
         </DialogHeader>
-        <form action={handleSubmit} className="space-y-4">
-          {error && (
-            <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
-              {error}
-            </div>
-          )}
+        <form onSubmit={handleSubmit} noValidate className="space-y-4">
+          <FormError message={error} />
           {defaultDealId && (
             <input type="hidden" name="deal_id" value={defaultDealId} />
           )}
