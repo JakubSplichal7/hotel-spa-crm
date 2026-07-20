@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { formatDateTime } from "@/lib/utils";
-import { getActivityTypeLabel } from "@/lib/types";
+import { getActivityTypeLabel, getAccountDisplayName } from "@/lib/types";
 import Link from "next/link";
 
 interface PageProps {
@@ -19,7 +19,7 @@ export default async function ActivityDetailPage({ params }: PageProps) {
   const { data: activity } = await supabase
     .from("activities")
     .select(
-      "*, account:accounts(id, name), deal:deals(id, title), event:events(id, name), creator:profiles!activities_created_by_fkey(full_name)"
+      "*, account:accounts(id, name, nickname), deal:deals(id, title), event:events(id, name), creator:profiles!activities_created_by_fkey(full_name)"
     )
     .eq("id", id)
     .single();
@@ -27,7 +27,11 @@ export default async function ActivityDetailPage({ params }: PageProps) {
   if (!activity) notFound();
 
   const deal = activity.deal as { id: string; title: string } | null;
-  const account = activity.account as { id: string; name: string } | null;
+  const account = activity.account as {
+    id: string;
+    name: string;
+    nickname?: string | null;
+  } | null;
   const event = activity.event as { id: string; name: string } | null;
 
   return (
@@ -65,7 +69,7 @@ export default async function ActivityDetailPage({ params }: PageProps) {
                 href={`/accounts/${account.id}`}
                 className="text-lg font-medium text-primary hover:underline"
               >
-                {account.name}
+                {getAccountDisplayName(account)}
               </Link>
             ) : event ? (
               <Link

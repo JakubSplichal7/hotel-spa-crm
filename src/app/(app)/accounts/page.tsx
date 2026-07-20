@@ -7,7 +7,11 @@ import { AccountFilters } from "@/components/accounts/account-filters";
 import { EmptyState } from "@/components/empty-state";
 import { PageHeader } from "@/components/page-header";
 import { Badge } from "@/components/ui/badge";
-import { getAccountTypeLabel, getAcquisitionLabel } from "@/lib/types";
+import {
+  getAccountDisplayName,
+  getAccountTypeLabel,
+  getAcquisitionLabel,
+} from "@/lib/types";
 import { TableExportBar } from "@/components/export-xlsx-button";
 import Link from "next/link";
 
@@ -30,9 +34,12 @@ export default async function AccountsPage({ searchParams }: PageProps) {
     .from("accounts")
     .select("*, owner:profiles!accounts_owner_id_fkey(full_name)")
     .eq("org_id", profile.org_id)
-    .order("name");
+    .order("nickname");
 
-  if (params.q) query = query.ilike("name", `%${params.q}%`);
+  if (params.q) {
+    const q = params.q.replace(/[%_,]/g, "");
+    query = query.or(`nickname.ilike.%${q}%,name.ilike.%${q}%`);
+  }
   if (params.type && params.type !== "all") query = query.eq("type", params.type);
   if (params.status && params.status !== "all") query = query.eq("status", params.status);
   if (params.owner && params.owner !== "all") query = query.eq("owner_id", params.owner);
@@ -69,6 +76,7 @@ export default async function AccountsPage({ searchParams }: PageProps) {
             filename="clients"
             columns={[
               "Client",
+              "Official name",
               "IČO",
               "Type",
               "Location",
@@ -78,7 +86,8 @@ export default async function AccountsPage({ searchParams }: PageProps) {
               "VIP",
             ]}
             rows={accounts.map((account) => ({
-              Client: account.name,
+              Client: account.nickname || account.name,
+              "Official name": account.name,
               "IČO": account.ico || "",
               Type: getAccountTypeLabel(account.type),
               Location:
@@ -95,6 +104,7 @@ export default async function AccountsPage({ searchParams }: PageProps) {
             <thead>
               <tr className="border-b bg-muted/50">
                 <th className="px-4 py-3 text-left text-sm font-medium">Client</th>
+                <th className="px-4 py-3 text-left text-sm font-medium">Official name</th>
                 <th className="px-4 py-3 text-left text-sm font-medium">IČO</th>
                 <th className="px-4 py-3 text-left text-sm font-medium">Type</th>
                 <th className="px-4 py-3 text-left text-sm font-medium">Location</th>
@@ -112,13 +122,16 @@ export default async function AccountsPage({ searchParams }: PageProps) {
                       href={`/accounts/${account.id}`}
                       className="font-medium text-primary hover:underline"
                     >
-                      {account.name}
+                      {getAccountDisplayName(account)}
                     </Link>
                     {account.is_vip && (
                       <Badge className="ml-2" variant="warning">
                         VIP
                       </Badge>
                     )}
+                  </td>
+                  <td className="px-4 py-3 text-sm text-muted-foreground">
+                    {account.name}
                   </td>
                   <td className="px-4 py-3 text-sm tabular-nums text-muted-foreground">
                     {account.ico || "—"}
@@ -151,7 +164,7 @@ export default async function AccountsPage({ searchParams }: PageProps) {
                   <td className="px-2 py-3 text-right">
                     <DeleteAccountButton
                       accountId={account.id}
-                      accountName={account.name}
+                      accountName={getAccountDisplayName(account)}
                     />
                   </td>
                 </tr>

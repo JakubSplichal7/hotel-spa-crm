@@ -10,6 +10,7 @@ import { formatCurrency, formatDate } from "@/lib/utils";
 import {
   DEAL_STAGES,
   DEAL_STAGE_LABELS,
+  getAccountDisplayName,
   getOfferBookingHealth,
   offerBookingHealthLabel,
   type Booking,
@@ -66,7 +67,11 @@ export function DealKanban({ deals }: { deals: DealWithBooking[] }) {
                     <Link href={`/deals/${deal.id}`}>
                       <p className="font-medium">{deal.title}</p>
                       <p className="mt-1 text-sm text-muted-foreground">
-                        {(deal.account as { name: string } | undefined)?.name}
+                        {getAccountDisplayName(
+                          deal.account as
+                            | { name?: string; nickname?: string }
+                            | undefined
+                        )}
                       </p>
                       <p className="mt-2 font-semibold text-primary">
                         {formatCurrency(Number(deal.value), deal.currency)}

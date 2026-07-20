@@ -8,6 +8,7 @@ import { EmptyState } from "@/components/empty-state";
 import { PageHeader } from "@/components/page-header";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { Account, Profile, Task } from "@/lib/types";
+import { getAccountDisplayName } from "@/lib/types";
 
 interface PageProps {
   searchParams: Promise<{ client?: string; offer?: string }>;
@@ -26,7 +27,7 @@ export default async function TasksPage({ searchParams }: PageProps) {
   let openQuery = supabase
     .from("tasks")
     .select(
-      "*, account:accounts(id, name), deal:deals(id, title), assignee:profiles!tasks_assignee_id_fkey(full_name)"
+      "*, account:accounts(id, name, nickname), deal:deals(id, title), assignee:profiles!tasks_assignee_id_fkey(full_name)"
     )
     .eq("org_id", profile.org_id)
     .eq("status", "open")
@@ -35,7 +36,7 @@ export default async function TasksPage({ searchParams }: PageProps) {
   let doneQuery = supabase
     .from("tasks")
     .select(
-      "*, account:accounts(id, name), deal:deals(id, title), assignee:profiles!tasks_assignee_id_fkey(full_name)"
+      "*, account:accounts(id, name, nickname), deal:deals(id, title), assignee:profiles!tasks_assignee_id_fkey(full_name)"
     )
     .eq("org_id", profile.org_id)
     .eq("status", "done")
@@ -60,7 +61,7 @@ export default async function TasksPage({ searchParams }: PageProps) {
   ] = await Promise.all([
     openQuery,
     doneQuery,
-    supabase.from("accounts").select("*").eq("org_id", profile.org_id).order("name"),
+    supabase.from("accounts").select("*").eq("org_id", profile.org_id).order("nickname"),
     supabase.from("profiles").select("*").eq("org_id", profile.org_id),
     supabase
       .from("deals")
@@ -81,7 +82,10 @@ export default async function TasksPage({ searchParams }: PageProps) {
       ? (offers || []).find((o) => o.id === offerId && o.account_id === clientId)
       : null;
 
-  const filterHint = [selectedClient?.name, selectedOffer?.title]
+  const filterHint = [
+    selectedClient ? getAccountDisplayName(selectedClient) : null,
+    selectedOffer?.title,
+  ]
     .filter(Boolean)
     .join(" · ");
 

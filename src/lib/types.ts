@@ -47,6 +47,9 @@ export interface Profile {
 export interface Account {
   id: string;
   org_id: string;
+  /** Short display name used across the CRM */
+  nickname: string;
+  /** Legal / official company or person name */
   name: string;
   /** Czech company ID (IČO) */
   ico: string | null;
@@ -62,6 +65,14 @@ export interface Account {
   created_at: string;
   updated_at: string;
   owner?: Profile;
+}
+
+/** Prefer nickname for lists and pickers; fall back to official name. */
+export function getAccountDisplayName(
+  account: { nickname?: string | null; name?: string | null } | null | undefined
+): string {
+  if (!account) return "";
+  return (account.nickname || account.name || "").trim();
 }
 
 export interface Contact {

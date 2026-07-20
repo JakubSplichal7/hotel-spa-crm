@@ -7,7 +7,7 @@ import { ClientOfferFilter } from "@/components/client-offer-filter";
 import { EmptyState } from "@/components/empty-state";
 import { Badge } from "@/components/ui/badge";
 import { formatDateTime } from "@/lib/utils";
-import { getActivityTypeLabel } from "@/lib/types";
+import { getActivityTypeLabel, getAccountDisplayName } from "@/lib/types";
 import { PageHeader } from "@/components/page-header";
 import { TableExportBar } from "@/components/export-xlsx-button";
 import {
@@ -32,7 +32,7 @@ export default async function ActivitiesPage({ searchParams }: PageProps) {
   let activitiesQuery = supabase
     .from("activities")
     .select(
-      "*, account:accounts(id, name), deal:deals(id, title), event:events(id, name), creator:profiles!activities_created_by_fkey(full_name)"
+      "*, account:accounts(id, name, nickname), deal:deals(id, title), event:events(id, name), creator:profiles!activities_created_by_fkey(full_name)"
     )
     .eq("org_id", profile.org_id)
     .order("occurred_at", { ascending: false })
@@ -48,7 +48,7 @@ export default async function ActivitiesPage({ searchParams }: PageProps) {
   const [{ data: activities }, { data: accounts }, { data: offers }] =
     await Promise.all([
       activitiesQuery,
-      supabase.from("accounts").select("*").eq("org_id", profile.org_id).order("name"),
+      supabase.from("accounts").select("*").eq("org_id", profile.org_id).order("nickname"),
       supabase
         .from("deals")
         .select("id, title, account_id")
@@ -64,7 +64,10 @@ export default async function ActivitiesPage({ searchParams }: PageProps) {
       ? (offers || []).find((o) => o.id === offerId && o.account_id === clientId)
       : null;
 
-  const filterHint = [selectedClient?.name, selectedOffer?.title]
+  const filterHint = [
+    selectedClient ? getAccountDisplayName(selectedClient) : null,
+    selectedOffer?.title,
+  ]
     .filter(Boolean)
     .join(" · ");
 
@@ -121,6 +124,7 @@ export default async function ActivitiesPage({ searchParams }: PageProps) {
               const account = activity.account as {
                 id: string;
                 name: string;
+                nickname?: string | null;
               } | null;
               const event = activity.event as {
                 id: string;
@@ -130,7 +134,11 @@ export default async function ActivitiesPage({ searchParams }: PageProps) {
                 Type: getActivityTypeLabel(activity.type),
                 Subject: activity.subject,
                 Body: activity.body || "",
-                Client: account?.name || (event ? `Event: ${event.name}` : ""),
+                Client: account
+                  ? getAccountDisplayName(account)
+                  : event
+                    ? `Event: ${event.name}`
+                    : "",
                 Offer: activity.deal
                   ? (activity.deal as { title: string }).title
                   : "",
@@ -159,6 +167,7 @@ export default async function ActivitiesPage({ searchParams }: PageProps) {
                 const account = activity.account as {
                   id: string;
                   name: string;
+                  nickname?: string | null;
                 } | null;
                 const event = activity.event as {
                   id: string;
@@ -191,7 +200,7 @@ export default async function ActivitiesPage({ searchParams }: PageProps) {
                         href={`/accounts/${account.id}`}
                         className="text-primary hover:underline"
                       >
-                        {account.name}
+                        {getAccountDisplayName(account)}
                       </Link>
                     ) : event ? (
                       <Link

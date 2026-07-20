@@ -48,7 +48,8 @@ export function CreateAccountDialog({ profiles }: { profiles: Profile[] }) {
     setError(null);
     const formData = new FormData(form);
     const missing = validateRequired(formData, [
-      { name: "name", label: "Client name" },
+      { name: "nickname", label: "Client" },
+      { name: "name", label: "Official name" },
       { name: "ico", label: "IČO" },
     ]);
     if (missing) {
@@ -120,14 +121,25 @@ export function CreateAccountDialog({ profiles }: { profiles: Profile[] }) {
           >
             <FormError message={error} />
             <div className="space-y-2">
+              <Label htmlFor="nickname" required>
+                Client
+              </Label>
+              <Input
+                id="nickname"
+                name="nickname"
+                required
+                placeholder="Short name used in the CRM"
+              />
+            </div>
+            <div className="space-y-2">
               <Label htmlFor="name" required>
-                Client name
+                Official name
               </Label>
               <Input
                 id="name"
                 name="name"
                 required
-                placeholder="Acme Corp or Jane Smith"
+                placeholder="Legal company or person name"
               />
             </div>
             <div className="space-y-2">

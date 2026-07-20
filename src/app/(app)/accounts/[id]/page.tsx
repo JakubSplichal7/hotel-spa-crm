@@ -59,8 +59,11 @@ export default async function AccountDetailPage({ params }: PageProps) {
             &larr; Back to clients
           </Link>
           <h1 className="mt-2 text-3xl font-bold tracking-tight text-slate-950 [text-shadow:0_1px_2px_rgba(255,255,255,0.95),0_0_12px_rgba(255,255,255,0.85),0_2px_8px_rgba(255,255,255,0.7)]">
-            {account.name}
+            {account.nickname || account.name}
           </h1>
+          <p className="mt-1 text-sm font-semibold text-slate-900 [text-shadow:0_1px_2px_rgba(255,255,255,0.95),0_0_10px_rgba(255,255,255,0.8)]">
+            Official name: {account.name}
+          </p>
           {account.ico && (
             <p className="mt-1 text-sm font-semibold text-slate-900 [text-shadow:0_1px_2px_rgba(255,255,255,0.95),0_0_10px_rgba(255,255,255,0.8)]">
               IČO: {account.ico}
@@ -124,7 +127,7 @@ export default async function AccountDetailPage({ params }: PageProps) {
           ) : (
             <div>
               <TableExportBar
-                filename={`contacts-${account.name}`}
+                filename={`contacts-${account.nickname || account.name}`}
                 columns={["Name", "Title", "Email", "Phone", "Primary"]}
                 rows={contacts.map((contact) => ({
                   Name: contact.name,

@@ -9,7 +9,7 @@ import { EditBookingDialog } from "@/components/bookings/edit-booking-dialog";
 import { BookingStatusButtons } from "@/components/bookings/booking-status-buttons";
 import { ConfirmBookingButton } from "@/components/bookings/confirm-booking-button";
 import type { Booking, BookingStatus } from "@/lib/types";
-import { BOOKING_STATUS_LABELS } from "@/lib/types";
+import { BOOKING_STATUS_LABELS, getAccountDisplayName } from "@/lib/types";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -22,7 +22,7 @@ export default async function BookingDetailPage({ params }: PageProps) {
 
   const { data: booking } = await supabase
     .from("bookings")
-    .select("*, account:accounts(id, name), deal:deals(id, title, stage)")
+    .select("*, account:accounts(id, name, nickname), deal:deals(id, title, stage)")
     .eq("id", id)
     .single();
 
@@ -61,7 +61,9 @@ export default async function BookingDetailPage({ params }: PageProps) {
                 href={`/accounts/${(booking.account as { id: string }).id}`}
                 className="text-sm text-primary hover:underline"
               >
-                {(booking.account as { name: string }).name}
+                {getAccountDisplayName(
+                  booking.account as { name?: string; nickname?: string }
+                )}
               </Link>
             </div>
           </div>

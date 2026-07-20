@@ -10,6 +10,7 @@ import {
 } from "@/lib/task-dates";
 import Link from "next/link";
 import { TaskStatusToggle } from "@/components/tasks/task-status-toggle";
+import { getAccountDisplayName } from "@/lib/types";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -23,7 +24,7 @@ export default async function TaskDetailPage({ params }: PageProps) {
   const { data: task } = await supabase
     .from("tasks")
     .select(
-      "*, account:accounts(id, name), deal:deals(id, title), assignee:profiles!tasks_assignee_id_fkey(full_name)"
+      "*, account:accounts(id, name, nickname), deal:deals(id, title), assignee:profiles!tasks_assignee_id_fkey(full_name)"
     )
     .eq("id", id)
     .single();
@@ -31,7 +32,11 @@ export default async function TaskDetailPage({ params }: PageProps) {
   if (!task) notFound();
 
   const deal = task.deal as { id: string; title: string } | null;
-  const account = task.account as { id: string; name: string } | null;
+  const account = task.account as {
+    id: string;
+    name: string;
+    nickname?: string | null;
+  } | null;
   const dueDay = task.due_at?.slice(0, 10) || null;
   const today = new Date();
   const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
@@ -82,7 +87,7 @@ export default async function TaskDetailPage({ params }: PageProps) {
                 href={`/accounts/${account.id}`}
                 className="text-lg font-medium text-primary hover:underline"
               >
-                {account.name}
+                {getAccountDisplayName(account)}
               </Link>
             ) : (
               <p className="text-lg font-medium">—</p>

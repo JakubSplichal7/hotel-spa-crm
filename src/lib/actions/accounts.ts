@@ -18,7 +18,7 @@ async function findAccountsWithIco(
   const supabase = await createClient();
   let query = supabase
     .from("accounts")
-    .select("id, name, ico")
+    .select("id, name, nickname")
     .eq("org_id", orgId)
     .eq("ico", ico);
 
@@ -27,7 +27,7 @@ async function findAccountsWithIco(
   }
 
   const { data, error } = await query;
-  if (error) return { error: error.message, matches: [] as { id: string; name: string }[] };
+  if (error) return { error: error.message, matches: [] as { id: string; name: string; nickname?: string | null }[] };
   return { matches: data || [], error: null as string | null };
 }
 
@@ -36,10 +36,12 @@ export async function createAccount(formData: FormData) {
   const supabase = await createClient();
 
   const name = String(formData.get("name") || "").trim();
+  const nickname = String(formData.get("nickname") || "").trim();
   const ico = normalizeIco(String(formData.get("ico") || ""));
   const allowDuplicate = formData.get("allow_duplicate_ico") === "1";
 
-  if (!name) return { error: "Client name is required." };
+  if (!nickname) return { error: "Client is required." };
+  if (!name) return { error: "Official name is required." };
   if (!ico) return { error: "IČO is required." };
 
   if (!allowDuplicate) {
@@ -52,7 +54,9 @@ export async function createAccount(formData: FormData) {
       return {
         duplicate: true as const,
         ico,
-        existingNames: matches.map((m) => m.name),
+        existingNames: matches.map(
+          (m) => m.nickname || m.name
+        ),
       };
     }
   }
@@ -61,6 +65,7 @@ export async function createAccount(formData: FormData) {
     .from("accounts")
     .insert({
       org_id: profile.org_id,
+      nickname,
       name,
       ico,
       type: (formData.get("type") as AccountType) || "company",
@@ -87,10 +92,12 @@ export async function updateAccount(id: string, formData: FormData) {
   const supabase = await createClient();
 
   const name = String(formData.get("name") || "").trim();
+  const nickname = String(formData.get("nickname") || "").trim();
   const ico = normalizeIco(String(formData.get("ico") || ""));
   const allowDuplicate = formData.get("allow_duplicate_ico") === "1";
 
-  if (!name) return { error: "Client name is required." };
+  if (!nickname) return { error: "Client is required." };
+  if (!name) return { error: "Official name is required." };
   if (!ico) return { error: "IČO is required." };
 
   if (!allowDuplicate) {
@@ -104,7 +111,9 @@ export async function updateAccount(id: string, formData: FormData) {
       return {
         duplicate: true as const,
         ico,
-        existingNames: matches.map((m) => m.name),
+        existingNames: matches.map(
+          (m) => m.nickname || m.name
+        ),
       };
     }
   }
@@ -112,6 +121,7 @@ export async function updateAccount(id: string, formData: FormData) {
   const { error } = await supabase
     .from("accounts")
     .update({
+      nickname,
       name,
       ico,
       type: formData.get("type") as AccountType,

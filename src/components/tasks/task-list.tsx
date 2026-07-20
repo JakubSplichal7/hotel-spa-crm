@@ -13,6 +13,7 @@ import {
   getTaskDayDelta,
 } from "@/lib/task-dates";
 import type { Task } from "@/lib/types";
+import { getAccountDisplayName } from "@/lib/types";
 import { TableExportBar } from "@/components/export-xlsx-button";
 import {
   CompactDate,
@@ -64,7 +65,9 @@ export function TaskList({ tasks }: { tasks: Task[] }) {
           return {
             Task: task.title,
             Client: task.account
-              ? (task.account as { name: string }).name
+              ? getAccountDisplayName(
+                  task.account as { name?: string; nickname?: string }
+                )
               : "",
             Offer: task.deal ? (task.deal as { title: string }).title : "",
             Assignee:
@@ -123,7 +126,9 @@ export function TaskList({ tasks }: { tasks: Task[] }) {
                         href={`/accounts/${(task.account as { id: string }).id}`}
                         className="text-primary hover:underline"
                       >
-                        {(task.account as { name: string }).name}
+                        {getAccountDisplayName(
+                          task.account as { name?: string; nickname?: string }
+                        )}
                       </Link>
                     ) : (
                       <span className="text-muted-foreground">—</span>

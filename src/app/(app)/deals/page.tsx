@@ -12,6 +12,7 @@ import {
   dateColHeadClass,
 } from "@/components/table-date";
 import {
+  getAccountDisplayName,
   getDealStageLabel,
   getPrimaryBooking,
   getOfferBookingHealth,
@@ -43,11 +44,11 @@ export default async function DealsPage() {
       supabase
         .from("deals")
         .select(
-          "*, account:accounts(id, name), owner:profiles!deals_owner_id_fkey(full_name)"
+          "*, account:accounts(id, name, nickname), owner:profiles!deals_owner_id_fkey(full_name)"
         )
         .eq("org_id", profile.org_id)
         .order("updated_at", { ascending: false }),
-      supabase.from("accounts").select("*").eq("org_id", profile.org_id).order("name"),
+      supabase.from("accounts").select("*").eq("org_id", profile.org_id).order("nickname"),
       supabase.from("profiles").select("*").eq("org_id", profile.org_id),
       supabase
         .from("bookings")
@@ -105,8 +106,9 @@ export default async function DealsPage() {
             ]}
             rows={rows.map(({ deal, booking, health }) => ({
               Offer: deal.title,
-              Client:
-                (deal.account as { name?: string } | null)?.name || "",
+              Client: getAccountDisplayName(
+                deal.account as { name?: string; nickname?: string } | null
+              ),
               Stage:
                 DEAL_STAGE_LABELS[deal.stage as DealStage] ??
                 getDealStageLabel(deal.stage),
@@ -153,15 +155,19 @@ export default async function DealsPage() {
                     </Link>
                   </td>
                   <td className="px-4 py-3 text-sm">
-                    {(deal.account as { id?: string; name?: string } | null)?.id ? (
+                    {(deal.account as { id?: string; name?: string; nickname?: string } | null)?.id ? (
                       <Link
                         href={`/accounts/${(deal.account as { id: string }).id}`}
                         className="hover:underline"
                       >
-                        {(deal.account as { name: string }).name}
+                        {getAccountDisplayName(
+                          deal.account as { name?: string; nickname?: string }
+                        )}
                       </Link>
                     ) : (
-                      (deal.account as { name?: string } | null)?.name || "—"
+                      getAccountDisplayName(
+                        deal.account as { name?: string; nickname?: string } | null
+                      ) || "—"
                     )}
                   </td>
                   <td className="px-4 py-3">

@@ -58,7 +58,7 @@ export default async function EventDetailPage({ params }: PageProps) {
       .eq("event_id", id)
       .order("due_at"),
     supabase.from("profiles").select("*").eq("org_id", profile.org_id),
-    supabase.from("accounts").select("*").eq("org_id", profile.org_id).order("name"),
+    supabase.from("accounts").select("*").eq("org_id", profile.org_id).order("nickname"),
   ]);
 
   const eventRecord = event as Event;

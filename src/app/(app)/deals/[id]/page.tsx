@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { formatCurrency, formatDate, formatDateTime } from "@/lib/utils";
-import { getDealStageLabel, getActivityTypeLabel, getPrimaryBooking, getDealLostReasonLabel } from "@/lib/types";
+import { getDealStageLabel, getActivityTypeLabel, getPrimaryBooking, getDealLostReasonLabel, getAccountDisplayName } from "@/lib/types";
 import Link from "next/link";
 import { EditDealDialog } from "@/components/deals/edit-deal-dialog";
 import { OfferBookingSection } from "@/components/deals/offer-booking-section";
@@ -23,7 +23,7 @@ export default async function DealDetailPage({ params }: PageProps) {
 
   const { data: deal } = await supabase
     .from("deals")
-    .select("*, account:accounts(id, name), owner:profiles!deals_owner_id_fkey(full_name)")
+    .select("*, account:accounts(id, name, nickname), owner:profiles!deals_owner_id_fkey(full_name)")
     .eq("id", id)
     .single();
 
@@ -74,7 +74,9 @@ export default async function DealDetailPage({ params }: PageProps) {
                 href={`/accounts/${(deal.account as { id: string }).id}`}
                 className="text-sm text-primary hover:underline"
               >
-                {(deal.account as { name: string }).name}
+                {getAccountDisplayName(
+                  deal.account as { name?: string; nickname?: string }
+                )}
               </Link>
             </div>
           </div>
@@ -154,6 +156,9 @@ export default async function DealDetailPage({ params }: PageProps) {
                   {
                     id: (deal.account as { id: string }).id,
                     name: (deal.account as { name: string }).name,
+                    nickname:
+                      (deal.account as { nickname?: string | null }).nickname ||
+                      (deal.account as { name: string }).name,
                   },
                 ] as Account[]
               }
@@ -205,6 +210,9 @@ export default async function DealDetailPage({ params }: PageProps) {
                   {
                     id: (deal.account as { id: string }).id,
                     name: (deal.account as { name: string }).name,
+                    nickname:
+                      (deal.account as { nickname?: string | null }).nickname ||
+                      (deal.account as { name: string }).name,
                   },
                 ] as Account[]
               }

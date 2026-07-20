@@ -3,7 +3,7 @@ import { requireProfile } from "@/lib/auth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { formatCurrency, formatDate, formatDateTime } from "@/lib/utils";
-import { getDealStageLabel, getActivityTypeLabel } from "@/lib/types";
+import { getDealStageLabel, getActivityTypeLabel, getAccountDisplayName } from "@/lib/types";
 import { Handshake, CheckSquare, Activity, CalendarDays } from "lucide-react";
 import { PageHeader } from "@/components/page-header";
 
@@ -45,13 +45,13 @@ export default async function DashboardPage() {
       .lt("due_at", todayStr),
     supabase
       .from("activities")
-      .select("id, type, subject, occurred_at, account:accounts(name)")
+      .select("id, type, subject, occurred_at, account:accounts(name, nickname)")
       .eq("org_id", profile.org_id)
       .order("occurred_at", { ascending: false })
       .limit(5),
     supabase
       .from("bookings")
-      .select("id, title, end_date, account:accounts(name)")
+      .select("id, title, end_date, account:accounts(name, nickname)")
       .eq("org_id", profile.org_id)
       .eq("status", "active")
       .lte("end_date", thirtyDaysFromNow.toISOString().split("T")[0])
@@ -182,7 +182,13 @@ export default async function DashboardPage() {
                       <span className="font-medium">{activity.subject}</span>
                     </div>
                     <p className="mt-1 text-muted-foreground">
-                      {(activity.account as { name: string } | null)?.name} &middot;{" "}
+                      {getAccountDisplayName(
+                        activity.account as {
+                          name?: string;
+                          nickname?: string;
+                        } | null
+                      )}{" "}
+                      &middot;{" "}
                       {formatDateTime(activity.occurred_at)}
                     </p>
                   </li>
@@ -206,7 +212,12 @@ export default async function DashboardPage() {
                     <div>
                       <span className="font-medium">{booking.title}</span>
                       <p className="text-muted-foreground">
-                        {(booking.account as { name: string } | null)?.name}
+                        {getAccountDisplayName(
+                          booking.account as {
+                            name?: string;
+                            nickname?: string;
+                          } | null
+                        )}
                       </p>
                     </div>
                     <span className="text-muted-foreground">{formatDate(booking.end_date!)}</span>

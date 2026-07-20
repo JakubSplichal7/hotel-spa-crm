@@ -3,15 +3,19 @@
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
-import type { Account } from "@/lib/types";
+import { getAccountDisplayName, type Account } from "@/lib/types";
 import { ChevronDown, X } from "lucide-react";
 
-type AccountOption = Pick<Account, "id" | "name">;
+type AccountOption = Pick<Account, "id" | "name"> & {
+  nickname?: string | null;
+};
 
-function startsWithQuery(name: string, query: string) {
+function matchesQuery(account: AccountOption, query: string) {
   const q = query.trim().toLocaleLowerCase();
   if (!q) return true;
-  return name.toLocaleLowerCase().startsWith(q);
+  const nickname = (account.nickname || "").toLocaleLowerCase();
+  const name = (account.name || "").toLocaleLowerCase();
+  return nickname.startsWith(q) || name.startsWith(q);
 }
 
 export function SearchableClientSelect({
@@ -53,8 +57,10 @@ export function SearchableClientSelect({
 
   const filtered = useMemo(() => {
     const list = accounts
-      .filter((a) => startsWithQuery(a.name, query))
-      .sort((a, b) => a.name.localeCompare(b.name));
+      .filter((a) => matchesQuery(a, query))
+      .sort((a, b) =>
+        getAccountDisplayName(a).localeCompare(getAccountDisplayName(b))
+      );
     return list;
   }, [accounts, query]);
 
@@ -85,7 +91,7 @@ export function SearchableClientSelect({
   const displayValue = open
     ? query
     : selected
-      ? selected.name
+      ? getAccountDisplayName(selected)
       : allowAll && (!value || value === "all")
         ? allLabel
         : "";
@@ -192,12 +198,15 @@ export function SearchableClientSelect({
                   role="option"
                   aria-selected={a.id === value}
                   className={cn(
-                    "flex w-full px-3 py-2 text-left text-sm hover:bg-accent",
+                    "flex w-full flex-col px-3 py-2 text-left text-sm hover:bg-accent",
                     a.id === value && "bg-accent"
                   )}
                   onClick={() => selectValue(a.id)}
                 >
-                  {a.name}
+                  <span>{getAccountDisplayName(a)}</span>
+                  {a.nickname && a.name && a.nickname !== a.name ? (
+                    <span className="text-xs text-muted-foreground">{a.name}</span>
+                  ) : null}
                 </button>
               </li>
             ))

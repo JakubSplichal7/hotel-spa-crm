@@ -6,7 +6,7 @@ import { PageHeader } from "@/components/page-header";
 import { Badge } from "@/components/ui/badge";
 import { formatCurrency } from "@/lib/utils";
 import Link from "next/link";
-import { BOOKING_STATUS_LABELS } from "@/lib/types";
+import { BOOKING_STATUS_LABELS, getAccountDisplayName } from "@/lib/types";
 import type { BookingStatus } from "@/lib/types";
 import { TableExportBar } from "@/components/export-xlsx-button";
 import {
@@ -22,10 +22,10 @@ export default async function BookingsPage() {
   const [{ data: bookings }, { data: accounts }] = await Promise.all([
     supabase
       .from("bookings")
-      .select("*, account:accounts(id, name), deal:deals(id, title)")
+      .select("*, account:accounts(id, name, nickname), deal:deals(id, title)")
       .eq("org_id", profile.org_id)
       .order("start_date", { ascending: false }),
-    supabase.from("accounts").select("*").eq("org_id", profile.org_id).order("name"),
+    supabase.from("accounts").select("*").eq("org_id", profile.org_id).order("nickname"),
   ]);
 
   return (
@@ -58,7 +58,9 @@ export default async function BookingsPage() {
             ]}
             rows={bookings.map((booking) => ({
               Booking: booking.title,
-              Client: (booking.account as { name: string }).name,
+              Client: getAccountDisplayName(
+                booking.account as { name?: string; nickname?: string }
+              ),
               Offer: booking.deal
                 ? (booking.deal as { title: string }).title
                 : "",
@@ -99,7 +101,9 @@ export default async function BookingsPage() {
                       href={`/accounts/${(booking.account as { id: string }).id}`}
                       className="text-primary hover:underline"
                     >
-                      {(booking.account as { name: string }).name}
+                      {getAccountDisplayName(
+                        booking.account as { name?: string; nickname?: string }
+                      )}
                     </Link>
                   </td>
                   <td className="px-4 py-3 text-sm">
