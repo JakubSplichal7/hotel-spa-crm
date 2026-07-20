@@ -10,6 +10,7 @@ import {
   Activity,
   CheckSquare,
   CalendarDays,
+  Lightbulb,
   BarChart3,
   Settings,
   LogOut,
@@ -37,6 +38,7 @@ const navItems = [
   { href: "/activities", label: "Activities", icon: Activity },
   { href: "/tasks", label: "Tasks", icon: CheckSquare },
   { href: "/bookings", label: "Bookings", icon: CalendarDays },
+  { href: "/ideas", label: "Ideas", icon: Lightbulb },
   { href: "/reports", label: "Reports", icon: BarChart3 },
 ];
 

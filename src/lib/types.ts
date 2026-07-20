@@ -164,6 +164,18 @@ export interface EventGuest {
   created_at: string;
 }
 
+export interface Idea {
+  id: string;
+  org_id: string;
+  name: string;
+  note: string | null;
+  contact: string | null;
+  created_by: string;
+  created_at: string;
+  updated_at: string;
+  creator?: Profile;
+}
+
 export interface Booking {
   id: string;
   org_id: string;
