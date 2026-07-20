@@ -89,7 +89,9 @@ export function CreateBookingDialog({ accounts }: { accounts: Account[] }) {
         <form onSubmit={handleSubmit} noValidate className="space-y-4">
           <FormError message={error} />
           <div className="space-y-2">
-            <Label htmlFor="title">Title</Label>
+            <Label htmlFor="title" required>
+              Title
+            </Label>
             <Input
               id="title"
               name="title"
@@ -98,7 +100,9 @@ export function CreateBookingDialog({ accounts }: { accounts: Account[] }) {
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="account_id">Client</Label>
+            <Label htmlFor="account_id" required>
+              Client
+            </Label>
             <SearchableClientSelect
               id="account_id"
               accounts={accounts}
@@ -111,7 +115,9 @@ export function CreateBookingDialog({ accounts }: { accounts: Account[] }) {
           </div>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor="start_date">Start date</Label>
+              <Label htmlFor="start_date" required>
+                Start date
+              </Label>
               <Input id="start_date" name="start_date" type="date" required />
             </div>
             <div className="space-y-2">

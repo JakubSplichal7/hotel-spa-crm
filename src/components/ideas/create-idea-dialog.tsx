@@ -69,7 +69,9 @@ export function CreateIdeaDialog() {
         <form onSubmit={handleSubmit} noValidate className="space-y-4">
           <FormError message={error} />
           <div className="space-y-2">
-            <Label htmlFor="name">Name</Label>
+            <Label htmlFor="name" required>
+              Name
+            </Label>
             <Input
               id="name"
               name="name"

@@ -78,7 +78,9 @@ export function MarkLostDialog({
             </div>
           )}
           <div className="space-y-2">
-            <Label htmlFor="lost_reason">Reason</Label>
+            <Label htmlFor="lost_reason" required>
+              Reason
+            </Label>
             <NativeSelect
               id="lost_reason"
               value={reason}
@@ -99,7 +101,9 @@ export function MarkLostDialog({
           </div>
           {reason ? (
             <div className="space-y-2">
-              <Label htmlFor="lost_comment">Details</Label>
+              <Label htmlFor="lost_comment" required>
+                Details
+              </Label>
               <Textarea
                 id="lost_comment"
                 value={comment}

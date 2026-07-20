@@ -106,7 +106,9 @@ export function EditDealDialog({
         <form onSubmit={handleSubmit} noValidate className="space-y-4">
           <FormError message={error} />
           <div className="space-y-2">
-            <Label htmlFor="title">Offer title</Label>
+            <Label htmlFor="title" required>
+              Offer title
+            </Label>
             <Input id="title" name="title" required defaultValue={deal.title} />
           </div>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -164,7 +166,9 @@ export function EditDealDialog({
           {stage === "lost" ? (
             <div className="space-y-4 rounded-md border border-destructive/30 bg-destructive/5 p-3">
               <div className="space-y-2">
-                <Label htmlFor="lost_reason">Lost reason</Label>
+                <Label htmlFor="lost_reason" required>
+                  Lost reason
+                </Label>
                 <NativeSelect
                   id="lost_reason"
                   name="lost_reason"
@@ -186,7 +190,9 @@ export function EditDealDialog({
               </div>
               {lostReason ? (
                 <div className="space-y-2">
-                  <Label htmlFor="lost_comment">Lost details</Label>
+                  <Label htmlFor="lost_comment" required>
+                    Lost details
+                  </Label>
                   <Textarea
                     id="lost_comment"
                     name="lost_comment"

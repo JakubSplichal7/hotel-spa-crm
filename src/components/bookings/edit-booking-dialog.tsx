@@ -94,7 +94,9 @@ export function EditBookingDialog({
         <form onSubmit={handleSubmit} noValidate className="space-y-4">
           <FormError message={error} />
           <div className="space-y-2">
-            <Label htmlFor="title">Title</Label>
+            <Label htmlFor="title" required>
+              Title
+            </Label>
             <Input id="title" name="title" required defaultValue={booking.title} />
           </div>
           <div className="space-y-2">
@@ -117,7 +119,9 @@ export function EditBookingDialog({
           </div>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor="start_date">Start date</Label>
+              <Label htmlFor="start_date" required={booking.status !== "draft"}>
+                Start date
+              </Label>
               <Input
                 id="start_date"
                 name="start_date"

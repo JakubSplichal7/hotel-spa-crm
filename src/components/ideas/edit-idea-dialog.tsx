@@ -78,7 +78,9 @@ export function EditIdeaDialog({ idea }: { idea: Idea }) {
         <form onSubmit={handleSubmit} noValidate className="space-y-4">
           <FormError message={error} />
           <div className="space-y-2">
-            <Label htmlFor={`name-${idea.id}`}>Name</Label>
+            <Label htmlFor={`name-${idea.id}`} required>
+              Name
+            </Label>
             <Input
               id={`name-${idea.id}`}
               name="name"

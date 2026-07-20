@@ -75,7 +75,9 @@ export function ChangePasswordForm({
             </div>
           )}
           <div className="space-y-2">
-            <Label htmlFor="password">New password</Label>
+            <Label htmlFor="password" required>
+              New password
+            </Label>
             <Input
               id="password"
               name="password"
@@ -86,7 +88,9 @@ export function ChangePasswordForm({
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="confirm">Confirm password</Label>
+            <Label htmlFor="confirm" required>
+              Confirm password
+            </Label>
             <Input
               id="confirm"
               name="confirm"

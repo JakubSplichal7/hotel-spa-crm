@@ -102,7 +102,9 @@ export function CreateTaskDialog({
             <input type="hidden" name="event_id" value={defaultEventId} />
           )}
           <div className="space-y-2">
-            <Label htmlFor="title">Task</Label>
+            <Label htmlFor="title" required>
+              Task
+            </Label>
             <Input
               id="title"
               name="title"

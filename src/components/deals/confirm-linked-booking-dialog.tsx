@@ -106,7 +106,9 @@ export function ConfirmLinkedBookingDialog({
         <form onSubmit={handleSubmit} noValidate className="space-y-4">
           <FormError message={error} />
           <div className="space-y-2">
-            <Label htmlFor="confirm_title">Title</Label>
+            <Label htmlFor="confirm_title" required>
+              Title
+            </Label>
             <Input
               id="confirm_title"
               name="title"
@@ -116,7 +118,9 @@ export function ConfirmLinkedBookingDialog({
           </div>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor="confirm_start_date">Start date</Label>
+              <Label htmlFor="confirm_start_date" required>
+                Start date
+              </Label>
               <Input
                 id="confirm_start_date"
                 name="start_date"

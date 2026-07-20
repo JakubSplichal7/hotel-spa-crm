@@ -199,17 +199,23 @@ export function SettingsClient({
             )}
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="fullName">Full name</Label>
+                <Label htmlFor="fullName" required>
+                  Full name
+                </Label>
                 <Input id="fullName" name="fullName" required />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="email" required>
+                  Email
+                </Label>
                 <Input id="email" name="email" type="email" required />
               </div>
             </div>
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="password">Temporary password</Label>
+                <Label htmlFor="password" required>
+                  Temporary password
+                </Label>
                 <Input
                   id="password"
                   name="password"

@@ -75,11 +75,15 @@ export function LoginForm() {
             </div>
           )}
           <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="email" required>
+              Email
+            </Label>
             <Input id="email" name="email" type="email" required placeholder="you@company.com" />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
+            <Label htmlFor="password" required>
+              Password
+            </Label>
             <Input id="password" name="password" type="password" required />
           </div>
           <Button type="submit" className="w-full" disabled={loading}>

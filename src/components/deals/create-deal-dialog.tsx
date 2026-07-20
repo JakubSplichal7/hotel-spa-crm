@@ -133,7 +133,9 @@ export function CreateDealDialog({
           <form onSubmit={handleSubmit} noValidate className="space-y-4">
             <FormError message={error} />
             <div className="space-y-2">
-              <Label htmlFor="title">Offer title</Label>
+              <Label htmlFor="title" required>
+                Offer title
+              </Label>
               <Input
                 id="title"
                 name="title"
@@ -142,7 +144,9 @@ export function CreateDealDialog({
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="account_id">Client</Label>
+              <Label htmlFor="account_id" required>
+                Client
+              </Label>
               <SearchableClientSelect
                 id="account_id"
                 accounts={accounts}

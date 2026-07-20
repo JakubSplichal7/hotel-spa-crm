@@ -110,7 +110,7 @@ export function LogActivityDialog({
             <input type="hidden" name="account_id" value={defaultAccountId} />
           ) : (
             <div className="space-y-2">
-              <Label htmlFor="account_id">
+              <Label htmlFor="account_id" required={!clientOptional}>
                 Client{clientOptional ? " (optional)" : ""}
               </Label>
               <SearchableClientSelect
@@ -135,7 +135,9 @@ export function LogActivityDialog({
             </NativeSelect>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="subject">Subject</Label>
+            <Label htmlFor="subject" required>
+              Subject
+            </Label>
             <Input
               id="subject"
               name="subject"

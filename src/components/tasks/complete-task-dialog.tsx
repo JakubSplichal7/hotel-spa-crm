@@ -86,7 +86,9 @@ export function CompleteTaskDialog({
         <form onSubmit={handleSubmit} noValidate className="space-y-4">
           <FormError message={error} />
           <div className="space-y-2">
-            <Label htmlFor="completed_at">Done on</Label>
+            <Label htmlFor="completed_at" required>
+              Done on
+            </Label>
             <Input
               id="completed_at"
               name="completed_at"

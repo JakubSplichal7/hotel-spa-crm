@@ -77,7 +77,9 @@ export function CreateAccountDialog({ profiles }: { profiles: Profile[] }) {
         <form onSubmit={handleSubmit} noValidate className="space-y-4">
           <FormError message={error} />
           <div className="space-y-2">
-            <Label htmlFor="name">Client name</Label>
+            <Label htmlFor="name" required>
+              Client name
+            </Label>
             <Input
               id="name"
               name="name"

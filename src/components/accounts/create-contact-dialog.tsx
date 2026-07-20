@@ -66,7 +66,9 @@ export function CreateContactDialog({ accountId }: { accountId: string }) {
         <form onSubmit={handleSubmit} noValidate className="space-y-4">
           <FormError message={error} />
           <div className="space-y-2">
-            <Label htmlFor="name">Name</Label>
+            <Label htmlFor="name" required>
+              Name
+            </Label>
             <Input id="name" name="name" required />
           </div>
           <div className="space-y-2">

@@ -70,11 +70,15 @@ export function EditEventDialog({ event }: { event: Event }) {
         <form onSubmit={handleSubmit} noValidate className="space-y-4">
           <FormError message={error} />
           <div className="space-y-2">
-            <Label htmlFor="name">Event name</Label>
+            <Label htmlFor="name" required>
+              Event name
+            </Label>
             <Input id="name" name="name" required defaultValue={event.name} />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="event_date">Date</Label>
+            <Label htmlFor="event_date" required>
+              Date
+            </Label>
             <Input
               id="event_date"
               name="event_date"
