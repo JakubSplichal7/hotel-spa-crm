@@ -40,6 +40,10 @@ const navItems = [
   { href: "/reports", label: "Reports", icon: BarChart3 },
 ];
 
+/** Compact footer controls in short landscape viewports */
+const compactLandscape =
+  "max-lg:landscape:min-h-0 max-lg:landscape:py-0 max-lg:landscape:h-8 max-lg:landscape:w-8";
+
 function IconButton({
   label,
   onClick,
@@ -62,6 +66,7 @@ function IconButton({
       disabled={disabled}
       className={cn(
         "inline-flex h-10 w-10 items-center justify-center rounded-md transition-colors",
+        compactLandscape,
         disabled
           ? "cursor-not-allowed text-muted-foreground/35"
           : active
@@ -108,14 +113,16 @@ export function Sidebar({
   return (
     <aside
       className={cn(
-        "flex h-full w-64 max-w-[85vw] flex-col border-r bg-card",
+        "flex h-full max-h-dvh w-64 max-w-[85vw] flex-col border-r bg-card",
         className
       )}
     >
-      <div className="flex items-start justify-between gap-2 border-b p-5 md:p-6">
+      <div className="flex shrink-0 items-start justify-between gap-2 border-b p-5 max-lg:landscape:p-2 max-lg:landscape:py-1.5 md:p-6">
         <div className="min-w-0">
-          <h1 className="text-lg font-bold text-primary">Hotel & Spa CRM</h1>
-          <p className="mt-1 text-xs text-muted-foreground">
+          <h1 className="text-lg font-bold text-primary max-lg:landscape:text-sm">
+            Hotel & Spa CRM
+          </h1>
+          <p className="mt-1 text-xs text-muted-foreground max-lg:landscape:hidden">
             {ROLE_LABELS[profile.role]}
           </p>
         </div>
@@ -124,13 +131,14 @@ export function Sidebar({
             type="button"
             aria-label="Close menu"
             onClick={onNavigate}
-            className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-accent-foreground lg:hidden"
+            className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-accent-foreground max-lg:landscape:h-8 max-lg:landscape:w-8 lg:hidden"
           >
-            <X className="h-5 w-5" />
+            <X className="h-5 w-5 max-lg:landscape:h-4 max-lg:landscape:w-4" />
           </button>
         ) : null}
       </div>
-      <nav className="flex-1 space-y-1 overflow-y-auto overscroll-contain p-3 md:p-4">
+
+      <nav className="min-h-0 flex-1 space-y-1 overflow-y-auto overscroll-contain p-3 max-lg:landscape:space-y-0.5 max-lg:landscape:p-1.5 md:p-4">
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive = pathname.startsWith(item.href);
@@ -140,13 +148,13 @@ export function Sidebar({
               href={item.href}
               onClick={() => onNavigate?.()}
               className={cn(
-                "flex min-h-11 items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-colors",
+                "flex min-h-11 items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-colors max-lg:landscape:min-h-8 max-lg:landscape:gap-2 max-lg:landscape:px-2 max-lg:landscape:py-1",
                 isActive
                   ? "bg-primary text-primary-foreground"
                   : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
               )}
             >
-              <Icon className="h-5 w-5 shrink-0" />
+              <Icon className="h-5 w-5 shrink-0 max-lg:landscape:h-4 max-lg:landscape:w-4" />
               {item.label}
             </Link>
           );
@@ -156,20 +164,20 @@ export function Sidebar({
             href="/settings"
             onClick={() => onNavigate?.()}
             className={cn(
-              "flex min-h-11 items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-colors",
+              "flex min-h-11 items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-colors max-lg:landscape:min-h-8 max-lg:landscape:gap-2 max-lg:landscape:px-2 max-lg:landscape:py-1",
               pathname.startsWith("/settings")
                 ? "bg-primary text-primary-foreground"
                 : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
             )}
           >
-            <Settings className="h-5 w-5 shrink-0" />
+            <Settings className="h-5 w-5 shrink-0 max-lg:landscape:h-4 max-lg:landscape:w-4" />
             Settings
           </Link>
         )}
       </nav>
 
-      <div className="border-t p-3">
-        <div className="flex items-center justify-between gap-1 px-1">
+      <div className="shrink-0 border-t p-3 max-lg:landscape:p-1">
+        <div className="flex items-center justify-between gap-0.5 px-1 max-lg:landscape:px-0">
           <IconButton
             label={enabled ? "Turn photos off" : "Turn photos on"}
             onClick={toggleEnabled}
@@ -219,16 +227,18 @@ export function Sidebar({
         </div>
       </div>
 
-      <div className="border-t p-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
-        <div className="mb-3 px-3">
-          <p className="text-sm font-medium">{profile.full_name}</p>
+      <div className="shrink-0 border-t p-4 pb-[max(1rem,env(safe-area-inset-bottom))] max-lg:landscape:flex max-lg:landscape:items-center max-lg:landscape:gap-2 max-lg:landscape:p-1.5 max-lg:landscape:pb-[max(0.35rem,env(safe-area-inset-bottom))]">
+        <div className="mb-3 min-w-0 px-3 max-lg:landscape:mb-0 max-lg:landscape:flex-1 max-lg:landscape:px-1">
+          <p className="truncate text-sm font-medium max-lg:landscape:text-xs">
+            {profile.full_name}
+          </p>
         </div>
         <button
           type="button"
           onClick={handleSignOut}
-          className="flex min-h-11 w-full items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+          className="flex min-h-11 w-full items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium text-muted-foreground hover:bg-accent hover:text-accent-foreground max-lg:landscape:min-h-8 max-lg:landscape:w-auto max-lg:landscape:shrink-0 max-lg:landscape:gap-1.5 max-lg:landscape:px-2 max-lg:landscape:py-1 max-lg:landscape:text-xs"
         >
-          <LogOut className="h-5 w-5" />
+          <LogOut className="h-5 w-5 max-lg:landscape:h-4 max-lg:landscape:w-4" />
           Sign out
         </button>
       </div>
