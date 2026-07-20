@@ -19,7 +19,7 @@ export default async function ActivityDetailPage({ params }: PageProps) {
   const { data: activity } = await supabase
     .from("activities")
     .select(
-      "*, account:accounts(id, name), deal:deals(id, title), creator:profiles!activities_created_by_fkey(full_name)"
+      "*, account:accounts(id, name), deal:deals(id, title), event:events(id, name), creator:profiles!activities_created_by_fkey(full_name)"
     )
     .eq("id", id)
     .single();
@@ -27,15 +27,24 @@ export default async function ActivityDetailPage({ params }: PageProps) {
   if (!activity) notFound();
 
   const deal = activity.deal as { id: string; title: string } | null;
+  const account = activity.account as { id: string; name: string } | null;
+  const event = activity.event as { id: string; name: string } | null;
 
   return (
     <div className="space-y-6">
       <div>
         <Link
-          href={deal ? `/deals/${deal.id}` : "/activities"}
+          href={
+            deal
+              ? `/deals/${deal.id}`
+              : event
+                ? `/events/${event.id}`
+                : "/activities"
+          }
           className="text-sm text-muted-foreground hover:text-primary"
         >
-          &larr; Back to {deal ? "offer" : "activities"}
+          &larr; Back to{" "}
+          {deal ? "offer" : event ? "event" : "activities"}
         </Link>
         <div className="mt-2">
           <div className="flex flex-wrap items-center gap-2">
@@ -48,13 +57,26 @@ export default async function ActivityDetailPage({ params }: PageProps) {
       <div className="grid gap-6 md:grid-cols-3">
         <Card>
           <CardContent className="p-6">
-            <p className="text-sm text-muted-foreground">Client</p>
-            <Link
-              href={`/accounts/${(activity.account as { id: string }).id}`}
-              className="text-lg font-medium text-primary hover:underline"
-            >
-              {(activity.account as { name: string }).name}
-            </Link>
+            <p className="text-sm text-muted-foreground">
+              {account ? "Client" : event ? "Event" : "Client"}
+            </p>
+            {account ? (
+              <Link
+                href={`/accounts/${account.id}`}
+                className="text-lg font-medium text-primary hover:underline"
+              >
+                {account.name}
+              </Link>
+            ) : event ? (
+              <Link
+                href={`/events/${event.id}`}
+                className="text-lg font-medium text-primary hover:underline"
+              >
+                {event.name}
+              </Link>
+            ) : (
+              <p className="text-lg font-medium">—</p>
+            )}
           </CardContent>
         </Card>
         <Card>

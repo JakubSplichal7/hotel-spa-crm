@@ -32,7 +32,7 @@ export default async function ActivitiesPage({ searchParams }: PageProps) {
   let activitiesQuery = supabase
     .from("activities")
     .select(
-      "*, account:accounts(id, name), deal:deals(id, title), creator:profiles!activities_created_by_fkey(full_name)"
+      "*, account:accounts(id, name), deal:deals(id, title), event:events(id, name), creator:profiles!activities_created_by_fkey(full_name)"
     )
     .eq("org_id", profile.org_id)
     .order("occurred_at", { ascending: false })
@@ -117,19 +117,29 @@ export default async function ActivitiesPage({ searchParams }: PageProps) {
               "Logged by",
               "When",
             ]}
-            rows={activities.map((activity) => ({
-              Type: getActivityTypeLabel(activity.type),
-              Subject: activity.subject,
-              Body: activity.body || "",
-              Client: (activity.account as { name: string }).name,
-              Offer: activity.deal
-                ? (activity.deal as { title: string }).title
-                : "",
-              "Logged by":
-                (activity.creator as { full_name: string } | null)?.full_name ||
-                "",
-              When: formatDateTime(activity.occurred_at),
-            }))}
+            rows={activities.map((activity) => {
+              const account = activity.account as {
+                id: string;
+                name: string;
+              } | null;
+              const event = activity.event as {
+                id: string;
+                name: string;
+              } | null;
+              return {
+                Type: getActivityTypeLabel(activity.type),
+                Subject: activity.subject,
+                Body: activity.body || "",
+                Client: account?.name || (event ? `Event: ${event.name}` : ""),
+                Offer: activity.deal
+                  ? (activity.deal as { title: string }).title
+                  : "",
+                "Logged by":
+                  (activity.creator as { full_name: string } | null)?.full_name ||
+                  "",
+                When: formatDateTime(activity.occurred_at),
+              };
+            })}
           />
           <div className="overflow-x-auto rounded-lg border bg-card/95 shadow-sm backdrop-blur-sm">
           <table className="w-full">
@@ -145,7 +155,17 @@ export default async function ActivitiesPage({ searchParams }: PageProps) {
               </tr>
             </thead>
             <tbody>
-              {activities.map((activity) => (
+              {activities.map((activity) => {
+                const account = activity.account as {
+                  id: string;
+                  name: string;
+                } | null;
+                const event = activity.event as {
+                  id: string;
+                  name: string;
+                } | null;
+
+                return (
                 <tr key={activity.id} className="border-b hover:bg-muted/30">
                   <td className="px-4 py-3">
                     <Badge variant="outline">
@@ -166,12 +186,23 @@ export default async function ActivitiesPage({ searchParams }: PageProps) {
                     )}
                   </td>
                   <td className="px-4 py-3 text-sm">
-                    <Link
-                      href={`/accounts/${(activity.account as { id: string }).id}`}
-                      className="text-primary hover:underline"
-                    >
-                      {(activity.account as { name: string }).name}
-                    </Link>
+                    {account ? (
+                      <Link
+                        href={`/accounts/${account.id}`}
+                        className="text-primary hover:underline"
+                      >
+                        {account.name}
+                      </Link>
+                    ) : event ? (
+                      <Link
+                        href={`/events/${event.id}`}
+                        className="text-primary hover:underline"
+                      >
+                        {event.name}
+                      </Link>
+                    ) : (
+                      <span className="text-muted-foreground">—</span>
+                    )}
                   </td>
                   <td className="px-4 py-3 text-sm">
                     {activity.deal ? (
@@ -199,7 +230,8 @@ export default async function ActivitiesPage({ searchParams }: PageProps) {
                     />
                   </td>
                 </tr>
-              ))}
+                );
+              })}
             </tbody>
           </table>
           </div>
