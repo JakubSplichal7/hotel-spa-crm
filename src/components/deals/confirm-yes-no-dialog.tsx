@@ -1,5 +1,6 @@
 "use client";
 
+import { useRef } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -30,9 +31,29 @@ export function ConfirmYesNoDialog({
   onYes: () => void | Promise<void>;
   onNo: () => void | Promise<void>;
 }) {
+  const yesRef = useRef<HTMLButtonElement>(null);
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent
+        className="sm:max-w-md"
+        onOpenAutoFocus={(e) => {
+          e.preventDefault();
+          yesRef.current?.focus();
+        }}
+        onKeyDown={(e) => {
+          if (e.key !== "Enter" || loading) return;
+          // Enter confirms even if focus is not on a button
+          if (
+            e.target instanceof HTMLButtonElement &&
+            e.target !== yesRef.current
+          ) {
+            return;
+          }
+          e.preventDefault();
+          void onYes();
+        }}
+      >
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription>{description}</DialogDescription>
@@ -49,6 +70,7 @@ export function ConfirmYesNoDialog({
             {noLabel}
           </Button>
           <Button
+            ref={yesRef}
             type="button"
             disabled={loading}
             onClick={async () => {
