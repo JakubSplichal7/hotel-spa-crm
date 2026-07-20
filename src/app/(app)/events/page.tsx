@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { requireProfile } from "@/lib/auth";
 import { CreateEventDialog } from "@/components/events/create-event-dialog";
+import { DeleteEventButton } from "@/components/events/delete-event-button";
 import { PageHeader } from "@/components/page-header";
 import {
   CompactDate,
@@ -72,6 +73,7 @@ export default async function EventsPage() {
                 <th className={`${dateColHeadClass} p-3`}>Date</th>
                 <th className="p-3 font-medium">Guests</th>
                 <th className="p-3 font-medium">Created by</th>
+                <th className="w-12 p-3 text-right font-medium" />
               </tr>
             </thead>
             <tbody>
@@ -92,6 +94,12 @@ export default async function EventsPage() {
                   <td className="p-3 text-muted-foreground">
                     {(event.creator as { full_name?: string } | undefined)
                       ?.full_name || "—"}
+                  </td>
+                  <td className="p-3 text-right">
+                    <DeleteEventButton
+                      eventId={event.id}
+                      eventName={event.name}
+                    />
                   </td>
                 </tr>
               ))}

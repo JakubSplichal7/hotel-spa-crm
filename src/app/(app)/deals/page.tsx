@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { requireProfile } from "@/lib/auth";
 import { CreateDealDialog } from "@/components/deals/create-deal-dialog";
+import { DeleteDealButton } from "@/components/deals/delete-deal-button";
 import { EmptyState } from "@/components/empty-state";
 import { PageHeader } from "@/components/page-header";
 import { Badge } from "@/components/ui/badge";
@@ -137,6 +138,7 @@ export default async function DealsPage() {
                 <th className={dateColHeadClass}>Close</th>
                 <th className="px-4 py-3 text-left text-sm font-medium">Booking</th>
                 <th className="px-4 py-3 text-left text-sm font-medium">Owner</th>
+                <th className="w-12 px-2 py-3 text-right text-sm font-medium" />
               </tr>
             </thead>
             <tbody>
@@ -192,6 +194,9 @@ export default async function DealsPage() {
                   </td>
                   <td className="px-4 py-3 text-sm">
                     {(deal.owner as { full_name: string } | null)?.full_name || "—"}
+                  </td>
+                  <td className="px-2 py-3 text-right">
+                    <DeleteDealButton dealId={deal.id} dealTitle={deal.title} />
                   </td>
                 </tr>
               ))}
