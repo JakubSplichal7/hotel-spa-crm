@@ -52,10 +52,13 @@ function AppShellInner({
         </div>
       ) : null}
 
-      <main className="relative flex min-w-0 flex-1 flex-col overflow-y-auto overscroll-y-contain">
+      <main className="relative flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
+        {/* Stays fixed in the main pane while content scrolls */}
+        <RotatingBackground />
+
         <div
           className={cn(
-            "sticky top-0 z-30 flex items-center gap-3 border-b bg-card/95 px-4 py-3 backdrop-blur pt-[max(0.75rem,env(safe-area-inset-top))] md:hidden",
+            "relative z-30 flex shrink-0 items-center gap-3 border-b bg-card/95 px-4 py-3 backdrop-blur pt-[max(0.75rem,env(safe-area-inset-top))] md:hidden",
             immersive && "bg-black/40 text-white"
           )}
         >
@@ -84,15 +87,16 @@ function AppShellInner({
           </div>
         </div>
 
-        <RotatingBackground />
-        <div
-          className={cn(
-            "relative z-10 container mx-auto w-full max-w-full px-4 py-4 transition-opacity duration-300 sm:px-6 md:py-6",
-            immersive && "pointer-events-none invisible opacity-0"
-          )}
-          aria-hidden={immersive}
-        >
-          {children}
+        <div className="relative z-10 min-h-0 flex-1 overflow-y-auto overscroll-y-contain">
+          <div
+            className={cn(
+              "container mx-auto w-full max-w-full px-4 py-4 transition-opacity duration-300 sm:px-6 md:py-6",
+              immersive && "pointer-events-none invisible opacity-0"
+            )}
+            aria-hidden={immersive}
+          >
+            {children}
+          </div>
         </div>
       </main>
     </div>
