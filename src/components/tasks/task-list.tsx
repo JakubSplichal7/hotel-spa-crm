@@ -6,6 +6,7 @@ import { updateTaskStatus } from "@/lib/actions/tasks";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { CompleteTaskDialog } from "@/components/tasks/complete-task-dialog";
+import { DeleteTaskButton } from "@/components/tasks/delete-task-button";
 import { formatDate } from "@/lib/utils";
 import {
   formatCompletionDelta,
@@ -90,6 +91,7 @@ export function TaskList({ tasks }: { tasks: Task[] }) {
               <th className="px-4 py-3 text-left text-sm font-medium">Δ days</th>
               <th className="px-4 py-3 text-left text-sm font-medium">Status</th>
               <th className="px-4 py-3 text-left text-sm font-medium">Action</th>
+              <th className="w-12 px-2 py-3 text-right text-sm font-medium" />
             </tr>
           </thead>
           <tbody>
@@ -196,6 +198,12 @@ export function TaskList({ tasks }: { tasks: Task[] }) {
                         Done
                       </Button>
                     )}
+                  </td>
+                  <td className="px-2 py-3 text-right">
+                    <DeleteTaskButton
+                      taskId={task.id}
+                      taskTitle={task.title}
+                    />
                   </td>
                 </tr>
               );

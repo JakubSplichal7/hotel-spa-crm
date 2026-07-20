@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import { createClient } from "@/lib/supabase/server";
 import { requireProfile } from "@/lib/auth";
 import { LogActivityDialog } from "@/components/activities/log-activity-dialog";
+import { DeleteActivityButton } from "@/components/activities/delete-activity-button";
 import { ClientOfferFilter } from "@/components/client-offer-filter";
 import { EmptyState } from "@/components/empty-state";
 import { Badge } from "@/components/ui/badge";
@@ -140,6 +141,7 @@ export default async function ActivitiesPage({ searchParams }: PageProps) {
                 <th className="px-4 py-3 text-left text-sm font-medium">Offer</th>
                 <th className="px-4 py-3 text-left text-sm font-medium">Logged by</th>
                 <th className={dateColHeadClass}>When</th>
+                <th className="w-12 px-2 py-3 text-right text-sm font-medium" />
               </tr>
             </thead>
             <tbody>
@@ -189,6 +191,12 @@ export default async function ActivitiesPage({ searchParams }: PageProps) {
                   </td>
                   <td className={dateColCellClass}>
                     <CompactDateTime value={activity.occurred_at} />
+                  </td>
+                  <td className="px-2 py-3 text-right">
+                    <DeleteActivityButton
+                      activityId={activity.id}
+                      activitySubject={activity.subject}
+                    />
                   </td>
                 </tr>
               ))}

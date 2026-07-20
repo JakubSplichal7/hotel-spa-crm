@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { requireProfile } from "@/lib/auth";
 import { CreateIdeaDialog } from "@/components/ideas/create-idea-dialog";
+import { DeleteIdeaButton } from "@/components/ideas/delete-idea-button";
 import { EditIdeaDialog } from "@/components/ideas/edit-idea-dialog";
 import { PageHeader } from "@/components/page-header";
 import { formatDate } from "@/lib/utils";
@@ -55,7 +56,7 @@ export default async function IdeasPage() {
                 <th className="p-3 font-medium">Email</th>
                 <th className="p-3 font-medium">Phone</th>
                 <th className="p-3 font-medium">Added</th>
-                <th className="p-3 font-medium w-24" />
+                <th className="p-3 font-medium w-28" />
               </tr>
             </thead>
             <tbody>
@@ -81,7 +82,13 @@ export default async function IdeasPage() {
                     {formatDate(idea.created_at)}
                   </td>
                   <td className="p-3">
-                    <EditIdeaDialog idea={idea} />
+                    <div className="flex items-center justify-end gap-1">
+                      <EditIdeaDialog idea={idea} />
+                      <DeleteIdeaButton
+                        ideaId={idea.id}
+                        ideaName={idea.name}
+                      />
+                    </div>
                   </td>
                 </tr>
               ))}
