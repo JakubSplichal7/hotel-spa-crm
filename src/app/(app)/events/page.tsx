@@ -38,7 +38,7 @@ export default async function EventsPage() {
       </PageHeader>
 
       {!rows.length ? (
-        <div className="space-y-3 pt-2">
+        <div className="flex flex-col items-center justify-center p-12 text-center">
           <h3
             className={
               "text-lg font-bold tracking-tight text-slate-950 " +
@@ -49,13 +49,13 @@ export default async function EventsPage() {
           </h3>
           <p
             className={
-              "max-w-md text-sm font-semibold text-slate-900 " +
+              "mt-2 max-w-sm text-sm font-semibold text-slate-900 " +
               "[text-shadow:0_1px_2px_rgba(255,255,255,0.95),0_0_10px_rgba(255,255,255,0.8)]"
             }
           >
             Create your first event to start inviting guests and logging work.
           </p>
-          <div className="pt-1">
+          <div className="mt-4">
             <CreateEventDialog />
           </div>
         </div>
