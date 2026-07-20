@@ -18,7 +18,7 @@ import { Plus } from "lucide-react";
 
 export function AddEventGuestDialog({
   eventId,
-  buttonVariant = "outline",
+  buttonVariant = "default",
   buttonSize = "sm",
 }: {
   eventId: string;

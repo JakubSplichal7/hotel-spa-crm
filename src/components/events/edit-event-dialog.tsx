@@ -39,7 +39,7 @@ export function EditEventDialog({ event }: { event: Event }) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline">
+        <Button>
           <Pencil className="mr-2 h-4 w-4" />
           Edit event
         </Button>

@@ -152,7 +152,6 @@ export default async function EventDetailPage({ params }: PageProps) {
             <LogActivityDialog
               accounts={(accounts || []) as Account[]}
               defaultEventId={event.id}
-              buttonVariant="outline"
               buttonSize="sm"
               buttonLabel="Log activity"
             />
@@ -204,7 +203,6 @@ export default async function EventDetailPage({ params }: PageProps) {
               accounts={(accounts || []) as Account[]}
               profiles={(profiles || []) as Profile[]}
               defaultEventId={event.id}
-              buttonVariant="outline"
               buttonSize="sm"
               buttonLabel="New task"
             />
