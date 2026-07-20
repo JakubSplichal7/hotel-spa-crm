@@ -51,6 +51,7 @@ export function TaskList({ tasks }: { tasks: Task[] }) {
         columns={[
           "Task",
           "Client",
+          "Official name",
           "Offer",
           "Assignee",
           "Due",
@@ -62,13 +63,14 @@ export function TaskList({ tasks }: { tasks: Task[] }) {
           const isOverdue =
             task.status === "open" && isDueBeforeToday(task.due_at);
           const delta = getTaskDayDelta(task);
+          const account = task.account as
+            | { id: string; name?: string; nickname?: string }
+            | null
+            | undefined;
           return {
             Task: task.title,
-            Client: task.account
-              ? getAccountDisplayName(
-                  task.account as { name?: string; nickname?: string }
-                )
-              : "",
+            Client: account ? getAccountDisplayName(account) : "",
+            "Official name": account?.name || "",
             Offer: task.deal ? (task.deal as { title: string }).title : "",
             Assignee:
               (task.assignee as { full_name: string } | undefined)?.full_name ||
@@ -87,6 +89,7 @@ export function TaskList({ tasks }: { tasks: Task[] }) {
             <tr className="border-b bg-muted/50">
               <th className="px-4 py-3 text-left text-sm font-medium">Task</th>
               <th className="px-4 py-3 text-left text-sm font-medium">Client</th>
+              <th className="px-4 py-3 text-left text-sm font-medium">Official name</th>
               <th className="px-4 py-3 text-left text-sm font-medium">Offer</th>
               <th className="px-4 py-3 text-left text-sm font-medium">Assignee</th>
               <th className={dateColHeadClass}>Due</th>
@@ -102,6 +105,10 @@ export function TaskList({ tasks }: { tasks: Task[] }) {
               const isOverdue =
                 task.status === "open" && isDueBeforeToday(task.due_at);
               const delta = getTaskDayDelta(task);
+              const account = task.account as
+                | { id: string; name?: string; nickname?: string }
+                | null
+                | undefined;
 
               return (
                 <tr
@@ -121,18 +128,19 @@ export function TaskList({ tasks }: { tasks: Task[] }) {
                     </Link>
                   </td>
                   <td className="px-4 py-3 text-sm">
-                    {task.account ? (
+                    {account ? (
                       <Link
-                        href={`/accounts/${(task.account as { id: string }).id}`}
+                        href={`/accounts/${account.id}`}
                         className="text-primary hover:underline"
                       >
-                        {getAccountDisplayName(
-                          task.account as { name?: string; nickname?: string }
-                        )}
+                        {getAccountDisplayName(account)}
                       </Link>
                     ) : (
                       <span className="text-muted-foreground">—</span>
                     )}
+                  </td>
+                  <td className="px-4 py-3 text-sm text-muted-foreground">
+                    {account?.name || "—"}
                   </td>
                   <td className="px-4 py-3 text-sm">
                     {task.deal ? (

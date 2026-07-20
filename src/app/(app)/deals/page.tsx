@@ -96,6 +96,7 @@ export default async function DealsPage() {
             columns={[
               "Offer",
               "Client",
+              "Official name",
               "Stage",
               "Value",
               "Currency",
@@ -109,6 +110,8 @@ export default async function DealsPage() {
               Client: getAccountDisplayName(
                 deal.account as { name?: string; nickname?: string } | null
               ),
+              "Official name":
+                (deal.account as { name?: string } | null)?.name || "",
               Stage:
                 DEAL_STAGE_LABELS[deal.stage as DealStage] ??
                 getDealStageLabel(deal.stage),
@@ -135,6 +138,7 @@ export default async function DealsPage() {
               <tr className="border-b bg-muted/50">
                 <th className="px-4 py-3 text-left text-sm font-medium">Offer</th>
                 <th className="px-4 py-3 text-left text-sm font-medium">Client</th>
+                <th className="px-4 py-3 text-left text-sm font-medium">Official name</th>
                 <th className="px-4 py-3 text-left text-sm font-medium">Stage</th>
                 <th className="px-4 py-3 text-left text-sm font-medium">Value</th>
                 <th className={dateColHeadClass}>Close</th>
@@ -169,6 +173,9 @@ export default async function DealsPage() {
                         deal.account as { name?: string; nickname?: string } | null
                       ) || "—"
                     )}
+                  </td>
+                  <td className="px-4 py-3 text-sm text-muted-foreground">
+                    {(deal.account as { name?: string } | null)?.name || "—"}
                   </td>
                   <td className="px-4 py-3">
                     <Badge variant={stageBadgeVariant(deal.stage)}>

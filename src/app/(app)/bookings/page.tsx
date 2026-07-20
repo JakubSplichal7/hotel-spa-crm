@@ -49,6 +49,7 @@ export default async function BookingsPage() {
             columns={[
               "Booking",
               "Client",
+              "Official name",
               "Offer",
               "Start date",
               "End date",
@@ -61,6 +62,8 @@ export default async function BookingsPage() {
               Client: getAccountDisplayName(
                 booking.account as { name?: string; nickname?: string }
               ),
+              "Official name":
+                (booking.account as { name?: string } | null)?.name || "",
               Offer: booking.deal
                 ? (booking.deal as { title: string }).title
                 : "",
@@ -79,6 +82,7 @@ export default async function BookingsPage() {
               <tr className="border-b bg-muted/50">
                 <th className="px-4 py-3 text-left text-sm font-medium">Booking</th>
                 <th className="px-4 py-3 text-left text-sm font-medium">Client</th>
+                <th className="px-4 py-3 text-left text-sm font-medium">Official name</th>
                 <th className="px-4 py-3 text-left text-sm font-medium">Offer</th>
                 <th className={dateColHeadClass}>Period</th>
                 <th className="px-4 py-3 text-left text-sm font-medium">Value</th>
@@ -105,6 +109,9 @@ export default async function BookingsPage() {
                         booking.account as { name?: string; nickname?: string }
                       )}
                     </Link>
+                  </td>
+                  <td className="px-4 py-3 text-sm text-muted-foreground">
+                    {(booking.account as { name?: string } | null)?.name || "—"}
                   </td>
                   <td className="px-4 py-3 text-sm">
                     {booking.deal ? (

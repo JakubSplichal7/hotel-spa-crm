@@ -116,6 +116,7 @@ export default async function ActivitiesPage({ searchParams }: PageProps) {
               "Subject",
               "Body",
               "Client",
+              "Official name",
               "Offer",
               "Logged by",
               "When",
@@ -139,6 +140,7 @@ export default async function ActivitiesPage({ searchParams }: PageProps) {
                   : event
                     ? `Event: ${event.name}`
                     : "",
+                "Official name": account?.name || "",
                 Offer: activity.deal
                   ? (activity.deal as { title: string }).title
                   : "",
@@ -156,6 +158,7 @@ export default async function ActivitiesPage({ searchParams }: PageProps) {
                 <th className="px-4 py-3 text-left text-sm font-medium">Type</th>
                 <th className="px-4 py-3 text-left text-sm font-medium">Subject</th>
                 <th className="px-4 py-3 text-left text-sm font-medium">Client</th>
+                <th className="px-4 py-3 text-left text-sm font-medium">Official name</th>
                 <th className="px-4 py-3 text-left text-sm font-medium">Offer</th>
                 <th className="px-4 py-3 text-left text-sm font-medium">Logged by</th>
                 <th className={dateColHeadClass}>When</th>
@@ -212,6 +215,9 @@ export default async function ActivitiesPage({ searchParams }: PageProps) {
                     ) : (
                       <span className="text-muted-foreground">—</span>
                     )}
+                  </td>
+                  <td className="px-4 py-3 text-sm text-muted-foreground">
+                    {account?.name || "—"}
                   </td>
                   <td className="px-4 py-3 text-sm">
                     {activity.deal ? (
