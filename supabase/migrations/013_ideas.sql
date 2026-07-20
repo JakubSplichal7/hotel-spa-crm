@@ -1,4 +1,4 @@
--- Ideas: name, note, contact
+-- Ideas: name, note, contact (name), email, phone
 
 CREATE TABLE ideas (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -6,6 +6,8 @@ CREATE TABLE ideas (
   name TEXT NOT NULL,
   note TEXT,
   contact TEXT,
+  email TEXT,
+  phone TEXT,
   created_by UUID NOT NULL REFERENCES profiles(id),
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()

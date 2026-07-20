@@ -169,7 +169,10 @@ export interface Idea {
   org_id: string;
   name: string;
   note: string | null;
+  /** Contact person name */
   contact: string | null;
+  email: string | null;
+  phone: string | null;
   created_by: string;
   created_at: string;
   updated_at: string;

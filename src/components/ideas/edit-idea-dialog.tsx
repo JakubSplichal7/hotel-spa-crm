@@ -82,12 +82,33 @@ export function EditIdeaDialog({ idea }: { idea: Idea }) {
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor={`contact-${idea.id}`}>Contact</Label>
+            <Label htmlFor={`contact-${idea.id}`}>Contact name</Label>
             <Input
               id={`contact-${idea.id}`}
               name="contact"
               defaultValue={idea.contact || ""}
+              placeholder="Person’s name"
             />
+          </div>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor={`email-${idea.id}`}>Email</Label>
+              <Input
+                id={`email-${idea.id}`}
+                name="email"
+                type="email"
+                defaultValue={idea.email || ""}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor={`phone-${idea.id}`}>Phone</Label>
+              <Input
+                id={`phone-${idea.id}`}
+                name="phone"
+                type="tel"
+                defaultValue={idea.phone || ""}
+              />
+            </div>
           </div>
           <div className="flex gap-2">
             <Button type="submit" className="flex-1" disabled={loading}>

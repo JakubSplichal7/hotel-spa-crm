@@ -27,7 +27,7 @@ export default async function IdeasPage() {
     <div className="space-y-6">
       <PageHeader
         title="Ideas"
-        description="Capture idea names, notes, and contacts"
+        description="Capture ideas with contact name, email, and phone"
       >
         <CreateIdeaDialog />
       </PageHeader>
@@ -38,7 +38,7 @@ export default async function IdeasPage() {
             No ideas yet
           </h3>
           <p className={`mt-2 max-w-sm text-sm font-semibold ${textShadow}`}>
-            Add your first idea with a name, note, and contact.
+            Add your first idea with a name, note, contact name, email, and phone.
           </p>
           <div className="mt-4">
             <CreateIdeaDialog />
@@ -52,6 +52,8 @@ export default async function IdeasPage() {
                 <th className="p-3 font-medium">Name</th>
                 <th className="p-3 font-medium">Note</th>
                 <th className="p-3 font-medium">Contact</th>
+                <th className="p-3 font-medium">Email</th>
+                <th className="p-3 font-medium">Phone</th>
                 <th className="p-3 font-medium">Added</th>
                 <th className="p-3 font-medium w-24" />
               </tr>
@@ -68,6 +70,12 @@ export default async function IdeasPage() {
                   </td>
                   <td className="p-3 text-muted-foreground">
                     {idea.contact || "—"}
+                  </td>
+                  <td className="p-3 text-muted-foreground">
+                    {idea.email || "—"}
+                  </td>
+                  <td className="p-3 text-muted-foreground whitespace-nowrap">
+                    {idea.phone || "—"}
                   </td>
                   <td className="p-3 text-muted-foreground whitespace-nowrap">
                     {formatDate(idea.created_at)}
