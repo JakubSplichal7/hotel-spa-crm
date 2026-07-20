@@ -19,6 +19,7 @@ export async function createTask(formData: FormData) {
 
   const accountId = formData.get("account_id") as string;
   const dealId = formData.get("deal_id") as string;
+  const eventId = (formData.get("event_id") as string) || null;
   const dueAt = (formData.get("due_at") as string) || null;
 
   const { data, error } = await supabase
@@ -27,6 +28,7 @@ export async function createTask(formData: FormData) {
       org_id: profile.org_id,
       account_id: accountId || null,
       deal_id: dealId || null,
+      event_id: eventId,
       title: formData.get("title") as string,
       due_at: dueAt || null,
       completed_at: null,
@@ -43,6 +45,7 @@ export async function createTask(formData: FormData) {
   revalidatePath("/dashboard");
   if (accountId) revalidatePath(`/accounts/${accountId}`);
   if (dealId) revalidatePath(`/deals/${dealId}`);
+  if (eventId) revalidatePath(`/events/${eventId}`);
   return { data };
 }
 
@@ -56,7 +59,7 @@ export async function updateTaskStatus(
 
   const { data: existing } = await supabase
     .from("tasks")
-    .select("deal_id, account_id")
+    .select("deal_id, account_id, event_id")
     .eq("id", id)
     .single();
 
@@ -80,6 +83,7 @@ export async function updateTaskStatus(
   revalidatePath("/dashboard");
   if (existing?.deal_id) revalidatePath(`/deals/${existing.deal_id}`);
   if (existing?.account_id) revalidatePath(`/accounts/${existing.account_id}`);
+  if (existing?.event_id) revalidatePath(`/events/${existing.event_id}`);
   return { success: true };
 }
 

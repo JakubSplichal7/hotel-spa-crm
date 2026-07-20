@@ -9,8 +9,13 @@ export async function createActivity(formData: FormData) {
   const profile = await requireProfile();
   const supabase = await createClient();
 
-  const accountId = formData.get("account_id") as string;
+  const accountId = (formData.get("account_id") as string) || null;
   const dealId = (formData.get("deal_id") as string) || null;
+  const eventId = (formData.get("event_id") as string) || null;
+
+  if (!accountId && !eventId) {
+    return { error: "Select a client, or log this activity from an event." };
+  }
 
   const { data, error } = await supabase
     .from("activities")
@@ -18,6 +23,7 @@ export async function createActivity(formData: FormData) {
       org_id: profile.org_id,
       account_id: accountId,
       deal_id: dealId,
+      event_id: eventId,
       type: formData.get("type") as ActivityType,
       subject: formData.get("subject") as string,
       body: (formData.get("body") as string) || null,
@@ -33,6 +39,7 @@ export async function createActivity(formData: FormData) {
   revalidatePath("/dashboard");
   if (accountId) revalidatePath(`/accounts/${accountId}`);
   if (dealId) revalidatePath(`/deals/${dealId}`);
+  if (eventId) revalidatePath(`/events/${eventId}`);
   return { data };
 }
 

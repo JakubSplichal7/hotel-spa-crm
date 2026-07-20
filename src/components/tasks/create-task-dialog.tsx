@@ -23,6 +23,7 @@ export function CreateTaskDialog({
   profiles,
   defaultAccountId,
   defaultDealId,
+  defaultEventId,
   buttonVariant = "default",
   buttonSize = "default",
   buttonLabel = "New Task",
@@ -31,6 +32,7 @@ export function CreateTaskDialog({
   profiles: Profile[];
   defaultAccountId?: string;
   defaultDealId?: string;
+  defaultEventId?: string;
   buttonVariant?: "default" | "outline" | "secondary";
   buttonSize?: "default" | "sm";
   buttonLabel?: string;
@@ -74,6 +76,9 @@ export function CreateTaskDialog({
         <form action={handleSubmit} className="space-y-4">
           {defaultDealId && (
             <input type="hidden" name="deal_id" value={defaultDealId} />
+          )}
+          {defaultEventId && (
+            <input type="hidden" name="event_id" value={defaultEventId} />
           )}
           <div className="space-y-2">
             <Label htmlFor="title">Task</Label>

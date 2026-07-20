@@ -24,6 +24,7 @@ export function LogActivityDialog({
   accounts,
   defaultAccountId,
   defaultDealId,
+  defaultEventId,
   buttonVariant = "default",
   buttonSize = "default",
   buttonLabel = "Log Activity",
@@ -31,6 +32,7 @@ export function LogActivityDialog({
   accounts: Account[];
   defaultAccountId?: string;
   defaultDealId?: string;
+  defaultEventId?: string;
   buttonVariant?: "default" | "outline" | "secondary";
   buttonSize?: "default" | "sm";
   buttonLabel?: string;
@@ -38,27 +40,35 @@ export function LogActivityDialog({
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [accountId, setAccountId] = useState(defaultAccountId || "");
 
   async function handleSubmit(formData: FormData) {
     setLoading(true);
+    setError(null);
     const result = await createActivity(formData);
     setLoading(false);
-    if (!result?.error) {
-      setOpen(false);
-      setAccountId(defaultAccountId || "");
-      router.refresh();
+    if (result?.error) {
+      setError(result.error);
+      return;
     }
+    setOpen(false);
+    setAccountId(defaultAccountId || "");
+    router.refresh();
   }
 
   const lockedClient = Boolean(defaultAccountId);
+  const clientOptional = Boolean(defaultEventId) && !lockedClient;
 
   return (
     <Dialog
       open={open}
       onOpenChange={(next) => {
         setOpen(next);
-        if (next) setAccountId(defaultAccountId || "");
+        if (next) {
+          setAccountId(defaultAccountId || "");
+          setError(null);
+        }
       }}
     >
       <DialogTrigger asChild>
@@ -72,20 +82,30 @@ export function LogActivityDialog({
           <DialogTitle>Log Activity</DialogTitle>
         </DialogHeader>
         <form action={handleSubmit} className="space-y-4">
+          {error && (
+            <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
+              {error}
+            </div>
+          )}
           {defaultDealId && (
             <input type="hidden" name="deal_id" value={defaultDealId} />
+          )}
+          {defaultEventId && (
+            <input type="hidden" name="event_id" value={defaultEventId} />
           )}
           {lockedClient ? (
             <input type="hidden" name="account_id" value={defaultAccountId} />
           ) : (
             <div className="space-y-2">
-              <Label htmlFor="account_id">Client</Label>
+              <Label htmlFor="account_id">
+                Client{clientOptional ? " (optional)" : ""}
+              </Label>
               <SearchableClientSelect
                 id="account_id"
                 accounts={accounts}
                 value={accountId}
                 onChange={setAccountId}
-                required
+                required={!clientOptional}
                 className="max-w-none"
                 placeholder="Type client name…"
               />

@@ -106,8 +106,9 @@ export interface Deal {
 export interface Activity {
   id: string;
   org_id: string;
-  account_id: string;
+  account_id: string | null;
   deal_id: string | null;
+  event_id?: string | null;
   type: ActivityType;
   subject: string;
   body: string | null;
@@ -124,6 +125,7 @@ export interface Task {
   org_id: string;
   account_id: string | null;
   deal_id: string | null;
+  event_id?: string | null;
   title: string;
   /** Calendar due date (YYYY-MM-DD), no time */
   due_at: string | null;
@@ -136,6 +138,30 @@ export interface Task {
   account?: Account;
   deal?: Deal;
   assignee?: Profile;
+}
+
+export interface Event {
+  id: string;
+  org_id: string;
+  name: string;
+  event_date: string;
+  notes: string | null;
+  created_by: string;
+  created_at: string;
+  updated_at: string;
+  creator?: Profile;
+  guests?: EventGuest[];
+}
+
+export interface EventGuest {
+  id: string;
+  org_id: string;
+  event_id: string;
+  name: string;
+  email: string | null;
+  phone: string | null;
+  notes: string | null;
+  created_at: string;
 }
 
 export interface Booking {
