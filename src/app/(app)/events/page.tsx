@@ -2,7 +2,11 @@ import { createClient } from "@/lib/supabase/server";
 import { requireProfile } from "@/lib/auth";
 import { CreateEventDialog } from "@/components/events/create-event-dialog";
 import { PageHeader } from "@/components/page-header";
-import { formatDate } from "@/lib/utils";
+import {
+  CompactDate,
+  dateColCellClass,
+  dateColHeadClass,
+} from "@/components/table-date";
 import Link from "next/link";
 import type { Event } from "@/lib/types";
 
@@ -65,7 +69,7 @@ export default async function EventsPage() {
             <thead>
               <tr className="border-b bg-muted/40 text-left">
                 <th className="p-3 font-medium">Event</th>
-                <th className="p-3 font-medium">Date</th>
+                <th className={`${dateColHeadClass} p-3`}>Date</th>
                 <th className="p-3 font-medium">Guests</th>
                 <th className="p-3 font-medium">Created by</th>
               </tr>
@@ -81,7 +85,9 @@ export default async function EventsPage() {
                       {event.name}
                     </Link>
                   </td>
-                  <td className="p-3">{formatDate(event.event_date)}</td>
+                  <td className={`${dateColCellClass} p-3`}>
+                    <CompactDate value={event.event_date} />
+                  </td>
                   <td className="p-3">{countByEvent.get(event.id) || 0}</td>
                   <td className="p-3 text-muted-foreground">
                     {(event.creator as { full_name?: string } | undefined)

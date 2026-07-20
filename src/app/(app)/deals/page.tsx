@@ -4,7 +4,12 @@ import { CreateDealDialog } from "@/components/deals/create-deal-dialog";
 import { EmptyState } from "@/components/empty-state";
 import { PageHeader } from "@/components/page-header";
 import { Badge } from "@/components/ui/badge";
-import { formatCurrency, formatDate } from "@/lib/utils";
+import { formatCurrency } from "@/lib/utils";
+import {
+  CompactDate,
+  dateColCellClass,
+  dateColHeadClass,
+} from "@/components/table-date";
 import {
   getDealStageLabel,
   getPrimaryBooking,
@@ -129,7 +134,7 @@ export default async function DealsPage() {
                 <th className="px-4 py-3 text-left text-sm font-medium">Client</th>
                 <th className="px-4 py-3 text-left text-sm font-medium">Stage</th>
                 <th className="px-4 py-3 text-left text-sm font-medium">Value</th>
-                <th className="px-4 py-3 text-left text-sm font-medium">Expected close</th>
+                <th className={dateColHeadClass}>Close</th>
                 <th className="px-4 py-3 text-left text-sm font-medium">Booking</th>
                 <th className="px-4 py-3 text-left text-sm font-medium">Owner</th>
               </tr>
@@ -166,8 +171,8 @@ export default async function DealsPage() {
                   <td className="px-4 py-3 font-medium">
                     {formatCurrency(Number(deal.value), deal.currency)}
                   </td>
-                  <td className="px-4 py-3 text-sm text-muted-foreground">
-                    {deal.expected_close ? formatDate(deal.expected_close) : "—"}
+                  <td className={dateColCellClass}>
+                    <CompactDate value={deal.expected_close} />
                   </td>
                   <td className="px-4 py-3">
                     {health !== "ok" ? (

@@ -4,11 +4,16 @@ import { CreateBookingDialog } from "@/components/bookings/create-booking-dialog
 import { EmptyState } from "@/components/empty-state";
 import { PageHeader } from "@/components/page-header";
 import { Badge } from "@/components/ui/badge";
-import { formatCurrency, formatDate } from "@/lib/utils";
+import { formatCurrency } from "@/lib/utils";
 import Link from "next/link";
 import { BOOKING_STATUS_LABELS } from "@/lib/types";
 import type { BookingStatus } from "@/lib/types";
 import { TableExportBar } from "@/components/export-xlsx-button";
+import {
+  CompactDateRange,
+  dateColCellClass,
+  dateColHeadClass,
+} from "@/components/table-date";
 
 export default async function BookingsPage() {
   const profile = await requireProfile();
@@ -73,7 +78,7 @@ export default async function BookingsPage() {
                 <th className="px-4 py-3 text-left text-sm font-medium">Booking</th>
                 <th className="px-4 py-3 text-left text-sm font-medium">Client</th>
                 <th className="px-4 py-3 text-left text-sm font-medium">Offer</th>
-                <th className="px-4 py-3 text-left text-sm font-medium">Period</th>
+                <th className={dateColHeadClass}>Period</th>
                 <th className="px-4 py-3 text-left text-sm font-medium">Value</th>
                 <th className="px-4 py-3 text-left text-sm font-medium">Status</th>
               </tr>
@@ -109,9 +114,11 @@ export default async function BookingsPage() {
                       <span className="text-muted-foreground">—</span>
                     )}
                   </td>
-                  <td className="px-4 py-3 text-sm text-muted-foreground">
-                    {formatDate(booking.start_date)}
-                    {booking.end_date && ` – ${formatDate(booking.end_date)}`}
+                  <td className={dateColCellClass}>
+                    <CompactDateRange
+                      start={booking.start_date}
+                      end={booking.end_date}
+                    />
                   </td>
                   <td className="px-4 py-3 font-medium">
                     {formatCurrency(Number(booking.value), booking.currency)}

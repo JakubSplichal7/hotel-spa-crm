@@ -13,6 +13,11 @@ import {
 } from "@/lib/task-dates";
 import type { Task } from "@/lib/types";
 import { TableExportBar } from "@/components/export-xlsx-button";
+import {
+  CompactDate,
+  dateColCellClass,
+  dateColHeadClass,
+} from "@/components/table-date";
 import Link from "next/link";
 
 function isDueBeforeToday(dueAt: string | null | undefined) {
@@ -80,8 +85,8 @@ export function TaskList({ tasks }: { tasks: Task[] }) {
               <th className="px-4 py-3 text-left text-sm font-medium">Client</th>
               <th className="px-4 py-3 text-left text-sm font-medium">Offer</th>
               <th className="px-4 py-3 text-left text-sm font-medium">Assignee</th>
-              <th className="px-4 py-3 text-left text-sm font-medium">Due</th>
-              <th className="px-4 py-3 text-left text-sm font-medium">Done on</th>
+              <th className={dateColHeadClass}>Due</th>
+              <th className={dateColHeadClass}>Done</th>
               <th className="px-4 py-3 text-left text-sm font-medium">Δ days</th>
               <th className="px-4 py-3 text-left text-sm font-medium">Status</th>
               <th className="px-4 py-3 text-left text-sm font-medium">Action</th>
@@ -138,11 +143,11 @@ export function TaskList({ tasks }: { tasks: Task[] }) {
                     {(task.assignee as { full_name: string } | undefined)
                       ?.full_name || "—"}
                   </td>
-                  <td className="px-4 py-3 text-sm text-muted-foreground">
-                    {task.due_at ? formatDate(task.due_at) : "—"}
+                  <td className={dateColCellClass}>
+                    <CompactDate value={task.due_at} />
                   </td>
-                  <td className="px-4 py-3 text-sm text-muted-foreground">
-                    {task.completed_at ? formatDate(task.completed_at) : "—"}
+                  <td className={dateColCellClass}>
+                    <CompactDate value={task.completed_at} />
                   </td>
                   <td className="px-4 py-3 text-sm font-medium">
                     {delta === null ? (

@@ -9,6 +9,11 @@ import { formatDateTime } from "@/lib/utils";
 import { getActivityTypeLabel } from "@/lib/types";
 import { PageHeader } from "@/components/page-header";
 import { TableExportBar } from "@/components/export-xlsx-button";
+import {
+  CompactDateTime,
+  dateColCellClass,
+  dateColHeadClass,
+} from "@/components/table-date";
 import type { Account } from "@/lib/types";
 import Link from "next/link";
 
@@ -134,7 +139,7 @@ export default async function ActivitiesPage({ searchParams }: PageProps) {
                 <th className="px-4 py-3 text-left text-sm font-medium">Client</th>
                 <th className="px-4 py-3 text-left text-sm font-medium">Offer</th>
                 <th className="px-4 py-3 text-left text-sm font-medium">Logged by</th>
-                <th className="px-4 py-3 text-left text-sm font-medium">When</th>
+                <th className={dateColHeadClass}>When</th>
               </tr>
             </thead>
             <tbody>
@@ -182,8 +187,8 @@ export default async function ActivitiesPage({ searchParams }: PageProps) {
                     {(activity.creator as { full_name: string } | null)?.full_name ||
                       "—"}
                   </td>
-                  <td className="px-4 py-3 text-sm text-muted-foreground">
-                    {formatDateTime(activity.occurred_at)}
+                  <td className={dateColCellClass}>
+                    <CompactDateTime value={activity.occurred_at} />
                   </td>
                 </tr>
               ))}
