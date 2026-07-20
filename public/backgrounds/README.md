@@ -1,4 +1,14 @@
-# Resort background photos for the app content area.
+# Resort background photos
 
-Use files named `resort-1.jpg`, `resort-2.jpg`, … in this folder.
-They rotate every 5 minutes behind the main content (not the sidebar).
+Active files (rotated behind the main content):
+
+- `resort-N-desktop.webp` — landscape, ~2400×1600 (tablets/desktop, `md+`)
+- `resort-N-mobile.webp` — portrait, ~1080×1920 (phones)
+
+Regenerate from `resort-N.jpg` sources:
+
+```bash
+node scripts/generate-resort-webps.mjs
+```
+
+Requires `sharp` (`npm install`).

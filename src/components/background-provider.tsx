@@ -83,9 +83,10 @@ export function BackgroundProvider({
     setIndex(prefs.index);
     setHydrated(true);
 
-    RESORT_BACKGROUNDS.forEach((src) => {
+    const preferDesktop = window.matchMedia("(min-width: 768px)").matches;
+    RESORT_BACKGROUNDS.forEach((bg) => {
       const img = new Image();
-      img.src = src;
+      img.src = preferDesktop ? bg.desktop : bg.mobile;
     });
   }, []);
 
@@ -199,3 +200,4 @@ export function useBackground() {
   }
   return ctx;
 }
+
