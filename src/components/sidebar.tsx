@@ -124,7 +124,7 @@ export function Sidebar({
             type="button"
             aria-label="Close menu"
             onClick={onNavigate}
-            className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-accent-foreground md:hidden"
+            className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-accent-foreground lg:hidden"
           >
             <X className="h-5 w-5" />
           </button>

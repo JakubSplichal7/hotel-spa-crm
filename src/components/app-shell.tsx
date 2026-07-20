@@ -29,14 +29,14 @@ function AppShellInner({
 
   return (
     <div className="flex h-dvh min-h-0">
-      {/* Desktop sidebar */}
-      <div className="hidden h-full shrink-0 md:flex">
+      {/* Permanent sidebar only on large screens (not phone landscape) */}
+      <div className="hidden h-full shrink-0 lg:flex">
         <Sidebar profile={profile} />
       </div>
 
-      {/* Mobile drawer */}
+      {/* Drawer: phones + tablets in portrait / phone landscape */}
       {mobileNavOpen ? (
-        <div className="fixed inset-0 z-50 md:hidden">
+        <div className="fixed inset-0 z-50 lg:hidden">
           <button
             type="button"
             aria-label="Close menu"
@@ -58,7 +58,7 @@ function AppShellInner({
 
         <div
           className={cn(
-            "relative z-30 flex shrink-0 items-center gap-3 border-b bg-card/95 px-4 py-3 backdrop-blur pt-[max(0.75rem,env(safe-area-inset-top))] md:hidden",
+            "relative z-30 flex shrink-0 items-center gap-3 border-b bg-card/95 px-4 py-3 backdrop-blur pt-[max(0.75rem,env(safe-area-inset-top))] lg:hidden",
             immersive && "bg-black/40 text-white"
           )}
         >
