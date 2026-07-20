@@ -129,7 +129,7 @@ export default async function AccountDetailPage({ params }: PageProps) {
                   Primary: contact.is_primary ? "Yes" : "No",
                 }))}
               />
-              <div className="rounded-lg border bg-card/95 shadow-sm backdrop-blur-sm">
+              <div className="overflow-x-auto rounded-lg border bg-card/95 shadow-sm backdrop-blur-sm">
               <table className="w-full">
                 <thead>
                   <tr className="border-b bg-muted/50">

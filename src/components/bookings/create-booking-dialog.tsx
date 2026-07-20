@@ -104,7 +104,7 @@ export function CreateBookingDialog({ accounts }: { accounts: Account[] }) {
               placeholder="Type client name…"
             />
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="start_date">Start date</Label>
               <Input id="start_date" name="start_date" type="date" required />
@@ -114,7 +114,7 @@ export function CreateBookingDialog({ accounts }: { accounts: Account[] }) {
               <Input id="end_date" name="end_date" type="date" />
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="value">Value</Label>
               <Input

@@ -26,15 +26,15 @@ export function AccountFilters({ profiles }: { profiles: Profile[] }) {
   }
 
   return (
-    <div className="flex flex-wrap gap-3">
+    <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
       <Input
         placeholder="Search clients..."
         defaultValue={searchParams.get("q") || ""}
-        className="max-w-xs"
+        className="w-full max-w-none sm:max-w-xs"
         onChange={(e) => updateFilter("q", e.target.value)}
       />
       <NativeSelect
-        className="w-[160px]"
+        className="w-full sm:w-[160px]"
         defaultValue={searchParams.get("type") || "all"}
         onChange={(e) => updateFilter("type", e.target.value)}
       >
@@ -46,7 +46,7 @@ export function AccountFilters({ profiles }: { profiles: Profile[] }) {
         ))}
       </NativeSelect>
       <NativeSelect
-        className="w-[160px]"
+        className="w-full sm:w-[160px]"
         defaultValue={searchParams.get("status") || "all"}
         onChange={(e) => updateFilter("status", e.target.value)}
       >
@@ -58,7 +58,7 @@ export function AccountFilters({ profiles }: { profiles: Profile[] }) {
         ))}
       </NativeSelect>
       <NativeSelect
-        className="w-[140px]"
+        className="w-full sm:w-[140px]"
         defaultValue={searchParams.get("vip") || "all"}
         onChange={(e) => updateFilter("vip", e.target.value)}
       >
@@ -67,7 +67,7 @@ export function AccountFilters({ profiles }: { profiles: Profile[] }) {
       </NativeSelect>
       {profiles.length > 1 && (
         <NativeSelect
-          className="w-[180px]"
+          className="w-full sm:w-[180px]"
           defaultValue={searchParams.get("owner") || "all"}
           onChange={(e) => updateFilter("owner", e.target.value)}
         >

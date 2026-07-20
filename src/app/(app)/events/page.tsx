@@ -60,7 +60,7 @@ export default async function EventsPage() {
           </div>
         </div>
       ) : (
-        <div className="overflow-x-auto rounded-lg border bg-card">
+        <div className="overflow-x-auto rounded-lg border bg-card/95 shadow-sm backdrop-blur-sm">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b bg-muted/40 text-left">

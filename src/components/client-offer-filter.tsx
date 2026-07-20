@@ -73,7 +73,7 @@ export function ClientOfferFilter({
   }
 
   return (
-    <div className="flex flex-wrap gap-3">
+    <div className="flex w-full flex-col gap-3 sm:flex-row sm:flex-wrap">
       <SearchableClientSelect
         accounts={accounts}
         value={clientId}
@@ -81,7 +81,7 @@ export function ClientOfferFilter({
         allowAll
         allLabel="All clients"
         placeholder="Type client name…"
-        className="max-w-xs"
+        className="w-full max-w-none sm:max-w-xs"
       />
 
       {clientSelected ? (
@@ -93,11 +93,11 @@ export function ClientOfferFilter({
           allowAll
           allLabel="All offers"
           placeholder="Type offer name…"
-          className="max-w-xs"
+          className="w-full max-w-none sm:max-w-xs"
           emptyLabel="No offers starting with"
         />
       ) : (
-        <div className="relative w-full max-w-xs">
+        <div className="relative w-full sm:max-w-xs">
           <Input
             disabled
             readOnly

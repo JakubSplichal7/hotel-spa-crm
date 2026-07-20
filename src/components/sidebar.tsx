@@ -20,6 +20,7 @@ import {
   ImageIcon,
   Maximize2,
   Minimize2,
+  X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
@@ -60,7 +61,7 @@ function IconButton({
       onClick={onClick}
       disabled={disabled}
       className={cn(
-        "inline-flex h-9 w-9 items-center justify-center rounded-md transition-colors",
+        "inline-flex h-10 w-10 items-center justify-center rounded-md transition-colors",
         disabled
           ? "cursor-not-allowed text-muted-foreground/35"
           : active
@@ -73,7 +74,15 @@ function IconButton({
   );
 }
 
-export function Sidebar({ profile }: { profile: Profile }) {
+export function Sidebar({
+  profile,
+  onNavigate,
+  className,
+}: {
+  profile: Profile;
+  onNavigate?: () => void;
+  className?: string;
+}) {
   const pathname = usePathname();
   const router = useRouter();
   const {
@@ -91,19 +100,37 @@ export function Sidebar({ profile }: { profile: Profile }) {
   async function handleSignOut() {
     const supabase = createClient();
     await supabase.auth.signOut();
+    onNavigate?.();
     router.push("/login");
     router.refresh();
   }
 
   return (
-    <aside className="flex h-screen w-64 flex-col border-r bg-card">
-      <div className="border-b p-6">
-        <h1 className="text-lg font-bold text-primary">Hotel & Spa CRM</h1>
-        <p className="mt-1 text-xs text-muted-foreground">
-          {ROLE_LABELS[profile.role]}
-        </p>
+    <aside
+      className={cn(
+        "flex h-full w-64 max-w-[85vw] flex-col border-r bg-card",
+        className
+      )}
+    >
+      <div className="flex items-start justify-between gap-2 border-b p-5 md:p-6">
+        <div className="min-w-0">
+          <h1 className="text-lg font-bold text-primary">Hotel & Spa CRM</h1>
+          <p className="mt-1 text-xs text-muted-foreground">
+            {ROLE_LABELS[profile.role]}
+          </p>
+        </div>
+        {onNavigate ? (
+          <button
+            type="button"
+            aria-label="Close menu"
+            onClick={onNavigate}
+            className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-accent-foreground md:hidden"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        ) : null}
       </div>
-      <nav className="flex-1 space-y-1 overflow-y-auto p-4">
+      <nav className="flex-1 space-y-1 overflow-y-auto overscroll-contain p-3 md:p-4">
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive = pathname.startsWith(item.href);
@@ -111,14 +138,15 @@ export function Sidebar({ profile }: { profile: Profile }) {
             <Link
               key={item.href}
               href={item.href}
+              onClick={() => onNavigate?.()}
               className={cn(
-                "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+                "flex min-h-11 items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-colors",
                 isActive
                   ? "bg-primary text-primary-foreground"
                   : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
               )}
             >
-              <Icon className="h-4 w-4" />
+              <Icon className="h-5 w-5 shrink-0" />
               {item.label}
             </Link>
           );
@@ -126,14 +154,15 @@ export function Sidebar({ profile }: { profile: Profile }) {
         {profile.role === "admin" && (
           <Link
             href="/settings"
+            onClick={() => onNavigate?.()}
             className={cn(
-              "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+              "flex min-h-11 items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-colors",
               pathname.startsWith("/settings")
                 ? "bg-primary text-primary-foreground"
                 : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
             )}
           >
-            <Settings className="h-4 w-4" />
+            <Settings className="h-5 w-5 shrink-0" />
             Settings
           </Link>
         )}
@@ -190,16 +219,16 @@ export function Sidebar({ profile }: { profile: Profile }) {
         </div>
       </div>
 
-      <div className="border-t p-4">
+      <div className="border-t p-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
         <div className="mb-3 px-3">
           <p className="text-sm font-medium">{profile.full_name}</p>
         </div>
         <button
           type="button"
           onClick={handleSignOut}
-          className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+          className="flex min-h-11 w-full items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium text-muted-foreground hover:bg-accent hover:text-accent-foreground"
         >
-          <LogOut className="h-4 w-4" />
+          <LogOut className="h-5 w-5" />
           Sign out
         </button>
       </div>

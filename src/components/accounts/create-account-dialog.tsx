@@ -61,7 +61,7 @@ export function CreateAccountDialog({ profiles }: { profiles: Profile[] }) {
               placeholder="Acme Corp or Jane Smith"
             />
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="type">Client type</Label>
               <NativeSelect id="type" name="type" defaultValue="company">
@@ -84,7 +84,7 @@ export function CreateAccountDialog({ profiles }: { profiles: Profile[] }) {
             </div>
           </div>
           <LocationFields />
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="loyalty_tier">Acquisition</Label>
               <NativeSelect

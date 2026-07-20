@@ -125,7 +125,7 @@ export default async function ActivitiesPage({ searchParams }: PageProps) {
               When: formatDateTime(activity.occurred_at),
             }))}
           />
-          <div className="rounded-lg border bg-card/95 shadow-sm backdrop-blur-sm">
+          <div className="overflow-x-auto rounded-lg border bg-card/95 shadow-sm backdrop-blur-sm">
           <table className="w-full">
             <thead>
               <tr className="border-b bg-muted/50">

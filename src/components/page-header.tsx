@@ -27,7 +27,7 @@ export function PageHeader({
       <div className="min-w-0">
         <h1
           className={cn(
-            "text-3xl font-bold tracking-tight text-slate-950",
+            "text-2xl font-bold tracking-tight text-slate-950 sm:text-3xl",
             titleShadow
           )}
         >
@@ -45,7 +45,9 @@ export function PageHeader({
         ) : null}
       </div>
       {children ? (
-        <div className="flex shrink-0 flex-wrap items-center gap-2">{children}</div>
+        <div className="flex w-full shrink-0 flex-wrap items-center gap-2 sm:w-auto">
+          {children}
+        </div>
       ) : null}
     </div>
   );

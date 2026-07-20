@@ -76,7 +76,7 @@ export function EditAccountDialog({
             <Label htmlFor="name">Client name</Label>
             <Input id="name" name="name" required defaultValue={account.name} />
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="type">Client type</Label>
               <NativeSelect id="type" name="type" defaultValue={typeValue}>
@@ -102,7 +102,7 @@ export function EditAccountDialog({
             defaultCountry={account.country}
             defaultCity={account.city}
           />
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="loyalty_tier">Acquisition</Label>
               <NativeSelect

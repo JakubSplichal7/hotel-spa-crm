@@ -109,7 +109,7 @@ export function EditBookingDialog({
               Optional. Link this booking to an offer for the same client.
             </p>
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="start_date">Start date</Label>
               <Input
@@ -130,7 +130,7 @@ export function EditBookingDialog({
               />
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="value">Value</Label>
               <Input

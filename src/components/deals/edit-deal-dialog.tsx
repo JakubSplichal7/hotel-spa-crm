@@ -94,7 +94,7 @@ export function EditDealDialog({
             <Label htmlFor="title">Offer title</Label>
             <Input id="title" name="title" required defaultValue={deal.title} />
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="value">Value</Label>
               <Input
@@ -120,7 +120,7 @@ export function EditDealDialog({
               </NativeSelect>
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="stage">Stage</Label>
               <NativeSelect
