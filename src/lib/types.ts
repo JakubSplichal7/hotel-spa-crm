@@ -48,6 +48,8 @@ export interface Account {
   id: string;
   org_id: string;
   name: string;
+  /** Czech company ID (IČO) */
+  ico: string | null;
   type: AccountType;
   city: string | null;
   country: string | null;

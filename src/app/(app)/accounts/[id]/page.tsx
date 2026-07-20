@@ -61,6 +61,11 @@ export default async function AccountDetailPage({ params }: PageProps) {
           <h1 className="mt-2 text-3xl font-bold tracking-tight text-slate-950 [text-shadow:0_1px_2px_rgba(255,255,255,0.95),0_0_12px_rgba(255,255,255,0.85),0_2px_8px_rgba(255,255,255,0.7)]">
             {account.name}
           </h1>
+          {account.ico && (
+            <p className="mt-1 text-sm font-semibold text-slate-900 [text-shadow:0_1px_2px_rgba(255,255,255,0.95),0_0_10px_rgba(255,255,255,0.8)]">
+              IČO: {account.ico}
+            </p>
+          )}
           <div className="mt-2 flex flex-wrap items-center gap-2">
             <Badge variant="secondary">{getAccountTypeLabel(account.type)}</Badge>
             <Badge variant={account.status === "active" ? "success" : "warning"}>

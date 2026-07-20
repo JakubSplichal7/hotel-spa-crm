@@ -69,6 +69,7 @@ export default async function AccountsPage({ searchParams }: PageProps) {
             filename="clients"
             columns={[
               "Client",
+              "IČO",
               "Type",
               "Location",
               "Status",
@@ -78,6 +79,7 @@ export default async function AccountsPage({ searchParams }: PageProps) {
             ]}
             rows={accounts.map((account) => ({
               Client: account.name,
+              "IČO": account.ico || "",
               Type: getAccountTypeLabel(account.type),
               Location:
                 [account.city, account.country].filter(Boolean).join(", ") || "",
@@ -93,6 +95,7 @@ export default async function AccountsPage({ searchParams }: PageProps) {
             <thead>
               <tr className="border-b bg-muted/50">
                 <th className="px-4 py-3 text-left text-sm font-medium">Client</th>
+                <th className="px-4 py-3 text-left text-sm font-medium">IČO</th>
                 <th className="px-4 py-3 text-left text-sm font-medium">Type</th>
                 <th className="px-4 py-3 text-left text-sm font-medium">Location</th>
                 <th className="px-4 py-3 text-left text-sm font-medium">Status</th>
@@ -116,6 +119,9 @@ export default async function AccountsPage({ searchParams }: PageProps) {
                         VIP
                       </Badge>
                     )}
+                  </td>
+                  <td className="px-4 py-3 text-sm tabular-nums text-muted-foreground">
+                    {account.ico || "—"}
                   </td>
                   <td className="px-4 py-3">
                     <Badge variant="secondary">{getAccountTypeLabel(account.type)}</Badge>

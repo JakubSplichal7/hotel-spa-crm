@@ -5,15 +5,64 @@ import { requireProfile } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 import type { AccountType, AccountStatus } from "@/lib/types";
 
+/** Normalize IČO for storage and duplicate checks (digits only). */
+function normalizeIco(raw: string): string {
+  return String(raw || "").replace(/\D/g, "");
+}
+
+async function findAccountsWithIco(
+  orgId: string,
+  ico: string,
+  excludeId?: string
+) {
+  const supabase = await createClient();
+  let query = supabase
+    .from("accounts")
+    .select("id, name, ico")
+    .eq("org_id", orgId)
+    .eq("ico", ico);
+
+  if (excludeId) {
+    query = query.neq("id", excludeId);
+  }
+
+  const { data, error } = await query;
+  if (error) return { error: error.message, matches: [] as { id: string; name: string }[] };
+  return { matches: data || [], error: null as string | null };
+}
+
 export async function createAccount(formData: FormData) {
   const profile = await requireProfile();
   const supabase = await createClient();
+
+  const name = String(formData.get("name") || "").trim();
+  const ico = normalizeIco(String(formData.get("ico") || ""));
+  const allowDuplicate = formData.get("allow_duplicate_ico") === "1";
+
+  if (!name) return { error: "Client name is required." };
+  if (!ico) return { error: "IČO is required." };
+
+  if (!allowDuplicate) {
+    const { matches, error: dupError } = await findAccountsWithIco(
+      profile.org_id,
+      ico
+    );
+    if (dupError) return { error: dupError };
+    if (matches.length > 0) {
+      return {
+        duplicate: true as const,
+        ico,
+        existingNames: matches.map((m) => m.name),
+      };
+    }
+  }
 
   const { data, error } = await supabase
     .from("accounts")
     .insert({
       org_id: profile.org_id,
-      name: formData.get("name") as string,
+      name,
+      ico,
       type: (formData.get("type") as AccountType) || "company",
       city: (formData.get("city") as string) || null,
       country: (formData.get("country") as string) || null,
@@ -34,13 +83,37 @@ export async function createAccount(formData: FormData) {
 }
 
 export async function updateAccount(id: string, formData: FormData) {
-  await requireProfile();
+  const profile = await requireProfile();
   const supabase = await createClient();
+
+  const name = String(formData.get("name") || "").trim();
+  const ico = normalizeIco(String(formData.get("ico") || ""));
+  const allowDuplicate = formData.get("allow_duplicate_ico") === "1";
+
+  if (!name) return { error: "Client name is required." };
+  if (!ico) return { error: "IČO is required." };
+
+  if (!allowDuplicate) {
+    const { matches, error: dupError } = await findAccountsWithIco(
+      profile.org_id,
+      ico,
+      id
+    );
+    if (dupError) return { error: dupError };
+    if (matches.length > 0) {
+      return {
+        duplicate: true as const,
+        ico,
+        existingNames: matches.map((m) => m.name),
+      };
+    }
+  }
 
   const { error } = await supabase
     .from("accounts")
     .update({
-      name: formData.get("name") as string,
+      name,
+      ico,
       type: formData.get("type") as AccountType,
       city: (formData.get("city") as string) || null,
       country: (formData.get("country") as string) || null,
