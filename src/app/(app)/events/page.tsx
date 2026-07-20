@@ -1,7 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { requireProfile } from "@/lib/auth";
 import { CreateEventDialog } from "@/components/events/create-event-dialog";
-import { EmptyState } from "@/components/empty-state";
 import { PageHeader } from "@/components/page-header";
 import { formatDate } from "@/lib/utils";
 import Link from "next/link";
@@ -39,11 +38,27 @@ export default async function EventsPage() {
       </PageHeader>
 
       {!rows.length ? (
-        <EmptyState
-          title="No events yet"
-          description="Create your first event to start inviting guests and logging work."
-          action={<CreateEventDialog />}
-        />
+        <div className="space-y-3 pt-2">
+          <h3
+            className={
+              "text-lg font-bold tracking-tight text-slate-950 " +
+              "[text-shadow:0_1px_2px_rgba(255,255,255,0.95),0_0_12px_rgba(255,255,255,0.85),0_2px_8px_rgba(255,255,255,0.7)]"
+            }
+          >
+            No events yet
+          </h3>
+          <p
+            className={
+              "max-w-md text-sm font-semibold text-slate-900 " +
+              "[text-shadow:0_1px_2px_rgba(255,255,255,0.95),0_0_10px_rgba(255,255,255,0.8)]"
+            }
+          >
+            Create your first event to start inviting guests and logging work.
+          </p>
+          <div className="pt-1">
+            <CreateEventDialog />
+          </div>
+        </div>
       ) : (
         <div className="overflow-x-auto rounded-lg border bg-card">
           <table className="w-full text-sm">
