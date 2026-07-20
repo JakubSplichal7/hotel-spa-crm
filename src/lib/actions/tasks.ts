@@ -97,3 +97,15 @@ export async function deleteTask(id: string) {
   revalidatePath("/tasks");
   return { success: true };
 }
+
+export async function deleteTasks(ids: string[]) {
+  await requireProfile();
+  if (!ids.length) return { success: true };
+  const supabase = await createClient();
+
+  const { error } = await supabase.from("tasks").delete().in("id", ids);
+  if (error) return { error: error.message };
+
+  revalidatePath("/tasks");
+  return { success: true };
+}

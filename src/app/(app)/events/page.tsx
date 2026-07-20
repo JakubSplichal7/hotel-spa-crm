@@ -1,14 +1,8 @@
 import { createClient } from "@/lib/supabase/server";
 import { requireProfile } from "@/lib/auth";
 import { CreateEventDialog } from "@/components/events/create-event-dialog";
-import { DeleteEventButton } from "@/components/events/delete-event-button";
+import { EventsTable } from "@/components/events/events-table";
 import { PageHeader } from "@/components/page-header";
-import {
-  CompactDate,
-  dateColCellClass,
-  dateColHeadClass,
-} from "@/components/table-date";
-import Link from "next/link";
 import type { Event } from "@/lib/types";
 
 export default async function EventsPage() {
@@ -31,7 +25,10 @@ export default async function EventsPage() {
     countByEvent.set(g.event_id, (countByEvent.get(g.event_id) || 0) + 1);
   }
 
-  const rows = (events || []) as Event[];
+  const rows = ((events || []) as Event[]).map((event) => ({
+    ...event,
+    guestCount: countByEvent.get(event.id) || 0,
+  }));
 
   return (
     <div className="space-y-6">
@@ -65,47 +62,7 @@ export default async function EventsPage() {
           </div>
         </div>
       ) : (
-        <div className="overflow-x-auto rounded-lg border bg-card/95 shadow-sm backdrop-blur-sm">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b bg-muted/40 text-left">
-                <th className="p-3 font-medium">Event</th>
-                <th className={`${dateColHeadClass} p-3`}>Date</th>
-                <th className="p-3 font-medium">Guests</th>
-                <th className="p-3 font-medium">Created by</th>
-                <th className="w-12 p-3 text-right font-medium" />
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((event) => (
-                <tr key={event.id} className="border-b last:border-0 hover:bg-muted/20">
-                  <td className="p-3">
-                    <Link
-                      href={`/events/${event.id}`}
-                      className="font-medium text-primary hover:underline"
-                    >
-                      {event.name}
-                    </Link>
-                  </td>
-                  <td className={`${dateColCellClass} p-3`}>
-                    <CompactDate value={event.event_date} />
-                  </td>
-                  <td className="p-3">{countByEvent.get(event.id) || 0}</td>
-                  <td className="p-3 text-muted-foreground">
-                    {(event.creator as { full_name?: string } | undefined)
-                      ?.full_name || "—"}
-                  </td>
-                  <td className="p-3 text-right">
-                    <DeleteEventButton
-                      eventId={event.id}
-                      eventName={event.name}
-                    />
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <EventsTable rows={rows} />
       )}
     </div>
   );

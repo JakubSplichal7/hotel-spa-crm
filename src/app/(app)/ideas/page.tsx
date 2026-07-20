@@ -1,10 +1,8 @@
 import { createClient } from "@/lib/supabase/server";
 import { requireProfile } from "@/lib/auth";
 import { CreateIdeaDialog } from "@/components/ideas/create-idea-dialog";
-import { DeleteIdeaButton } from "@/components/ideas/delete-idea-button";
-import { EditIdeaDialog } from "@/components/ideas/edit-idea-dialog";
+import { IdeasTable } from "@/components/ideas/ideas-table";
 import { PageHeader } from "@/components/page-header";
-import { formatDate } from "@/lib/utils";
 import type { Idea } from "@/lib/types";
 
 const titleShadow =
@@ -43,43 +41,7 @@ export default async function IdeasPage() {
           </div>
         </div>
       ) : (
-        <div className="overflow-x-auto rounded-lg border bg-card/95 shadow-sm backdrop-blur-sm">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b bg-muted/40 text-left">
-                <th className="p-3 font-medium">Name</th>
-                <th className="p-3 font-medium">Description</th>
-                <th className="p-3 font-medium">Added</th>
-                <th className="p-3 font-medium w-28" />
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((idea) => (
-                <tr
-                  key={idea.id}
-                  className="border-b last:border-0 hover:bg-muted/20"
-                >
-                  <td className="p-3 font-medium">{idea.name}</td>
-                  <td className="max-w-md p-3 text-muted-foreground">
-                    <p className="line-clamp-3">{idea.note || "—"}</p>
-                  </td>
-                  <td className="p-3 text-muted-foreground whitespace-nowrap">
-                    {formatDate(idea.created_at)}
-                  </td>
-                  <td className="p-3">
-                    <div className="flex items-center justify-end gap-1">
-                      <EditIdeaDialog idea={idea} />
-                      <DeleteIdeaButton
-                        ideaId={idea.id}
-                        ideaName={idea.name}
-                      />
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <IdeasTable rows={rows} />
       )}
     </div>
   );

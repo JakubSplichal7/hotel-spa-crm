@@ -161,6 +161,18 @@ export async function deleteDeal(id: string) {
   return { success: true };
 }
 
+export async function deleteDeals(ids: string[]) {
+  await requireProfile();
+  if (!ids.length) return { success: true };
+  const supabase = await createClient();
+
+  const { error } = await supabase.from("deals").delete().in("id", ids);
+  if (error) return { error: error.message };
+
+  revalidatePath("/deals");
+  return { success: true };
+}
+
 /** Create a Draft booking linked to an offer; opens for confirmation in UI */
 export async function createBookingFromDeal(dealId: string) {
   const profile = await requireProfile();

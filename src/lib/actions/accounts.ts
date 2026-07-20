@@ -154,6 +154,18 @@ export async function deleteAccount(id: string) {
   return { success: true };
 }
 
+export async function deleteAccounts(ids: string[]) {
+  await requireProfile();
+  if (!ids.length) return { success: true };
+  const supabase = await createClient();
+
+  const { error } = await supabase.from("accounts").delete().in("id", ids);
+  if (error) return { error: error.message };
+
+  revalidatePath("/accounts");
+  return { success: true };
+}
+
 export async function createContact(formData: FormData) {
   const profile = await requireProfile();
   const supabase = await createClient();

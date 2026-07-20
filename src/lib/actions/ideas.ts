@@ -69,3 +69,15 @@ export async function deleteIdea(id: string) {
   revalidatePath("/ideas");
   return { success: true };
 }
+
+export async function deleteIdeas(ids: string[]) {
+  await requireProfile();
+  if (!ids.length) return { success: true };
+  const supabase = await createClient();
+
+  const { error } = await supabase.from("ideas").delete().in("id", ids);
+  if (error) return { error: error.message };
+
+  revalidatePath("/ideas");
+  return { success: true };
+}

@@ -249,3 +249,30 @@ export async function deleteBooking(id: string) {
   if (booking?.deal_id) revalidatePath(`/deals/${booking.deal_id}`);
   return { success: true };
 }
+
+export async function deleteBookings(ids: string[]) {
+  await requireProfile();
+  if (!ids.length) return { success: true };
+  const supabase = await createClient();
+
+  const { data: bookings } = await supabase
+    .from("bookings")
+    .select("deal_id")
+    .in("id", ids);
+
+  const { error } = await supabase.from("bookings").delete().in("id", ids);
+  if (error) return { error: error.message };
+
+  revalidatePath("/bookings");
+  const dealIds = [
+    ...new Set(
+      (bookings || [])
+        .map((b) => b.deal_id)
+        .filter((id): id is string => Boolean(id))
+    ),
+  ];
+  for (const dealId of dealIds) {
+    revalidatePath(`/deals/${dealId}`);
+  }
+  return { success: true };
+}

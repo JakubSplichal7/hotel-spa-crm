@@ -2,18 +2,10 @@ import { Suspense } from "react";
 import { createClient } from "@/lib/supabase/server";
 import { requireProfile } from "@/lib/auth";
 import { CreateAccountDialog } from "@/components/accounts/create-account-dialog";
-import { DeleteAccountButton } from "@/components/accounts/delete-account-button";
+import { AccountsTable } from "@/components/accounts/accounts-table";
 import { AccountFilters } from "@/components/accounts/account-filters";
 import { EmptyState } from "@/components/empty-state";
 import { PageHeader } from "@/components/page-header";
-import { Badge } from "@/components/ui/badge";
-import {
-  getAccountDisplayName,
-  getAccountTypeLabel,
-  getAcquisitionLabel,
-} from "@/lib/types";
-import { TableExportBar } from "@/components/export-xlsx-button";
-import Link from "next/link";
 
 interface PageProps {
   searchParams: Promise<{
@@ -71,108 +63,7 @@ export default async function AccountsPage({ searchParams }: PageProps) {
           description="Add your first company or individual guest to start managing relationships."
         />
       ) : (
-        <div>
-          <TableExportBar
-            filename="clients"
-            columns={[
-              "Client",
-              "Official name",
-              "IČO",
-              "Type",
-              "Location",
-              "Status",
-              "Acquisition",
-              "Owner",
-              "VIP",
-            ]}
-            rows={accounts.map((account) => ({
-              Client: account.nickname || account.name,
-              "Official name": account.name,
-              "IČO": account.ico || "",
-              Type: getAccountTypeLabel(account.type),
-              Location:
-                [account.city, account.country].filter(Boolean).join(", ") || "",
-              Status: account.status,
-              Acquisition: getAcquisitionLabel(account.loyalty_tier),
-              Owner:
-                (account.owner as { full_name: string } | null)?.full_name || "",
-              VIP: account.is_vip ? "Yes" : "No",
-            }))}
-          />
-          <div className="overflow-x-auto rounded-lg border bg-card/95 shadow-sm backdrop-blur-sm">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b bg-muted/50">
-                <th className="px-4 py-3 text-left text-sm font-medium">Client</th>
-                <th className="px-4 py-3 text-left text-sm font-medium">Official name</th>
-                <th className="px-4 py-3 text-left text-sm font-medium">IČO</th>
-                <th className="px-4 py-3 text-left text-sm font-medium">Type</th>
-                <th className="px-4 py-3 text-left text-sm font-medium">Location</th>
-                <th className="px-4 py-3 text-left text-sm font-medium">Status</th>
-                <th className="px-4 py-3 text-left text-sm font-medium">Acquisition</th>
-                <th className="px-4 py-3 text-left text-sm font-medium">Owner</th>
-                <th className="w-12 px-2 py-3 text-right text-sm font-medium" />
-              </tr>
-            </thead>
-            <tbody>
-              {accounts.map((account) => (
-                <tr key={account.id} className="border-b hover:bg-muted/30">
-                  <td className="px-4 py-3">
-                    <Link
-                      href={`/accounts/${account.id}`}
-                      className="font-medium text-primary hover:underline"
-                    >
-                      {getAccountDisplayName(account)}
-                    </Link>
-                    {account.is_vip && (
-                      <Badge className="ml-2" variant="warning">
-                        VIP
-                      </Badge>
-                    )}
-                  </td>
-                  <td className="px-4 py-3 text-sm text-muted-foreground">
-                    {account.name}
-                  </td>
-                  <td className="px-4 py-3 text-sm tabular-nums text-muted-foreground">
-                    {account.ico || "—"}
-                  </td>
-                  <td className="px-4 py-3">
-                    <Badge variant="secondary">{getAccountTypeLabel(account.type)}</Badge>
-                  </td>
-                  <td className="px-4 py-3 text-sm text-muted-foreground">
-                    {[account.city, account.country].filter(Boolean).join(", ") || "—"}
-                  </td>
-                  <td className="px-4 py-3">
-                    <Badge
-                      variant={
-                        account.status === "active"
-                          ? "success"
-                          : account.status === "prospect"
-                            ? "warning"
-                            : "secondary"
-                      }
-                    >
-                      {account.status}
-                    </Badge>
-                  </td>
-                  <td className="px-4 py-3 text-sm">
-                    {getAcquisitionLabel(account.loyalty_tier)}
-                  </td>
-                  <td className="px-4 py-3 text-sm">
-                    {(account.owner as { full_name: string } | null)?.full_name || "—"}
-                  </td>
-                  <td className="px-2 py-3 text-right">
-                    <DeleteAccountButton
-                      accountId={account.id}
-                      accountName={getAccountDisplayName(account)}
-                    />
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          </div>
-        </div>
+        <AccountsTable accounts={accounts} />
       )}
     </div>
   );

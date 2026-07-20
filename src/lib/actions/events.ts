@@ -76,6 +76,18 @@ export async function deleteEvent(id: string) {
   return { success: true };
 }
 
+export async function deleteEvents(ids: string[]) {
+  await requireProfile();
+  if (!ids.length) return { success: true };
+  const supabase = await createClient();
+
+  const { error } = await supabase.from("events").delete().in("id", ids);
+  if (error) return { error: error.message };
+
+  revalidatePath("/events");
+  return { success: true };
+}
+
 export async function createEventGuest(eventId: string, formData: FormData) {
   const profile = await requireProfile();
   const supabase = await createClient();

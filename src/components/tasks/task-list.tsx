@@ -2,11 +2,19 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { updateTaskStatus } from "@/lib/actions/tasks";
+import { deleteTasks, updateTaskStatus } from "@/lib/actions/tasks";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { CompleteTaskDialog } from "@/components/tasks/complete-task-dialog";
 import { DeleteTaskButton } from "@/components/tasks/delete-task-button";
+import {
+  BulkRowCheckbox,
+  BulkSelectAllCheckbox,
+  BulkTableToolbar,
+  bulkCheckboxCellClass,
+  bulkCheckboxHeadClass,
+  useBulkSelection,
+} from "@/components/bulk-selection";
 import { formatDate } from "@/lib/utils";
 import {
   formatCompletionDelta,
@@ -14,7 +22,6 @@ import {
 } from "@/lib/task-dates";
 import type { Task } from "@/lib/types";
 import { getAccountDisplayName } from "@/lib/types";
-import { TableExportBar } from "@/components/export-xlsx-button";
 import {
   CompactDate,
   dateColCellClass,
@@ -34,6 +41,7 @@ export function TaskList({ tasks }: { tasks: Task[] }) {
   const router = useRouter();
   const [completeTask, setCompleteTask] = useState<Task | null>(null);
   const [loadingId, setLoadingId] = useState<string | null>(null);
+  const selection = useBulkSelection(tasks.map((t) => t.id));
 
   async function reopenTask(id: string) {
     setLoadingId(id);
@@ -44,11 +52,14 @@ export function TaskList({ tasks }: { tasks: Task[] }) {
 
   return (
     <>
-      <TableExportBar
-        filename={
+      <BulkTableToolbar
+        selection={selection}
+        entityLabel="task"
+        onDelete={deleteTasks}
+        exportFilename={
           tasks[0]?.status === "done" ? "tasks-completed" : "tasks-open"
         }
-        columns={[
+        exportColumns={[
           "Task",
           "Client",
           "Official name",
@@ -59,7 +70,7 @@ export function TaskList({ tasks }: { tasks: Task[] }) {
           "Delta days",
           "Status",
         ]}
-        rows={tasks.map((task) => {
+        exportRows={tasks.map((task) => {
           const isOverdue =
             task.status === "open" && isDueBeforeToday(task.due_at);
           const delta = getTaskDayDelta(task);
@@ -87,11 +98,18 @@ export function TaskList({ tasks }: { tasks: Task[] }) {
         <table className="w-full">
           <thead>
             <tr className="border-b bg-muted/50">
+              <th className={bulkCheckboxHeadClass}>
+                <BulkSelectAllCheckbox selection={selection} />
+              </th>
               <th className="px-4 py-3 text-left text-sm font-medium">Task</th>
               <th className="px-4 py-3 text-left text-sm font-medium">Client</th>
-              <th className="px-4 py-3 text-left text-sm font-medium">Official name</th>
+              <th className="px-4 py-3 text-left text-sm font-medium">
+                Official name
+              </th>
               <th className="px-4 py-3 text-left text-sm font-medium">Offer</th>
-              <th className="px-4 py-3 text-left text-sm font-medium">Assignee</th>
+              <th className="px-4 py-3 text-left text-sm font-medium">
+                Assignee
+              </th>
               <th className={dateColHeadClass}>Due</th>
               <th className={dateColHeadClass}>Done</th>
               <th className="px-4 py-3 text-left text-sm font-medium">Δ days</th>
@@ -117,6 +135,9 @@ export function TaskList({ tasks }: { tasks: Task[] }) {
                     task.status === "done" ? "opacity-60" : ""
                   }`}
                 >
+                  <td className={bulkCheckboxCellClass}>
+                    <BulkRowCheckbox id={task.id} selection={selection} />
+                  </td>
                   <td className="px-4 py-3">
                     <Link
                       href={`/tasks/${task.id}`}

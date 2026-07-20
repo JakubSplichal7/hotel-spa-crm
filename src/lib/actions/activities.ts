@@ -53,3 +53,15 @@ export async function deleteActivity(id: string) {
   revalidatePath("/activities");
   return { success: true };
 }
+
+export async function deleteActivities(ids: string[]) {
+  await requireProfile();
+  if (!ids.length) return { success: true };
+  const supabase = await createClient();
+
+  const { error } = await supabase.from("activities").delete().in("id", ids);
+  if (error) return { error: error.message };
+
+  revalidatePath("/activities");
+  return { success: true };
+}
