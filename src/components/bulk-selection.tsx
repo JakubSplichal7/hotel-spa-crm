@@ -17,6 +17,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ConfirmYesNoDialog } from "@/components/deals/confirm-yes-no-dialog";
+import { DeleteLinkedBookingsCheckbox } from "@/components/deals/delete-linked-bookings-checkbox";
 import { ExportMenuButton } from "@/components/export-xlsx-button";
 import { ChevronDown, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -138,19 +139,29 @@ export function BulkRowCheckbox({
 
 type CellValue = string | number | boolean | null | undefined;
 
+export type BulkDeleteOptions = {
+  deleteLinkedBookings?: boolean;
+};
+
 export function BulkActionsMenu({
   selection,
   entityLabel,
   onDelete,
+  showDeleteLinkedBookingsOption = false,
 }: {
   selection: BulkSelection;
   entityLabel: string;
-  onDelete: (ids: string[]) => Promise<{ error?: string } | void>;
+  onDelete: (
+    ids: string[],
+    options?: BulkDeleteOptions
+  ) => Promise<{ error?: string } | void>;
+  showDeleteLinkedBookingsOption?: boolean;
 }) {
   const router = useRouter();
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [deleteLinkedBookings, setDeleteLinkedBookings] = useState(false);
 
   const count = selection.selectedCount;
   const labelPlural = pluralize(entityLabel, count);
@@ -158,7 +169,12 @@ export function BulkActionsMenu({
   async function handleDelete() {
     setLoading(true);
     setError(null);
-    const result = await onDelete(selection.selectedIds);
+    const result = await onDelete(
+      selection.selectedIds,
+      showDeleteLinkedBookingsOption
+        ? { deleteLinkedBookings }
+        : undefined
+    );
     setLoading(false);
     if (result && "error" in result && result.error) {
       setError(result.error);
@@ -166,6 +182,7 @@ export function BulkActionsMenu({
     }
     selection.clear();
     setConfirmOpen(false);
+    setDeleteLinkedBookings(false);
     router.refresh();
   }
 
@@ -196,6 +213,7 @@ export function BulkActionsMenu({
             disabled={count === 0}
             onSelect={() => {
               setError(null);
+              setDeleteLinkedBookings(false);
               setConfirmOpen(true);
             }}
           >
@@ -209,7 +227,10 @@ export function BulkActionsMenu({
         open={confirmOpen}
         onOpenChange={(next) => {
           setConfirmOpen(next);
-          if (!next) setError(null);
+          if (!next) {
+            setError(null);
+            setDeleteLinkedBookings(false);
+          }
         }}
         title={`Delete ${labelPlural}?`}
         description={
@@ -222,7 +243,15 @@ export function BulkActionsMenu({
         loading={loading}
         onYes={handleDelete}
         onNo={() => setConfirmOpen(false)}
-      />
+      >
+        {showDeleteLinkedBookingsOption && !error ? (
+          <DeleteLinkedBookingsCheckbox
+            id="bulk-delete-linked-bookings"
+            checked={deleteLinkedBookings}
+            onCheckedChange={setDeleteLinkedBookings}
+          />
+        ) : null}
+      </ConfirmYesNoDialog>
     </>
   );
 }
@@ -237,16 +266,21 @@ export function BulkTableToolbar({
   exportTitle,
   className,
   showExport = true,
+  showDeleteLinkedBookingsOption = false,
 }: {
   selection: BulkSelection;
   entityLabel: string;
-  onDelete: (ids: string[]) => Promise<{ error?: string } | void>;
+  onDelete: (
+    ids: string[],
+    options?: BulkDeleteOptions
+  ) => Promise<{ error?: string } | void>;
   exportFilename?: string;
   exportRows?: Record<string, CellValue>[];
   exportColumns?: string[];
   exportTitle?: string;
   className?: string;
   showExport?: boolean;
+  showDeleteLinkedBookingsOption?: boolean;
 }) {
   return (
     <div
@@ -259,6 +293,7 @@ export function BulkTableToolbar({
         selection={selection}
         entityLabel={entityLabel}
         onDelete={onDelete}
+        showDeleteLinkedBookingsOption={showDeleteLinkedBookingsOption}
       />
       {showExport && exportFilename && exportRows ? (
         <ExportMenuButton

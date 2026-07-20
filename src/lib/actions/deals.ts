@@ -150,26 +150,50 @@ export async function updateDeal(id: string, formData: FormData) {
   return { success: true };
 }
 
-export async function deleteDeal(id: string) {
+export async function deleteDeal(
+  id: string,
+  options?: { deleteLinkedBookings?: boolean }
+) {
   await requireProfile();
   const supabase = await createClient();
+
+  if (options?.deleteLinkedBookings) {
+    const { error: bookingError } = await supabase
+      .from("bookings")
+      .delete()
+      .eq("deal_id", id);
+    if (bookingError) return { error: bookingError.message };
+  }
 
   const { error } = await supabase.from("deals").delete().eq("id", id);
   if (error) return { error: error.message };
 
   revalidatePath("/deals");
+  revalidatePath("/bookings");
   return { success: true };
 }
 
-export async function deleteDeals(ids: string[]) {
+export async function deleteDeals(
+  ids: string[],
+  options?: { deleteLinkedBookings?: boolean }
+) {
   await requireProfile();
   if (!ids.length) return { success: true };
   const supabase = await createClient();
+
+  if (options?.deleteLinkedBookings) {
+    const { error: bookingError } = await supabase
+      .from("bookings")
+      .delete()
+      .in("deal_id", ids);
+    if (bookingError) return { error: bookingError.message };
+  }
 
   const { error } = await supabase.from("deals").delete().in("id", ids);
   if (error) return { error: error.message };
 
   revalidatePath("/deals");
+  revalidatePath("/bookings");
   return { success: true };
 }
 

@@ -54,6 +54,7 @@ export function OffersTable({ rows }: { rows: OfferTableRow[] }) {
         selection={selection}
         entityLabel="offer"
         onDelete={deleteDeals}
+        showDeleteLinkedBookingsOption
         exportFilename="offers"
         exportColumns={[
           "Offer",

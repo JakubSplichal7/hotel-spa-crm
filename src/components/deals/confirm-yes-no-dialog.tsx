@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -20,6 +20,7 @@ export function ConfirmYesNoDialog({
   loading = false,
   onYes,
   onNo,
+  children,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -30,6 +31,7 @@ export function ConfirmYesNoDialog({
   loading?: boolean;
   onYes: () => void | Promise<void>;
   onNo: () => void | Promise<void>;
+  children?: ReactNode;
 }) {
   const yesRef = useRef<HTMLButtonElement>(null);
 
@@ -43,7 +45,7 @@ export function ConfirmYesNoDialog({
         }}
         onKeyDown={(e) => {
           if (e.key !== "Enter" || loading) return;
-          // Enter confirms even if focus is not on a button
+          if (e.target instanceof HTMLInputElement) return;
           if (
             e.target instanceof HTMLButtonElement &&
             e.target !== yesRef.current
@@ -58,6 +60,7 @@ export function ConfirmYesNoDialog({
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription>{description}</DialogDescription>
         </DialogHeader>
+        {children ? <div className="pt-1">{children}</div> : null}
         <div className="flex justify-end gap-2 pt-2">
           <Button
             type="button"
