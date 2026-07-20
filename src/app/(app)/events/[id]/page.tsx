@@ -13,6 +13,11 @@ import { LogActivityDialog } from "@/components/activities/log-activity-dialog";
 import { CreateTaskDialog } from "@/components/tasks/create-task-dialog";
 import type { Account, Event, EventGuest, Profile } from "@/lib/types";
 
+const titleShadow =
+  "text-slate-950 [text-shadow:0_1px_2px_rgba(255,255,255,0.95),0_0_12px_rgba(255,255,255,0.85),0_2px_8px_rgba(255,255,255,0.7)]";
+const textShadow =
+  "text-slate-900 [text-shadow:0_1px_2px_rgba(255,255,255,0.95),0_0_10px_rgba(255,255,255,0.8)]";
+
 interface PageProps {
   params: Promise<{ id: string }>;
 }
@@ -64,13 +69,15 @@ export default async function EventDetailPage({ params }: PageProps) {
         <div>
           <Link
             href="/events"
-            className="text-sm text-muted-foreground hover:text-primary"
+            className={`text-sm font-semibold ${textShadow} hover:text-primary`}
           >
             &larr; Back to events
           </Link>
           <div className="mt-2">
-            <h1 className="text-3xl font-bold">{event.name}</h1>
-            <p className="mt-2 text-muted-foreground">
+            <h1 className={`text-3xl font-bold tracking-tight ${titleShadow}`}>
+              {event.name}
+            </h1>
+            <p className={`mt-2 text-sm font-semibold ${textShadow}`}>
               {formatDate(event.event_date)}
               {(event.creator as { full_name?: string } | null)?.full_name
                 ? ` · ${(event.creator as { full_name: string }).full_name}`
@@ -82,21 +89,23 @@ export default async function EventDetailPage({ params }: PageProps) {
       </div>
 
       {event.notes && (
-        <Card>
-          <CardContent className="p-6">
-            <p className="text-sm font-medium">Notes</p>
-            <p className="mt-2 text-muted-foreground">{event.notes}</p>
-          </CardContent>
-        </Card>
+        <div>
+          <p className={`text-sm font-semibold ${textShadow}`}>Notes</p>
+          <p className={`mt-2 text-sm font-semibold ${textShadow}`}>
+            {event.notes}
+          </p>
+        </div>
       )}
 
       <div>
         <div className="mb-4 flex items-center justify-between gap-2">
-          <h2 className="text-lg font-semibold">Invited guests</h2>
+          <h2 className={`text-lg font-bold ${titleShadow}`}>Invited guests</h2>
           <AddEventGuestDialog eventId={event.id} />
         </div>
         {!guests?.length ? (
-          <p className="text-sm text-muted-foreground">No guests invited yet</p>
+          <p className={`text-sm font-semibold ${textShadow}`}>
+            No guests invited yet
+          </p>
         ) : (
           <div className="overflow-x-auto rounded-lg border bg-card">
             <table className="w-full text-sm">
@@ -139,7 +148,7 @@ export default async function EventDetailPage({ params }: PageProps) {
       <div className="grid gap-6 lg:grid-cols-2">
         <div>
           <div className="mb-4 flex items-center justify-between gap-2">
-            <h2 className="text-lg font-semibold">Activities</h2>
+            <h2 className={`text-lg font-bold ${titleShadow}`}>Activities</h2>
             <LogActivityDialog
               accounts={(accounts || []) as Account[]}
               defaultEventId={event.id}
@@ -149,7 +158,9 @@ export default async function EventDetailPage({ params }: PageProps) {
             />
           </div>
           {!activities?.length ? (
-            <p className="text-sm text-muted-foreground">No activities logged</p>
+            <p className={`text-sm font-semibold ${textShadow}`}>
+              No activities logged
+            </p>
           ) : (
             <div className="space-y-2">
               {activities.map((activity) => (
@@ -188,7 +199,7 @@ export default async function EventDetailPage({ params }: PageProps) {
 
         <div>
           <div className="mb-4 flex items-center justify-between gap-2">
-            <h2 className="text-lg font-semibold">Tasks</h2>
+            <h2 className={`text-lg font-bold ${titleShadow}`}>Tasks</h2>
             <CreateTaskDialog
               accounts={(accounts || []) as Account[]}
               profiles={(profiles || []) as Profile[]}
@@ -199,7 +210,9 @@ export default async function EventDetailPage({ params }: PageProps) {
             />
           </div>
           {!tasks?.length ? (
-            <p className="text-sm text-muted-foreground">No tasks for this event</p>
+            <p className={`text-sm font-semibold ${textShadow}`}>
+              No tasks for this event
+            </p>
           ) : (
             <div className="space-y-2">
               {tasks.map((task) => (
