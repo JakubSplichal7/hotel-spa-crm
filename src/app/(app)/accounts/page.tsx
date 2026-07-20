@@ -92,24 +92,18 @@ export default async function AccountsPage({ searchParams }: PageProps) {
           <table className="w-full">
             <thead>
               <tr className="border-b bg-muted/50">
-                <th className="w-12 px-2 py-3 text-left text-sm font-medium" />
                 <th className="px-4 py-3 text-left text-sm font-medium">Client</th>
                 <th className="px-4 py-3 text-left text-sm font-medium">Type</th>
                 <th className="px-4 py-3 text-left text-sm font-medium">Location</th>
                 <th className="px-4 py-3 text-left text-sm font-medium">Status</th>
                 <th className="px-4 py-3 text-left text-sm font-medium">Acquisition</th>
                 <th className="px-4 py-3 text-left text-sm font-medium">Owner</th>
+                <th className="w-12 px-2 py-3 text-right text-sm font-medium" />
               </tr>
             </thead>
             <tbody>
               {accounts.map((account) => (
                 <tr key={account.id} className="border-b hover:bg-muted/30">
-                  <td className="px-2 py-3">
-                    <DeleteAccountButton
-                      accountId={account.id}
-                      accountName={account.name}
-                    />
-                  </td>
                   <td className="px-4 py-3">
                     <Link
                       href={`/accounts/${account.id}`}
@@ -147,6 +141,12 @@ export default async function AccountsPage({ searchParams }: PageProps) {
                   </td>
                   <td className="px-4 py-3 text-sm">
                     {(account.owner as { full_name: string } | null)?.full_name || "—"}
+                  </td>
+                  <td className="px-2 py-3 text-right">
+                    <DeleteAccountButton
+                      accountId={account.id}
+                      accountName={account.name}
+                    />
                   </td>
                 </tr>
               ))}
