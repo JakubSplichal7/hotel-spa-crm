@@ -6,12 +6,12 @@ import { revalidatePath } from "next/cache";
 
 function ideaFieldsFromForm(formData: FormData) {
   const name = String(formData.get("name") || "").trim();
+  const description =
+    String(formData.get("description") || formData.get("note") || "").trim() ||
+    null;
   return {
     name,
-    note: String(formData.get("note") || "").trim() || null,
-    contact: String(formData.get("contact") || "").trim() || null,
-    email: String(formData.get("email") || "").trim() || null,
-    phone: String(formData.get("phone") || "").trim() || null,
+    note: description,
   };
 }
 

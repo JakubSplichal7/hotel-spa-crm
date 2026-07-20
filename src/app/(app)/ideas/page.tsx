@@ -26,10 +26,7 @@ export default async function IdeasPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader
-        title="Ideas"
-        description="Capture ideas with contact name, email, and phone"
-      >
+      <PageHeader title="Ideas" description="Capture ideas with a name and description">
         <CreateIdeaDialog />
       </PageHeader>
 
@@ -39,7 +36,7 @@ export default async function IdeasPage() {
             No ideas yet
           </h3>
           <p className={`mt-2 max-w-sm text-sm font-semibold ${textShadow}`}>
-            Add your first idea with a name, note, contact name, email, and phone.
+            Add your first idea with a name and description.
           </p>
           <div className="mt-4">
             <CreateIdeaDialog />
@@ -51,10 +48,7 @@ export default async function IdeasPage() {
             <thead>
               <tr className="border-b bg-muted/40 text-left">
                 <th className="p-3 font-medium">Name</th>
-                <th className="p-3 font-medium">Note</th>
-                <th className="p-3 font-medium">Contact</th>
-                <th className="p-3 font-medium">Email</th>
-                <th className="p-3 font-medium">Phone</th>
+                <th className="p-3 font-medium">Description</th>
                 <th className="p-3 font-medium">Added</th>
                 <th className="p-3 font-medium w-28" />
               </tr>
@@ -66,17 +60,8 @@ export default async function IdeasPage() {
                   className="border-b last:border-0 hover:bg-muted/20"
                 >
                   <td className="p-3 font-medium">{idea.name}</td>
-                  <td className="max-w-xs p-3 text-muted-foreground">
-                    <p className="line-clamp-2">{idea.note || "—"}</p>
-                  </td>
-                  <td className="p-3 text-muted-foreground">
-                    {idea.contact || "—"}
-                  </td>
-                  <td className="p-3 text-muted-foreground">
-                    {idea.email || "—"}
-                  </td>
-                  <td className="p-3 text-muted-foreground whitespace-nowrap">
-                    {idea.phone || "—"}
+                  <td className="max-w-md p-3 text-muted-foreground">
+                    <p className="line-clamp-3">{idea.note || "—"}</p>
                   </td>
                   <td className="p-3 text-muted-foreground whitespace-nowrap">
                     {formatDate(idea.created_at)}

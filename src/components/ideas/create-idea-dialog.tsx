@@ -80,36 +80,13 @@ export function CreateIdeaDialog() {
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="note">Note</Label>
+            <Label htmlFor="description">Description</Label>
             <Textarea
-              id="note"
-              name="note"
+              id="description"
+              name="description"
               placeholder="Describe the idea…"
               rows={4}
             />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="contact">Contact name</Label>
-            <Input
-              id="contact"
-              name="contact"
-              placeholder="Person’s name"
-            />
-          </div>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                name="email"
-                type="email"
-                placeholder="optional"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="phone">Phone</Label>
-              <Input id="phone" name="phone" type="tel" placeholder="optional" />
-            </div>
           </div>
           <Button type="submit" className="w-full" disabled={loading}>
             {loading ? "Saving..." : "Save idea"}
