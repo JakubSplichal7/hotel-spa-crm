@@ -53,6 +53,7 @@ export function DeleteRowButton({
         size="sm"
         className="h-9 w-9 p-0 text-destructive hover:bg-destructive/10 hover:text-destructive"
         aria-label={`Delete ${name}`}
+        title="Delete"
         onClick={(e) => {
           e.stopPropagation();
           setError(null);

@@ -31,6 +31,7 @@ export function RemoveEventGuestButton({
       disabled={loading}
       onClick={handleRemove}
       aria-label="Remove guest"
+      title="Delete"
     >
       <Trash2 className="h-4 w-4 text-destructive" />
     </Button>

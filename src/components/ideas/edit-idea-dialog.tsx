@@ -118,6 +118,7 @@ export function EditIdeaDialog({
               disabled={loading}
               onClick={handleDelete}
               aria-label="Delete idea"
+              title="Delete"
             >
               <Trash2 className="h-4 w-4 text-destructive" />
             </Button>

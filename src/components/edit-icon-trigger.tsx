@@ -28,6 +28,7 @@ export const EditIconTrigger = React.forwardRef<
       )}
       aria-label={label}
       {...props}
+      title="Edit"
     >
       <Pencil className="h-4 w-4" />
     </Button>
