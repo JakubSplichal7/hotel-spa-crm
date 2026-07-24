@@ -1,5 +1,6 @@
 "use client";
 
+import { EditBookingDialog } from "@/components/bookings/edit-booking-dialog";
 import {
   BulkRowCheckbox,
   BulkSelectAllCheckbox,
@@ -29,7 +30,15 @@ type BookingRow = Booking & {
   deal?: { id: string; title: string } | null;
 };
 
-export function BookingsTable({ bookings }: { bookings: BookingRow[] }) {
+type OfferOption = { id: string; title: string; account_id: string };
+
+export function BookingsTable({
+  bookings,
+  offers,
+}: {
+  bookings: BookingRow[];
+  offers: OfferOption[];
+}) {
   const selection = useBulkSelection(bookings.map((b) => b.id));
 
   return (
@@ -87,6 +96,7 @@ export function BookingsTable({ bookings }: { bookings: BookingRow[] }) {
               <th className={dateColHeadClass}>Period</th>
               <th className="px-4 py-3 text-left text-sm font-medium">Value</th>
               <th className="px-4 py-3 text-left text-sm font-medium">Status</th>
+              <th className="w-12 px-2 py-3 text-right text-sm font-medium" />
             </tr>
           </thead>
           <tbody>
@@ -153,6 +163,17 @@ export function BookingsTable({ bookings }: { bookings: BookingRow[] }) {
                     {BOOKING_STATUS_LABELS[booking.status as BookingStatus] ??
                       booking.status}
                   </Badge>
+                </td>
+                <td className="px-2 py-3 text-right">
+                  <div className="flex items-center justify-end gap-1">
+                    <EditBookingDialog
+                      booking={booking}
+                      offers={offers.filter(
+                        (o) => o.account_id === booking.account_id
+                      )}
+                      compact
+                    />
+                  </div>
                 </td>
               </tr>
             ))}

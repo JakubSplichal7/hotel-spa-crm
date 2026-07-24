@@ -1,6 +1,7 @@
 "use client";
 
 import { DeleteDealButton } from "@/components/deals/delete-deal-button";
+import { EditDealDialog } from "@/components/deals/edit-deal-dialog";
 import {
   BulkRowCheckbox,
   BulkSelectAllCheckbox,
@@ -27,6 +28,7 @@ import {
   type Deal,
   type DealStage,
   type OfferBookingHealth,
+  type Profile,
 } from "@/lib/types";
 import { deleteDeals } from "@/lib/actions/deals";
 import Link from "next/link";
@@ -45,7 +47,13 @@ export type OfferTableRow = {
   health: OfferBookingHealth;
 };
 
-export function OffersTable({ rows }: { rows: OfferTableRow[] }) {
+export function OffersTable({
+  rows,
+  profiles,
+}: {
+  rows: OfferTableRow[];
+  profiles: Profile[];
+}) {
   const selection = useBulkSelection(rows.map((r) => r.deal.id));
 
   return (
@@ -186,7 +194,10 @@ export function OffersTable({ rows }: { rows: OfferTableRow[] }) {
                     "—"}
                 </td>
                 <td className="px-2 py-3 text-right">
-                  <DeleteDealButton dealId={deal.id} dealTitle={deal.title} />
+                  <div className="flex items-center justify-end gap-1">
+                    <EditDealDialog deal={deal} profiles={profiles} compact />
+                    <DeleteDealButton dealId={deal.id} dealTitle={deal.title} />
+                  </div>
                 </td>
               </tr>
             ))}

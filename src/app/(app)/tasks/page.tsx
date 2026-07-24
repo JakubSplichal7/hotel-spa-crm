@@ -144,7 +144,11 @@ export default async function TasksPage({ searchParams }: PageProps) {
               }
             />
           ) : (
-            <TaskList tasks={(openTasks || []) as Task[]} />
+            <TaskList
+              tasks={(openTasks || []) as Task[]}
+              accounts={(accounts || []) as Account[]}
+              profiles={(profiles || []) as Profile[]}
+            />
           )}
         </TabsContent>
         <TabsContent value="done" className="mt-4">
@@ -160,7 +164,11 @@ export default async function TasksPage({ searchParams }: PageProps) {
               description="Completed tasks will appear here."
             />
           ) : (
-            <TaskList tasks={(doneTasks || []) as Task[]} />
+            <TaskList
+              tasks={(doneTasks || []) as Task[]}
+              accounts={(accounts || []) as Account[]}
+              profiles={(profiles || []) as Profile[]}
+            />
           )}
         </TabsContent>
       </Tabs>

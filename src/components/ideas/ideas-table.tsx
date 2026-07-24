@@ -56,7 +56,7 @@ export function IdeasTable({ rows }: { rows: Idea[] }) {
                 </td>
                 <td className="p-3">
                   <div className="flex items-center justify-end gap-1">
-                    <EditIdeaDialog idea={idea} />
+                    <EditIdeaDialog idea={idea} compact />
                     <DeleteIdeaButton
                       ideaId={idea.id}
                       ideaName={idea.name}

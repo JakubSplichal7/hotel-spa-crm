@@ -63,7 +63,7 @@ export default async function AccountsPage({ searchParams }: PageProps) {
           description="Add your first company or individual guest to start managing relationships."
         />
       ) : (
-        <AccountsTable accounts={accounts} />
+        <AccountsTable accounts={accounts} profiles={profiles || []} />
       )}
     </div>
   );

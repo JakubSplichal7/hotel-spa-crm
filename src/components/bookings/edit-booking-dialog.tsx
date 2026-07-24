@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { updateBooking } from "@/lib/actions/bookings";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,6 +17,7 @@ import {
 import { NativeSelect } from "@/components/ui/native-select";
 import { SearchableClientSelect } from "@/components/searchable-client-select";
 import { FormError } from "@/components/form-error";
+import { EditIconTrigger } from "@/components/edit-icon-trigger";
 import { validateRequired } from "@/lib/form-validation";
 import { BOOKING_STATUSES, BOOKING_STATUS_LABELS } from "@/lib/types";
 import type { Booking } from "@/lib/types";
@@ -26,10 +28,13 @@ type OfferOption = { id: string; title: string };
 export function EditBookingDialog({
   booking,
   offers,
+  compact = false,
 }: {
   booking: Booking;
   offers: OfferOption[];
+  compact?: boolean;
 }) {
+  const router = useRouter();
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -68,6 +73,7 @@ export function EditBookingDialog({
       return;
     }
     setOpen(false);
+    router.refresh();
   }
 
   return (
@@ -82,10 +88,14 @@ export function EditBookingDialog({
       }}
     >
       <DialogTrigger asChild>
-        <Button variant="outline">
-          <Pencil className="mr-2 h-4 w-4" />
-          Edit booking
-        </Button>
+        {compact ? (
+          <EditIconTrigger label={`Edit ${booking.title}`} />
+        ) : (
+          <Button variant="outline">
+            <Pencil className="mr-2 h-4 w-4" />
+            Edit booking
+          </Button>
+        )}
       </DialogTrigger>
       <DialogContent className="max-h-[90vh] overflow-y-auto">
         <DialogHeader>

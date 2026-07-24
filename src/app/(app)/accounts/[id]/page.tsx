@@ -5,12 +5,11 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CreateContactDialog } from "@/components/accounts/create-contact-dialog";
+import { ContactsTable } from "@/components/accounts/contacts-table";
 import { EmptyState } from "@/components/empty-state";
 import { formatCurrency, formatDate, formatDateTime } from "@/lib/utils";
 import { getDealStageLabel, getActivityTypeLabel, getAccountTypeLabel, getAcquisitionLabel } from "@/lib/types";
 import Link from "next/link";
-import { deleteContact } from "@/lib/actions/accounts";
-import { Button } from "@/components/ui/button";
 import { EditAccountDialog } from "@/components/accounts/edit-account-dialog";
 import { TableExportBar } from "@/components/export-xlsx-button";
 import type { Account, Profile } from "@/lib/types";
@@ -137,39 +136,7 @@ export default async function AccountDetailPage({ params }: PageProps) {
                   Primary: contact.is_primary ? "Yes" : "No",
                 }))}
               />
-              <div className="overflow-x-auto rounded-lg border bg-card/95 shadow-sm backdrop-blur-sm">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b bg-muted/50">
-                    <th className="px-4 py-3 text-left text-sm font-medium">Name</th>
-                    <th className="px-4 py-3 text-left text-sm font-medium">Title</th>
-                    <th className="px-4 py-3 text-left text-sm font-medium">Email</th>
-                    <th className="px-4 py-3 text-left text-sm font-medium">Phone</th>
-                    <th className="px-4 py-3 text-left text-sm font-medium"></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {contacts.map((contact) => (
-                    <tr key={contact.id} className="border-b hover:bg-muted/30">
-                      <td className="px-4 py-3 font-medium">
-                        {contact.name}
-                        {contact.is_primary && (
-                          <Badge className="ml-2" variant="default">Primary</Badge>
-                        )}
-                      </td>
-                      <td className="px-4 py-3 text-sm">{contact.title || "—"}</td>
-                      <td className="px-4 py-3 text-sm">{contact.email || "—"}</td>
-                      <td className="px-4 py-3 text-sm">{contact.phone || "—"}</td>
-                      <td className="px-4 py-3">
-                        <form action={async () => { "use server"; await deleteContact(contact.id, id); }}>
-                          <Button type="submit" variant="ghost" size="sm">Remove</Button>
-                        </form>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-              </div>
+              <ContactsTable accountId={id} contacts={contacts || []} />
             </div>
           )}
         </TabsContent>

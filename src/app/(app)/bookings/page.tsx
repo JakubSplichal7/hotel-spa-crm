@@ -9,13 +9,18 @@ export default async function BookingsPage() {
   const profile = await requireProfile();
   const supabase = await createClient();
 
-  const [{ data: bookings }, { data: accounts }] = await Promise.all([
+  const [{ data: bookings }, { data: accounts }, { data: deals }] = await Promise.all([
     supabase
       .from("bookings")
       .select("*, account:accounts(id, name, nickname), deal:deals(id, title)")
       .eq("org_id", profile.org_id)
       .order("start_date", { ascending: false }),
     supabase.from("accounts").select("*").eq("org_id", profile.org_id).order("nickname"),
+    supabase
+      .from("deals")
+      .select("id, title, account_id")
+      .eq("org_id", profile.org_id)
+      .order("title"),
   ]);
 
   return (
@@ -33,7 +38,7 @@ export default async function BookingsPage() {
           description="Record stays, spa appointments, and events linked to your clients."
         />
       ) : (
-        <BookingsTable bookings={bookings} />
+        <BookingsTable bookings={bookings} offers={deals || []} />
       )}
     </div>
   );

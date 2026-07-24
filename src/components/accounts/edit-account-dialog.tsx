@@ -17,6 +17,7 @@ import {
 import { NativeSelect } from "@/components/ui/native-select";
 import { LocationFields } from "@/components/accounts/location-fields";
 import { FormError } from "@/components/form-error";
+import { EditIconTrigger } from "@/components/edit-icon-trigger";
 import { ConfirmYesNoDialog } from "@/components/deals/confirm-yes-no-dialog";
 import { validateRequired } from "@/lib/form-validation";
 import {
@@ -33,9 +34,11 @@ import { Pencil } from "lucide-react";
 export function EditAccountDialog({
   account,
   profiles,
+  compact = false,
 }: {
   account: Account;
   profiles: Profile[];
+  compact?: boolean;
 }) {
   const router = useRouter();
   const formRef = useRef<HTMLFormElement>(null);
@@ -114,10 +117,16 @@ export function EditAccountDialog({
         }}
       >
         <DialogTrigger asChild>
-          <Button variant="outline">
-            <Pencil className="mr-2 h-4 w-4" />
-            Edit client
-          </Button>
+          {compact ? (
+            <EditIconTrigger
+              label={`Edit ${account.nickname || account.name}`}
+            />
+          ) : (
+            <Button variant="outline">
+              <Pencil className="mr-2 h-4 w-4" />
+              Edit client
+            </Button>
+          )}
         </DialogTrigger>
         <DialogContent className="max-h-[90vh] overflow-y-auto">
           <DialogHeader>

@@ -15,11 +15,18 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { FormError } from "@/components/form-error";
+import { EditIconTrigger } from "@/components/edit-icon-trigger";
 import { validateRequired } from "@/lib/form-validation";
 import type { Idea } from "@/lib/types";
 import { Pencil, Trash2 } from "lucide-react";
 
-export function EditIdeaDialog({ idea }: { idea: Idea }) {
+export function EditIdeaDialog({
+  idea,
+  compact = false,
+}: {
+  idea: Idea;
+  compact?: boolean;
+}) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -66,10 +73,14 @@ export function EditIdeaDialog({ idea }: { idea: Idea }) {
       }}
     >
       <DialogTrigger asChild>
-        <Button type="button" variant="outline" size="sm">
-          <Pencil className="h-4 w-4" />
-          Edit
-        </Button>
+        {compact ? (
+          <EditIconTrigger label={`Edit ${idea.name}`} />
+        ) : (
+          <Button type="button" variant="outline" size="sm">
+            <Pencil className="h-4 w-4" />
+            Edit
+          </Button>
+        )}
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>

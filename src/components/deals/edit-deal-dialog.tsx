@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/dialog";
 import { NativeSelect } from "@/components/ui/native-select";
 import { FormError } from "@/components/form-error";
+import { EditIconTrigger } from "@/components/edit-icon-trigger";
 import { validateRequired } from "@/lib/form-validation";
 import {
   DEAL_LOST_REASONS,
@@ -31,9 +32,11 @@ import { Pencil } from "lucide-react";
 export function EditDealDialog({
   deal,
   profiles,
+  compact = false,
 }: {
   deal: Deal;
   profiles: Profile[];
+  compact?: boolean;
 }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -94,10 +97,14 @@ export function EditDealDialog({
       }}
     >
       <DialogTrigger asChild>
-        <Button variant="outline">
-          <Pencil className="mr-2 h-4 w-4" />
-          Edit offer
-        </Button>
+        {compact ? (
+          <EditIconTrigger label={`Edit ${deal.title}`} />
+        ) : (
+          <Button variant="outline">
+            <Pencil className="mr-2 h-4 w-4" />
+            Edit offer
+          </Button>
+        )}
       </DialogTrigger>
       <DialogContent className="max-h-[90vh] overflow-y-auto">
         <DialogHeader>

@@ -99,7 +99,10 @@ export default async function ActivitiesPage({ searchParams }: PageProps) {
           }
         />
       ) : (
-        <ActivitiesTable activities={activities} />
+        <ActivitiesTable
+          activities={activities}
+          accounts={(accounts || []) as Account[]}
+        />
       )}
     </div>
   );

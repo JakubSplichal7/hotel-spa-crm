@@ -49,6 +49,39 @@ export async function createTask(formData: FormData) {
   return { data };
 }
 
+export async function updateTask(id: string, formData: FormData) {
+  await requireProfile();
+  const supabase = await createClient();
+
+  const accountId = (formData.get("account_id") as string) || null;
+  const dealId = (formData.get("deal_id") as string) || null;
+  const eventId = (formData.get("event_id") as string) || null;
+  const dueAt = (formData.get("due_at") as string) || null;
+  const assigneeId = formData.get("assignee_id") as string;
+
+  const { error } = await supabase
+    .from("tasks")
+    .update({
+      account_id: accountId,
+      deal_id: dealId,
+      event_id: eventId,
+      title: formData.get("title") as string,
+      due_at: dueAt || null,
+      assignee_id: assigneeId,
+    })
+    .eq("id", id);
+
+  if (error) return { error: error.message };
+
+  revalidatePath("/tasks");
+  revalidatePath(`/tasks/${id}`);
+  revalidatePath("/dashboard");
+  if (accountId) revalidatePath(`/accounts/${accountId}`);
+  if (dealId) revalidatePath(`/deals/${dealId}`);
+  if (eventId) revalidatePath(`/events/${eventId}`);
+  return { success: true };
+}
+
 export async function updateTaskStatus(
   id: string,
   status: TaskStatus,

@@ -9,6 +9,7 @@ import {
   getOfferBookingHealth,
   type Booking,
   type Deal,
+  type Profile,
 } from "@/lib/types";
 
 export default async function DealsPage() {
@@ -66,7 +67,7 @@ export default async function DealsPage() {
           description="Create your first offer or package for a client."
         />
       ) : (
-        <OffersTable rows={rows} />
+        <OffersTable rows={rows} profiles={(profiles || []) as Profile[]} />
       )}
     </div>
   );

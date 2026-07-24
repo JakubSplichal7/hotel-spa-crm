@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { CompleteTaskDialog } from "@/components/tasks/complete-task-dialog";
 import { DeleteTaskButton } from "@/components/tasks/delete-task-button";
+import { EditTaskDialog } from "@/components/tasks/edit-task-dialog";
 import {
   BulkRowCheckbox,
   BulkSelectAllCheckbox,
@@ -20,7 +21,7 @@ import {
   formatCompletionDelta,
   getTaskDayDelta,
 } from "@/lib/task-dates";
-import type { Task } from "@/lib/types";
+import type { Account, Profile, Task } from "@/lib/types";
 import { getAccountDisplayName } from "@/lib/types";
 import {
   CompactDate,
@@ -37,7 +38,15 @@ function isDueBeforeToday(dueAt: string | null | undefined) {
   return due < today;
 }
 
-export function TaskList({ tasks }: { tasks: Task[] }) {
+export function TaskList({
+  tasks,
+  accounts,
+  profiles,
+}: {
+  tasks: Task[];
+  accounts: Account[];
+  profiles: Profile[];
+}) {
   const router = useRouter();
   const [completeTask, setCompleteTask] = useState<Task | null>(null);
   const [loadingId, setLoadingId] = useState<string | null>(null);
@@ -234,10 +243,18 @@ export function TaskList({ tasks }: { tasks: Task[] }) {
                     )}
                   </td>
                   <td className="px-2 py-3 text-right">
-                    <DeleteTaskButton
-                      taskId={task.id}
-                      taskTitle={task.title}
-                    />
+                    <div className="flex items-center justify-end gap-1">
+                      <EditTaskDialog
+                        task={task}
+                        accounts={accounts}
+                        profiles={profiles}
+                        compact
+                      />
+                      <DeleteTaskButton
+                        taskId={task.id}
+                        taskTitle={task.title}
+                      />
+                    </div>
                   </td>
                 </tr>
               );

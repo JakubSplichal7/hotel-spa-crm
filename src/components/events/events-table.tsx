@@ -1,6 +1,7 @@
 "use client";
 
 import { DeleteEventButton } from "@/components/events/delete-event-button";
+import { EditEventDialog } from "@/components/events/edit-event-dialog";
 import {
   BulkRowCheckbox,
   BulkSelectAllCheckbox,
@@ -73,10 +74,13 @@ export function EventsTable({ rows }: { rows: EventTableRow[] }) {
                     ?.full_name || "—"}
                 </td>
                 <td className="p-3 text-right">
-                  <DeleteEventButton
-                    eventId={event.id}
-                    eventName={event.name}
-                  />
+                  <div className="flex items-center justify-end gap-1">
+                    <EditEventDialog event={event} compact />
+                    <DeleteEventButton
+                      eventId={event.id}
+                      eventName={event.name}
+                    />
+                  </div>
                 </td>
               </tr>
             ))}

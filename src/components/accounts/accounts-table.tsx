@@ -1,6 +1,7 @@
 "use client";
 
 import { DeleteAccountButton } from "@/components/accounts/delete-account-button";
+import { EditAccountDialog } from "@/components/accounts/edit-account-dialog";
 import {
   BulkRowCheckbox,
   BulkSelectAllCheckbox,
@@ -15,6 +16,7 @@ import {
   getAccountTypeLabel,
   getAcquisitionLabel,
   type Account,
+  type Profile,
 } from "@/lib/types";
 import { deleteAccounts } from "@/lib/actions/accounts";
 import Link from "next/link";
@@ -23,7 +25,13 @@ type AccountRow = Account & {
   owner?: { full_name: string } | null;
 };
 
-export function AccountsTable({ accounts }: { accounts: AccountRow[] }) {
+export function AccountsTable({
+  accounts,
+  profiles,
+}: {
+  accounts: AccountRow[];
+  profiles: Profile[];
+}) {
   const selection = useBulkSelection(accounts.map((a) => a.id));
 
   return (
@@ -136,10 +144,17 @@ export function AccountsTable({ accounts }: { accounts: AccountRow[] }) {
                     "—"}
                 </td>
                 <td className="px-2 py-3 text-right">
-                  <DeleteAccountButton
-                    accountId={account.id}
-                    accountName={getAccountDisplayName(account)}
-                  />
+                  <div className="flex items-center justify-end gap-1">
+                    <EditAccountDialog
+                      account={account}
+                      profiles={profiles}
+                      compact
+                    />
+                    <DeleteAccountButton
+                      accountId={account.id}
+                      accountName={getAccountDisplayName(account)}
+                    />
+                  </div>
                 </td>
               </tr>
             ))}

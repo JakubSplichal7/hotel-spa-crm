@@ -43,6 +43,43 @@ export async function createActivity(formData: FormData) {
   return { data };
 }
 
+export async function updateActivity(id: string, formData: FormData) {
+  await requireProfile();
+  const supabase = await createClient();
+
+  const accountId = (formData.get("account_id") as string) || null;
+  const dealId = (formData.get("deal_id") as string) || null;
+  const eventId = (formData.get("event_id") as string) || null;
+
+  if (!accountId && !eventId) {
+    return { error: "Select a client, or keep this activity linked to an event." };
+  }
+
+  const { error } = await supabase
+    .from("activities")
+    .update({
+      account_id: accountId,
+      deal_id: dealId,
+      event_id: eventId,
+      type: formData.get("type") as ActivityType,
+      subject: formData.get("subject") as string,
+      body: (formData.get("body") as string) || null,
+      occurred_at:
+        (formData.get("occurred_at") as string) || new Date().toISOString(),
+    })
+    .eq("id", id);
+
+  if (error) return { error: error.message };
+
+  revalidatePath("/activities");
+  revalidatePath(`/activities/${id}`);
+  revalidatePath("/dashboard");
+  if (accountId) revalidatePath(`/accounts/${accountId}`);
+  if (dealId) revalidatePath(`/deals/${dealId}`);
+  if (eventId) revalidatePath(`/events/${eventId}`);
+  return { success: true };
+}
+
 export async function deleteActivity(id: string) {
   await requireProfile();
   const supabase = await createClient();

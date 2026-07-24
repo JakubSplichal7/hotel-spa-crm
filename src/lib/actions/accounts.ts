@@ -200,6 +200,36 @@ export async function createContact(formData: FormData) {
   return { data };
 }
 
+export async function updateContact(id: string, accountId: string, formData: FormData) {
+  await requireProfile();
+  const supabase = await createClient();
+
+  const isPrimary = formData.get("is_primary") === "on";
+
+  if (isPrimary) {
+    await supabase
+      .from("contacts")
+      .update({ is_primary: false })
+      .eq("account_id", accountId);
+  }
+
+  const { error } = await supabase
+    .from("contacts")
+    .update({
+      name: formData.get("name") as string,
+      title: (formData.get("title") as string) || null,
+      email: (formData.get("email") as string) || null,
+      phone: (formData.get("phone") as string) || null,
+      is_primary: isPrimary,
+    })
+    .eq("id", id);
+
+  if (error) return { error: error.message };
+
+  revalidatePath(`/accounts/${accountId}`);
+  return { success: true };
+}
+
 export async function deleteContact(id: string, accountId: string) {
   await requireProfile();
   const supabase = await createClient();

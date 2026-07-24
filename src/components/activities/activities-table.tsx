@@ -1,6 +1,7 @@
 "use client";
 
 import { DeleteActivityButton } from "@/components/activities/delete-activity-button";
+import { EditActivityDialog } from "@/components/activities/edit-activity-dialog";
 import {
   BulkRowCheckbox,
   BulkSelectAllCheckbox,
@@ -18,7 +19,7 @@ import {
   dateColCellClass,
   dateColHeadClass,
 } from "@/components/table-date";
-import type { Activity } from "@/lib/types";
+import type { Account, Activity } from "@/lib/types";
 import Link from "next/link";
 
 type ActivityRow = Activity & {
@@ -34,8 +35,10 @@ type ActivityRow = Activity & {
 
 export function ActivitiesTable({
   activities,
+  accounts,
 }: {
   activities: ActivityRow[];
+  accounts: Account[];
 }) {
   const selection = useBulkSelection(activities.map((a) => a.id));
 
@@ -186,10 +189,17 @@ export function ActivitiesTable({
                     <CompactDateTime value={activity.occurred_at} />
                   </td>
                   <td className="px-2 py-3 text-right">
-                    <DeleteActivityButton
-                      activityId={activity.id}
-                      activitySubject={activity.subject}
-                    />
+                    <div className="flex items-center justify-end gap-1">
+                      <EditActivityDialog
+                        activity={activity}
+                        accounts={accounts}
+                        compact
+                      />
+                      <DeleteActivityButton
+                        activityId={activity.id}
+                        activitySubject={activity.subject}
+                      />
+                    </div>
                   </td>
                 </tr>
               );
