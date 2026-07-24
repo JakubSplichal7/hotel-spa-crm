@@ -260,14 +260,6 @@ export function EditAccountDialog({
                 defaultValue={account.preferences || ""}
               />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="notes">Internal notes</Label>
-              <Textarea
-                id="notes"
-                name="notes"
-                defaultValue={account.notes || ""}
-              />
-            </div>
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? "Saving..." : "Save changes"}
             </Button>

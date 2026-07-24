@@ -6,13 +6,15 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CreateContactDialog } from "@/components/accounts/create-contact-dialog";
 import { ContactsTable } from "@/components/accounts/contacts-table";
+import { CreateAccountNoteDialog } from "@/components/accounts/create-account-note-dialog";
+import { AccountNotesTable } from "@/components/accounts/account-notes-table";
 import { EmptyState } from "@/components/empty-state";
 import { formatCurrency, formatDate, formatDateTime } from "@/lib/utils";
 import { getDealStageLabel, getActivityTypeLabel, getAccountTypeLabel, getAcquisitionLabel } from "@/lib/types";
 import Link from "next/link";
 import { EditAccountDialog } from "@/components/accounts/edit-account-dialog";
 import { TableExportBar } from "@/components/export-xlsx-button";
-import type { Account, Profile } from "@/lib/types";
+import type { Account, AccountNote, Profile } from "@/lib/types";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -33,6 +35,7 @@ export default async function AccountDetailPage({ params }: PageProps) {
 
   const [
     { data: contacts },
+    { data: notes },
     { data: deals },
     { data: activities },
     { data: tasks },
@@ -40,6 +43,11 @@ export default async function AccountDetailPage({ params }: PageProps) {
     { data: profiles },
   ] = await Promise.all([
     supabase.from("contacts").select("*").eq("account_id", id).order("is_primary", { ascending: false }),
+    supabase
+      .from("account_notes")
+      .select("*, creator:profiles!account_notes_created_by_fkey(full_name)")
+      .eq("account_id", id)
+      .order("created_at", { ascending: false }),
     supabase.from("deals").select("*").eq("account_id", id).order("created_at", { ascending: false }),
     supabase.from("activities").select("*, creator:profiles!activities_created_by_fkey(full_name)").eq("account_id", id).order("occurred_at", { ascending: false }).limit(10),
     supabase.from("tasks").select("*, assignee:profiles!tasks_assignee_id_fkey(full_name)").eq("account_id", id).order("due_at"),
@@ -93,11 +101,6 @@ export default async function AccountDetailPage({ params }: PageProps) {
               <span className="font-bold">Preferences:</span> {account.preferences}
             </p>
           )}
-          {account.notes && (
-            <p className="mt-2 text-sm font-semibold text-slate-900 [text-shadow:0_1px_2px_rgba(255,255,255,0.95),0_0_10px_rgba(255,255,255,0.8)]">
-              {account.notes}
-            </p>
-          )}
         </div>
         <EditAccountDialog
           account={account as Account}
@@ -108,6 +111,7 @@ export default async function AccountDetailPage({ params }: PageProps) {
       <Tabs defaultValue="contacts">
         <TabsList>
           <TabsTrigger value="contacts">Contacts ({contacts?.length || 0})</TabsTrigger>
+          <TabsTrigger value="notes">Notes ({notes?.length || 0})</TabsTrigger>
           <TabsTrigger value="deals">Offers ({deals?.length || 0})</TabsTrigger>
           <TabsTrigger value="activities">Activities</TabsTrigger>
           <TabsTrigger value="tasks">Tasks ({tasks?.length || 0})</TabsTrigger>
@@ -137,6 +141,37 @@ export default async function AccountDetailPage({ params }: PageProps) {
                 }))}
               />
               <ContactsTable accountId={id} contacts={contacts || []} />
+            </div>
+          )}
+        </TabsContent>
+
+        <TabsContent value="notes" className="mt-4">
+          <div className="mb-4 flex justify-end">
+            <CreateAccountNoteDialog accountId={id} />
+          </div>
+          {!notes?.length ? (
+            <EmptyState
+              title="No notes"
+              description="Add internal notes the team should know about this client."
+            />
+          ) : (
+            <div>
+              <TableExportBar
+                filename={`notes-${account.nickname || account.name}`}
+                columns={["Title", "Note", "Created", "By"]}
+                rows={(notes as AccountNote[]).map((note) => ({
+                  Title: note.title || "",
+                  Note: note.body,
+                  Created: formatDateTime(note.created_at),
+                  By:
+                    (note.creator as { full_name: string } | null)?.full_name ||
+                    "",
+                }))}
+              />
+              <AccountNotesTable
+                accountId={id}
+                notes={(notes || []) as AccountNote[]}
+              />
             </div>
           )}
         </TabsContent>

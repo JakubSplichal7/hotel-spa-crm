@@ -73,7 +73,6 @@ export async function createAccount(formData: FormData) {
       country: (formData.get("country") as string) || null,
       status: (formData.get("status") as AccountStatus) || "prospect",
       owner_id: (formData.get("owner_id") as string) || profile.id,
-      notes: (formData.get("notes") as string) || null,
       is_vip: formData.get("is_vip") === "on",
       loyalty_tier: (formData.get("loyalty_tier") as string) || "jana_splichalova",
       preferences: (formData.get("preferences") as string) || null,
@@ -129,7 +128,6 @@ export async function updateAccount(id: string, formData: FormData) {
       country: (formData.get("country") as string) || null,
       status: formData.get("status") as AccountStatus,
       owner_id: formData.get("owner_id") as string,
-      notes: (formData.get("notes") as string) || null,
       is_vip: formData.get("is_vip") === "on",
       loyalty_tier: (formData.get("loyalty_tier") as string) || "jana_splichalova",
       preferences: (formData.get("preferences") as string) || null,
@@ -235,6 +233,69 @@ export async function deleteContact(id: string, accountId: string) {
   const supabase = await createClient();
 
   const { error } = await supabase.from("contacts").delete().eq("id", id);
+  if (error) return { error: error.message };
+
+  revalidatePath(`/accounts/${accountId}`);
+  return { success: true };
+}
+
+export async function createAccountNote(formData: FormData) {
+  const profile = await requireProfile();
+  const supabase = await createClient();
+
+  const accountId = formData.get("account_id") as string;
+  const body = String(formData.get("body") || "").trim();
+  if (!body) return { error: "Note is required." };
+
+  const { data, error } = await supabase
+    .from("account_notes")
+    .insert({
+      org_id: profile.org_id,
+      account_id: accountId,
+      title: String(formData.get("title") || "").trim() || null,
+      body,
+      created_by: profile.id,
+    })
+    .select()
+    .single();
+
+  if (error) return { error: error.message };
+
+  revalidatePath(`/accounts/${accountId}`);
+  return { data };
+}
+
+export async function updateAccountNote(
+  id: string,
+  accountId: string,
+  formData: FormData
+) {
+  await requireProfile();
+  const supabase = await createClient();
+
+  const body = String(formData.get("body") || "").trim();
+  if (!body) return { error: "Note is required." };
+
+  const { error } = await supabase
+    .from("account_notes")
+    .update({
+      title: String(formData.get("title") || "").trim() || null,
+      body,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", id);
+
+  if (error) return { error: error.message };
+
+  revalidatePath(`/accounts/${accountId}`);
+  return { success: true };
+}
+
+export async function deleteAccountNote(id: string, accountId: string) {
+  await requireProfile();
+  const supabase = await createClient();
+
+  const { error } = await supabase.from("account_notes").delete().eq("id", id);
   if (error) return { error: error.message };
 
   revalidatePath(`/accounts/${accountId}`);

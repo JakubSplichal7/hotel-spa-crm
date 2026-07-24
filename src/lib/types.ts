@@ -87,6 +87,18 @@ export interface Contact {
   created_at: string;
 }
 
+export interface AccountNote {
+  id: string;
+  org_id: string;
+  account_id: string;
+  title: string | null;
+  body: string;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+  creator?: Profile | { full_name: string } | null;
+}
+
 export interface Deal {
   id: string;
   org_id: string;

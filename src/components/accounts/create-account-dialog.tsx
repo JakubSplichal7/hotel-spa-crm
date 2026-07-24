@@ -227,14 +227,6 @@ export function CreateAccountDialog({ profiles }: { profiles: Profile[] }) {
                 placeholder="Room type, spa interests, dietary needs, preferred contact time..."
               />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="notes">Internal notes</Label>
-              <Textarea
-                id="notes"
-                name="notes"
-                placeholder="Anything the team should know..."
-              />
-            </div>
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? "Creating..." : "Create Client"}
             </Button>
