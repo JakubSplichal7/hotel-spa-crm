@@ -377,6 +377,19 @@ export async function declineCompletedBooking(dealId: string) {
   return { success: true };
 }
 
+/** Soft-decline the booking expectation for the current offer stage */
+export async function declineLinkedBookingForStage(
+  dealId: string,
+  stage: DealStage
+) {
+  if (stage === "won") return declineActiveBooking(dealId);
+  if (stage === "completed") return declineCompletedBooking(dealId);
+  if (stage === "proposal" || stage === "negotiation") {
+    return declineBookingCreate(dealId);
+  }
+  return { success: true };
+}
+
 export async function setOptionBookingForDeal(dealId: string) {
   await requireProfile();
   const supabase = await createClient();

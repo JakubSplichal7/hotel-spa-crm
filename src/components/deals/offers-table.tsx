@@ -195,7 +195,12 @@ export function OffersTable({
                 </td>
                 <td className="px-2 py-3 text-right">
                   <div className="flex items-center justify-end gap-1">
-                    <EditDealDialog deal={deal} profiles={profiles} compact />
+                    <EditDealDialog
+                      deal={deal}
+                      profiles={profiles}
+                      booking={booking}
+                      compact
+                    />
                     <DeleteDealButton dealId={deal.id} dealTitle={deal.title} />
                   </div>
                 </td>

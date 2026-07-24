@@ -2,11 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import {
-  createBookingFromDeal,
-  createDeal,
-  declineBookingCreate,
-} from "@/lib/actions/deals";
+import { createDeal } from "@/lib/actions/deals";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -27,13 +23,11 @@ import {
   DEAL_STAGE_LABELS,
   dealStageNeedsBooking,
   type Account,
-  type Booking,
   type DealStage,
   type Profile,
 } from "@/lib/types";
 import { Plus } from "lucide-react";
-import { ConfirmYesNoDialog } from "@/components/deals/confirm-yes-no-dialog";
-import { ConfirmLinkedBookingDialog } from "@/components/deals/confirm-linked-booking-dialog";
+import { RequireLinkedBookingPrompt } from "@/components/deals/require-linked-booking-prompt";
 
 export function CreateDealDialog({
   accounts,
@@ -50,7 +44,6 @@ export function CreateDealDialog({
   const [createdDealId, setCreatedDealId] = useState<string | null>(null);
   const [createdStage, setCreatedStage] = useState<DealStage | null>(null);
   const [askBooking, setAskBooking] = useState(false);
-  const [confirmBooking, setConfirmBooking] = useState<Booking | null>(null);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -85,27 +78,6 @@ export function CreateDealDialog({
       setCreatedStage(stage);
       setAskBooking(true);
     }
-  }
-
-  async function handleCreateYes() {
-    if (!createdDealId) return;
-    setLoading(true);
-    const result = await createBookingFromDeal(createdDealId);
-    setLoading(false);
-    setAskBooking(false);
-    if (result?.error) return;
-    if (result.data) setConfirmBooking(result.data as Booking);
-    router.refresh();
-  }
-
-  async function handleCreateNo() {
-    if (!createdDealId) return;
-    setLoading(true);
-    await declineBookingCreate(createdDealId);
-    setLoading(false);
-    setAskBooking(false);
-    setCreatedDealId(null);
-    router.refresh();
   }
 
   return (
@@ -176,7 +148,6 @@ export function CreateDealDialog({
                   <option value="USD">USD</option>
                   <option value="GBP">GBP</option>
                   <option value="CZK">CZK</option>
-                  <option value="GBP">GBP</option>
                 </NativeSelect>
               </div>
             </div>
@@ -184,9 +155,7 @@ export function CreateDealDialog({
               <div className="space-y-2">
                 <Label htmlFor="stage">Stage</Label>
                 <NativeSelect id="stage" name="stage" defaultValue="lead">
-                  {DEAL_STAGES.filter(
-                    (s) => s !== "won" && s !== "completed" && s !== "lost"
-                  ).map((s) => (
+                  {DEAL_STAGES.filter((s) => s !== "lost").map((s) => (
                     <option key={s} value={s}>
                       {DEAL_STAGE_LABELS[s]}
                     </option>
@@ -225,32 +194,19 @@ export function CreateDealDialog({
         </DialogContent>
       </Dialog>
 
-      <ConfirmYesNoDialog
+      <RequireLinkedBookingPrompt
         open={askBooking}
-        onOpenChange={(open) => !open && setAskBooking(false)}
-        title="Create linked booking?"
-        description="This offer is at Proposal or later. Create a Draft booking now to confirm dates and details?"
-        yesLabel="Yes, create"
-        noLabel="No"
-        loading={loading}
-        onYes={handleCreateYes}
-        onNo={handleCreateNo}
+        onOpenChange={(next) => {
+          setAskBooking(next);
+          if (!next) {
+            setCreatedDealId(null);
+            setCreatedStage(null);
+          }
+        }}
+        dealId={createdDealId}
+        dealStage={createdStage}
+        booking={null}
       />
-
-      {confirmBooking && (
-        <ConfirmLinkedBookingDialog
-          booking={confirmBooking}
-          dealStage={createdStage}
-          open={!!confirmBooking}
-          onOpenChange={(open) => {
-            if (!open) {
-              setConfirmBooking(null);
-              setCreatedDealId(null);
-            }
-          }}
-          onConfirmed={() => router.refresh()}
-        />
-      )}
     </>
   );
 }

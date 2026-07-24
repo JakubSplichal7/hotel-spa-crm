@@ -81,7 +81,11 @@ export default async function DealDetailPage({ params }: PageProps) {
             </div>
           </div>
         </div>
-        <EditDealDialog deal={dealRecord} profiles={(profiles || []) as Profile[]} />
+        <EditDealDialog
+          deal={dealRecord}
+          profiles={(profiles || []) as Profile[]}
+          booking={primaryBooking}
+        />
       </div>
 
       <div className="grid gap-6 md:grid-cols-3">

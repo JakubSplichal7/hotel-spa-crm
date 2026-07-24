@@ -36,16 +36,19 @@ export function ConfirmLinkedBookingDialog({
   open,
   onOpenChange,
   onConfirmed,
+  mode = "confirm",
 }: {
   booking: Booking;
   dealStage?: DealStage | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onConfirmed?: () => void;
+  mode?: "confirm" | "adjust";
 }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const suggested = defaultStatusForStage(dealStage);
+  const isAdjust = mode === "adjust";
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -92,15 +95,25 @@ export function ConfirmLinkedBookingDialog({
     >
       <DialogContent className="max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Confirm booking</DialogTitle>
+          <DialogTitle>
+            {isAdjust ? "Adjust linked booking" : "Confirm booking"}
+          </DialogTitle>
           <DialogDescription>
-            Review dates and details. Confirming moves this booking out of Draft
-            {suggested === "active"
-              ? " to Active"
-              : suggested === "completed"
-                ? " to Completed"
-                : " to Option"}
-            .
+            {isAdjust
+              ? `Review dates and details. Suggested status for this offer stage: ${
+                  suggested === "active"
+                    ? "Active"
+                    : suggested === "completed"
+                      ? "Completed"
+                      : "Option"
+                }.`
+              : `Review dates and details. Confirming moves this booking out of Draft${
+                  suggested === "active"
+                    ? " to Active"
+                    : suggested === "completed"
+                      ? " to Completed"
+                      : " to Option"
+                }.`}
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} noValidate className="space-y-4">
@@ -188,7 +201,13 @@ export function ConfirmLinkedBookingDialog({
             />
           </div>
           <Button type="submit" className="w-full" disabled={loading}>
-            {loading ? "Confirming..." : "Confirm booking"}
+            {loading
+              ? isAdjust
+                ? "Saving..."
+                : "Confirming..."
+              : isAdjust
+                ? "Save booking"
+                : "Confirm booking"}
           </Button>
         </form>
       </DialogContent>
