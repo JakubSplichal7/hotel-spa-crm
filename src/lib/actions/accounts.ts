@@ -1,7 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
-import { requireProfile } from "@/lib/auth";
+import { canManageAll, requireProfile } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 import type { AccountType, AccountStatus } from "@/lib/types";
 
@@ -247,6 +247,21 @@ export async function createAccountNote(formData: FormData) {
   const body = String(formData.get("body") || "").trim();
   if (!body) return { error: "Note is required." };
 
+  let createdBy = profile.id;
+  if (canManageAll(profile)) {
+    const requestedBy = String(formData.get("created_by") || "").trim();
+    if (requestedBy) {
+      const { data: author } = await supabase
+        .from("profiles")
+        .select("id")
+        .eq("id", requestedBy)
+        .eq("org_id", profile.org_id)
+        .maybeSingle();
+      if (!author) return { error: "Selected author was not found." };
+      createdBy = author.id;
+    }
+  }
+
   const { data, error } = await supabase
     .from("account_notes")
     .insert({
@@ -254,7 +269,7 @@ export async function createAccountNote(formData: FormData) {
       account_id: accountId,
       title: String(formData.get("title") || "").trim() || null,
       body,
-      created_by: profile.id,
+      created_by: createdBy,
     })
     .select()
     .single();
@@ -270,19 +285,40 @@ export async function updateAccountNote(
   accountId: string,
   formData: FormData
 ) {
-  await requireProfile();
+  const profile = await requireProfile();
   const supabase = await createClient();
 
   const body = String(formData.get("body") || "").trim();
   if (!body) return { error: "Note is required." };
 
+  const updates: {
+    title: string | null;
+    body: string;
+    updated_at: string;
+    created_by?: string;
+  } = {
+    title: String(formData.get("title") || "").trim() || null,
+    body,
+    updated_at: new Date().toISOString(),
+  };
+
+  if (canManageAll(profile)) {
+    const requestedBy = String(formData.get("created_by") || "").trim();
+    if (requestedBy) {
+      const { data: author } = await supabase
+        .from("profiles")
+        .select("id")
+        .eq("id", requestedBy)
+        .eq("org_id", profile.org_id)
+        .maybeSingle();
+      if (!author) return { error: "Selected author was not found." };
+      updates.created_by = author.id;
+    }
+  }
+
   const { error } = await supabase
     .from("account_notes")
-    .update({
-      title: String(formData.get("title") || "").trim() || null,
-      body,
-      updated_at: new Date().toISOString(),
-    })
+    .update(updates)
     .eq("id", id);
 
   if (error) return { error: error.message };

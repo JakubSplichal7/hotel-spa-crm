@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { NativeSelect } from "@/components/ui/native-select";
 import {
   Dialog,
   DialogContent,
@@ -16,8 +17,19 @@ import {
 import { FormError } from "@/components/form-error";
 import { validateRequired } from "@/lib/form-validation";
 import { Plus } from "lucide-react";
+import type { Profile } from "@/lib/types";
 
-export function CreateAccountNoteDialog({ accountId }: { accountId: string }) {
+export function CreateAccountNoteDialog({
+  accountId,
+  canEditAuthor = false,
+  profiles = [],
+  currentUserId,
+}: {
+  accountId: string;
+  canEditAuthor?: boolean;
+  profiles?: Profile[];
+  currentUserId?: string;
+}) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -82,6 +94,26 @@ export function CreateAccountNoteDialog({ accountId }: { accountId: string }) {
               placeholder="Anything the team should know..."
             />
           </div>
+          {canEditAuthor && (
+            <div className="space-y-2">
+              <Label htmlFor="created_by">By</Label>
+              <NativeSelect
+                id="created_by"
+                name="created_by"
+                defaultValue={currentUserId || ""}
+                required
+              >
+                <option value="" disabled>
+                  Select person
+                </option>
+                {profiles.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.full_name}
+                  </option>
+                ))}
+              </NativeSelect>
+            </div>
+          )}
           <Button type="submit" className="w-full" disabled={loading}>
             {loading ? "Adding..." : "Add Note"}
           </Button>

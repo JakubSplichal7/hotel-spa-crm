@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { NativeSelect } from "@/components/ui/native-select";
 import {
   Dialog,
   DialogContent,
@@ -17,16 +18,20 @@ import {
 import { FormError } from "@/components/form-error";
 import { EditIconTrigger } from "@/components/edit-icon-trigger";
 import { validateRequired } from "@/lib/form-validation";
-import type { AccountNote } from "@/lib/types";
+import type { AccountNote, Profile } from "@/lib/types";
 
 export function EditAccountNoteDialog({
   note,
   accountId,
   compact = false,
+  canEditAuthor = false,
+  profiles = [],
 }: {
   note: AccountNote;
   accountId: string;
   compact?: boolean;
+  canEditAuthor?: boolean;
+  profiles?: Profile[];
 }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -100,6 +105,26 @@ export function EditAccountNoteDialog({
               defaultValue={note.body}
             />
           </div>
+          {canEditAuthor && (
+            <div className="space-y-2">
+              <Label htmlFor="created_by">By</Label>
+              <NativeSelect
+                id="created_by"
+                name="created_by"
+                defaultValue={note.created_by || ""}
+                required
+              >
+                <option value="" disabled>
+                  Select person
+                </option>
+                {profiles.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.full_name}
+                  </option>
+                ))}
+              </NativeSelect>
+            </div>
+          )}
           <Button type="submit" className="w-full" disabled={loading}>
             {loading ? "Saving..." : "Save changes"}
           </Button>

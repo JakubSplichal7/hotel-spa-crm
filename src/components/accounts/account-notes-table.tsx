@@ -4,14 +4,18 @@ import { EditAccountNoteDialog } from "@/components/accounts/edit-account-note-d
 import { DeleteRowButton } from "@/components/delete-row-button";
 import { deleteAccountNote } from "@/lib/actions/accounts";
 import { formatDateTime } from "@/lib/utils";
-import type { AccountNote } from "@/lib/types";
+import type { AccountNote, Profile } from "@/lib/types";
 
 export function AccountNotesTable({
   accountId,
   notes,
+  canEditAuthor = false,
+  profiles = [],
 }: {
   accountId: string;
   notes: AccountNote[];
+  canEditAuthor?: boolean;
+  profiles?: Profile[];
 }) {
   return (
     <div className="overflow-x-auto rounded-lg border bg-card/95 shadow-sm backdrop-blur-sm">
@@ -45,6 +49,8 @@ export function AccountNotesTable({
                     note={note}
                     accountId={accountId}
                     compact
+                    canEditAuthor={canEditAuthor}
+                    profiles={profiles}
                   />
                   <DeleteRowButton
                     id={note.id}

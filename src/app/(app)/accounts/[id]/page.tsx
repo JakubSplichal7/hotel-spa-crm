@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import { requireProfile } from "@/lib/auth";
+import { canManageAll, requireProfile } from "@/lib/auth";
 import { notFound } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -147,7 +147,12 @@ export default async function AccountDetailPage({ params }: PageProps) {
 
         <TabsContent value="notes" className="mt-4">
           <div className="mb-4 flex justify-end">
-            <CreateAccountNoteDialog accountId={id} />
+            <CreateAccountNoteDialog
+              accountId={id}
+              canEditAuthor={canManageAll(profile)}
+              profiles={(profiles || []) as Profile[]}
+              currentUserId={profile.id}
+            />
           </div>
           {!notes?.length ? (
             <EmptyState
@@ -171,6 +176,8 @@ export default async function AccountDetailPage({ params }: PageProps) {
               <AccountNotesTable
                 accountId={id}
                 notes={(notes || []) as AccountNote[]}
+                canEditAuthor={canManageAll(profile)}
+                profiles={(profiles || []) as Profile[]}
               />
             </div>
           )}
