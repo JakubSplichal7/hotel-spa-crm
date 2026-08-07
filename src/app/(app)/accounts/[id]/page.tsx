@@ -251,7 +251,7 @@ export default async function AccountDetailPage({ params }: PageProps) {
                           {event.name}
                         </Link>
                         <p className="mt-1 text-sm text-muted-foreground">
-                          Guest: {guest.name}
+                          Contact: {guest.name}
                         </p>
                       </div>
                       <div className="shrink-0 text-right">

@@ -4,7 +4,10 @@ import { notFound } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { formatDate, formatDateTime } from "@/lib/utils";
-import { getActivityTypeLabel, getAccountDisplayName } from "@/lib/types";
+import {
+  getAccountDisplayName,
+  getActivityTypeLabel,
+} from "@/lib/types";
 import Link from "next/link";
 import { EditEventDialog } from "@/components/events/edit-event-dialog";
 import { AddEventGuestDialog } from "@/components/events/add-event-guest-dialog";
@@ -106,7 +109,7 @@ export default async function EventDetailPage({ params }: PageProps) {
 
       <div>
         <div className="mb-4 flex items-center justify-between gap-2">
-          <h2 className={`text-lg font-bold ${titleShadow}`}>Invited guests</h2>
+          <h2 className={`text-lg font-bold ${titleShadow}`}>Invited clients</h2>
           <AddEventGuestDialog
             eventId={event.id}
             accounts={(accounts || []) as Account[]}
@@ -115,7 +118,7 @@ export default async function EventDetailPage({ params }: PageProps) {
         </div>
         {!guests?.length ? (
           <p className={`text-sm font-semibold ${textShadow}`}>
-            No guests invited yet
+            No clients invited yet
           </p>
         ) : (
           <div className="overflow-x-auto rounded-lg border bg-card">
@@ -123,11 +126,12 @@ export default async function EventDetailPage({ params }: PageProps) {
               <thead>
                 <tr className="border-b bg-muted/40 text-left">
                   <th className="p-3 font-medium">Name</th>
-                  <th className="p-3 font-medium">Client</th>
-                  <th className="p-3 font-medium">Email</th>
+                  <th className="p-3 font-medium">Official name</th>
+                  <th className="p-3 font-medium">Contact name</th>
                   <th className="p-3 font-medium">Phone</th>
-                  <th className="p-3 font-medium">Notes</th>
-                  <th className="p-3 font-medium w-12" />
+                  <th className="p-3 font-medium">Email</th>
+                  <th className="p-3 font-medium">Note</th>
+                  <th className="p-3 font-medium w-20" />
                 </tr>
               </thead>
               <tbody>
@@ -137,10 +141,14 @@ export default async function EventDetailPage({ params }: PageProps) {
                         (a) => a.id === guest.account_id
                       )
                     : null;
+                  const linkedContact = guest.contact_id
+                    ? ((contacts || []) as Contact[]).find(
+                        (c) => c.id === guest.contact_id
+                      )
+                    : null;
                   return (
                     <tr key={guest.id} className="border-b last:border-0">
-                      <td className="p-3 font-medium">{guest.name}</td>
-                      <td className="p-3 text-muted-foreground">
+                      <td className="p-3 font-medium">
                         {linkedAccount ? (
                           <Link
                             href={`/accounts/${linkedAccount.id}`}
@@ -153,10 +161,16 @@ export default async function EventDetailPage({ params }: PageProps) {
                         )}
                       </td>
                       <td className="p-3 text-muted-foreground">
-                        {guest.email || "—"}
+                        {linkedAccount?.name || "—"}
                       </td>
                       <td className="p-3 text-muted-foreground">
-                        {guest.phone || "—"}
+                        {linkedContact?.name || guest.name || "—"}
+                      </td>
+                      <td className="p-3 text-muted-foreground">
+                        {linkedContact?.phone || guest.phone || "—"}
+                      </td>
+                      <td className="p-3 text-muted-foreground">
+                        {linkedContact?.email || guest.email || "—"}
                       </td>
                       <td className="p-3 text-muted-foreground">
                         {guest.notes || "—"}

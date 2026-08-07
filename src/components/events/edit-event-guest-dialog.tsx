@@ -4,7 +4,6 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { updateEventGuest } from "@/lib/actions/events";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -37,10 +36,7 @@ export function EditEventGuestDialog({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [accountId, setAccountId] = useState(guest.account_id || "");
-  const [contactId, setContactId] = useState("");
-  const [name, setName] = useState(guest.name);
-  const [email, setEmail] = useState(guest.email || "");
-  const [phone, setPhone] = useState(guest.phone || "");
+  const [contactId, setContactId] = useState(guest.contact_id || "");
   const [notes, setNotes] = useState(guest.notes || "");
 
   const clientContacts = useMemo(() => {
@@ -53,12 +49,13 @@ export function EditEventGuestDialog({
       });
   }, [contacts, accountId]);
 
+  const selectedAccount = accounts.find((a) => a.id === accountId) || null;
+  const selectedContact =
+    clientContacts.find((c) => c.id === contactId) || null;
+
   function syncFromGuest() {
     setAccountId(guest.account_id || "");
-    setContactId("");
-    setName(guest.name);
-    setEmail(guest.email || "");
-    setPhone(guest.phone || "");
+    setContactId(guest.contact_id || "");
     setNotes(guest.notes || "");
     setError(null);
   }
@@ -68,28 +65,16 @@ export function EditEventGuestDialog({
     setContactId("");
   }
 
-  function handleContactChange(nextId: string) {
-    setContactId(nextId);
-    if (!nextId) return;
-    const contact = clientContacts.find((c) => c.id === nextId);
-    if (!contact) return;
-    setName(contact.name);
-    setEmail(contact.email || "");
-    setPhone(contact.phone || "");
-  }
-
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError(null);
-    const form = e.currentTarget;
-    const formData = new FormData(form);
+    const formData = new FormData();
     formData.set("account_id", accountId);
-    formData.set("name", name);
-    formData.set("email", email);
-    formData.set("phone", phone);
+    formData.set("contact_id", contactId);
     formData.set("notes", notes);
     const missing = validateRequired(formData, [
-      { name: "name", label: "Name" },
+      { name: "account_id", label: "Name" },
+      { name: "contact_id", label: "Contact name" },
     ]);
     if (missing) {
       setError(missing);
@@ -115,98 +100,77 @@ export function EditEventGuestDialog({
       }}
     >
       <DialogTrigger asChild>
-        <EditIconTrigger label={`Edit ${guest.name}`} />
+        <EditIconTrigger label="Edit invited client" />
       </DialogTrigger>
       <DialogContent className="max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Edit guest</DialogTitle>
+          <DialogTitle>Edit invited client</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} noValidate className="space-y-4">
           <FormError message={error} />
-          {accounts.length > 0 ? (
-            <div className="space-y-2">
-              <Label htmlFor={`guest-account-${guest.id}`}>
-                Client (optional)
-              </Label>
-              <SearchableClientSelect
-                id={`guest-account-${guest.id}`}
-                accounts={accounts}
-                value={accountId}
-                onChange={handleAccountChange}
-                className="max-w-none"
-                placeholder="Link to a CRM client…"
-              />
-            </div>
-          ) : null}
-          {accountId ? (
-            <div className="space-y-2">
-              <Label htmlFor={`guest-contact-${guest.id}`}>
-                Contact (optional)
-              </Label>
-              <NativeSelect
-                id={`guest-contact-${guest.id}`}
-                value={contactId}
-                onChange={(e) => handleContactChange(e.target.value)}
-              >
-                <option value="">Select a contact…</option>
-                {clientContacts.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.name}
-                    {c.is_primary ? " (Primary)" : ""}
-                    {c.title ? ` · ${c.title}` : ""}
-                  </option>
-                ))}
-              </NativeSelect>
-              {clientContacts.length === 0 ? (
-                <p className="text-xs text-muted-foreground">
-                  This client has no contacts yet.
-                </p>
-              ) : (
-                <p className="text-xs text-muted-foreground">
-                  Choosing a contact fills name, email, and phone.
-                </p>
-              )}
-            </div>
-          ) : null}
           <div className="space-y-2">
-            <Label htmlFor={`guest-name-${guest.id}`} required>
+            <Label htmlFor={`guest-account-${guest.id}`} required>
               Name
             </Label>
-            <Input
-              id={`guest-name-${guest.id}`}
-              name="name"
+            <SearchableClientSelect
+              id={`guest-account-${guest.id}`}
+              accounts={accounts}
+              value={accountId}
+              onChange={handleAccountChange}
               required
-              value={name}
-              onChange={(e) => setName(e.target.value)}
+              className="max-w-none"
+              placeholder="Select client…"
             />
           </div>
+          {selectedAccount ? (
+            <div className="rounded-md border bg-muted/30 px-3 py-2 text-sm">
+              <p className="text-xs text-muted-foreground">Official name</p>
+              <p className="font-medium">{selectedAccount.name || "—"}</p>
+            </div>
+          ) : null}
           <div className="space-y-2">
-            <Label htmlFor={`guest-email-${guest.id}`}>Email</Label>
-            <Input
-              id={`guest-email-${guest.id}`}
-              name="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
+            <Label htmlFor={`guest-contact-${guest.id}`} required>
+              Contact name
+            </Label>
+            <NativeSelect
+              id={`guest-contact-${guest.id}`}
+              value={contactId}
+              onChange={(e) => setContactId(e.target.value)}
+              required
+              disabled={!accountId}
+            >
+              <option value="">
+                {accountId ? "Select a contact…" : "Select a client first"}
+              </option>
+              {clientContacts.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name}
+                  {c.is_primary ? " (Primary)" : ""}
+                  {c.title ? ` · ${c.title}` : ""}
+                </option>
+              ))}
+            </NativeSelect>
           </div>
+          {selectedContact ? (
+            <div className="grid gap-2 rounded-md border bg-muted/30 px-3 py-2 text-sm sm:grid-cols-2">
+              <div>
+                <p className="text-xs text-muted-foreground">Email</p>
+                <p className="font-medium">{selectedContact.email || "—"}</p>
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Phone</p>
+                <p className="font-medium">{selectedContact.phone || "—"}</p>
+              </div>
+            </div>
+          ) : null}
           <div className="space-y-2">
-            <Label htmlFor={`guest-phone-${guest.id}`}>Phone</Label>
-            <Input
-              id={`guest-phone-${guest.id}`}
-              name="phone"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor={`guest-notes-${guest.id}`}>Notes</Label>
+            <Label htmlFor={`guest-notes-${guest.id}`}>Note</Label>
             <Textarea
               id={`guest-notes-${guest.id}`}
-              name="notes"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              placeholder="Dietary needs…"
+              placeholder="Optional note…"
+              rows={3}
             />
           </div>
           <Button type="submit" className="w-full" disabled={loading}>

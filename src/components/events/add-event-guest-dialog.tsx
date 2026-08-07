@@ -4,7 +4,6 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createEventGuest } from "@/lib/actions/events";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -18,11 +17,7 @@ import { NativeSelect } from "@/components/ui/native-select";
 import { SearchableClientSelect } from "@/components/searchable-client-select";
 import { FormError } from "@/components/form-error";
 import { validateRequired } from "@/lib/form-validation";
-import {
-  getAccountDisplayName,
-  type Account,
-  type Contact,
-} from "@/lib/types";
+import type { Account, Contact } from "@/lib/types";
 import { Plus } from "lucide-react";
 
 export function AddEventGuestDialog({
@@ -44,9 +39,7 @@ export function AddEventGuestDialog({
   const [error, setError] = useState<string | null>(null);
   const [accountId, setAccountId] = useState("");
   const [contactId, setContactId] = useState("");
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
+  const [notes, setNotes] = useState("");
 
   const clientContacts = useMemo(() => {
     if (!accountId) return [];
@@ -58,46 +51,32 @@ export function AddEventGuestDialog({
       });
   }, [contacts, accountId]);
 
+  const selectedAccount = accounts.find((a) => a.id === accountId) || null;
+  const selectedContact =
+    clientContacts.find((c) => c.id === contactId) || null;
+
   function resetForm() {
     setAccountId("");
     setContactId("");
-    setName("");
-    setEmail("");
-    setPhone("");
+    setNotes("");
     setError(null);
   }
 
   function handleAccountChange(nextId: string) {
     setAccountId(nextId);
     setContactId("");
-    if (!nextId) return;
-    const account = accounts.find((a) => a.id === nextId);
-    if (account) {
-      setName(getAccountDisplayName(account));
-    }
-  }
-
-  function handleContactChange(nextId: string) {
-    setContactId(nextId);
-    if (!nextId) return;
-    const contact = clientContacts.find((c) => c.id === nextId);
-    if (!contact) return;
-    setName(contact.name);
-    setEmail(contact.email || "");
-    setPhone(contact.phone || "");
   }
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError(null);
-    const form = e.currentTarget;
-    const formData = new FormData(form);
+    const formData = new FormData();
     formData.set("account_id", accountId);
-    formData.set("name", name);
-    formData.set("email", email);
-    formData.set("phone", phone);
+    formData.set("contact_id", contactId);
+    formData.set("notes", notes);
     const missing = validateRequired(formData, [
-      { name: "name", label: "Name" },
+      { name: "account_id", label: "Name" },
+      { name: "contact_id", label: "Contact name" },
     ]);
     if (missing) {
       setError(missing);
@@ -112,7 +91,6 @@ export function AddEventGuestDialog({
     }
     setOpen(false);
     resetForm();
-    form.reset();
     router.refresh();
   }
 
@@ -127,100 +105,88 @@ export function AddEventGuestDialog({
       <DialogTrigger asChild>
         <Button variant={buttonVariant} size={buttonSize}>
           <Plus className="mr-2 h-4 w-4" />
-          Add guest
+          Add client
         </Button>
       </DialogTrigger>
       <DialogContent className="max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Invite guest</DialogTitle>
+          <DialogTitle>Add client to event</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} noValidate className="space-y-4">
           <FormError message={error} />
-          {accounts.length > 0 ? (
-            <div className="space-y-2">
-              <Label htmlFor="account_id">Client (optional)</Label>
-              <SearchableClientSelect
-                id="account_id"
-                accounts={accounts}
-                value={accountId}
-                onChange={handleAccountChange}
-                className="max-w-none"
-                placeholder="Link to a CRM client…"
-              />
-              <p className="text-xs text-muted-foreground">
-                Link a client so this event shows on their profile.
-              </p>
-            </div>
-          ) : null}
-          {accountId ? (
-            <div className="space-y-2">
-              <Label htmlFor="contact_id">Contact (optional)</Label>
-              <NativeSelect
-                id="contact_id"
-                value={contactId}
-                onChange={(e) => handleContactChange(e.target.value)}
-              >
-                <option value="">Select a contact…</option>
-                {clientContacts.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.name}
-                    {c.is_primary ? " (Primary)" : ""}
-                    {c.title ? ` · ${c.title}` : ""}
-                  </option>
-                ))}
-              </NativeSelect>
-              {clientContacts.length === 0 ? (
-                <p className="text-xs text-muted-foreground">
-                  This client has no contacts yet. You can still enter details
-                  manually.
-                </p>
-              ) : (
-                <p className="text-xs text-muted-foreground">
-                  Choosing a contact fills name, email, and phone.
-                </p>
-              )}
-            </div>
-          ) : null}
           <div className="space-y-2">
-            <Label htmlFor="name" required>
+            <Label htmlFor="account_id" required>
               Name
             </Label>
-            <Input
-              id="name"
-              name="name"
+            <SearchableClientSelect
+              id="account_id"
+              accounts={accounts}
+              value={accountId}
+              onChange={handleAccountChange}
               required
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Guest name"
+              className="max-w-none"
+              placeholder="Select client…"
             />
           </div>
+          {selectedAccount ? (
+            <div className="rounded-md border bg-muted/30 px-3 py-2 text-sm">
+              <p className="text-xs text-muted-foreground">Official name</p>
+              <p className="font-medium">{selectedAccount.name || "—"}</p>
+            </div>
+          ) : null}
           <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              name="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="optional"
-            />
+            <Label htmlFor="contact_id" required>
+              Contact name
+            </Label>
+            <NativeSelect
+              id="contact_id"
+              value={contactId}
+              onChange={(e) => setContactId(e.target.value)}
+              required
+              disabled={!accountId}
+            >
+              <option value="">
+                {accountId ? "Select a contact…" : "Select a client first"}
+              </option>
+              {clientContacts.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name}
+                  {c.is_primary ? " (Primary)" : ""}
+                  {c.title ? ` · ${c.title}` : ""}
+                </option>
+              ))}
+            </NativeSelect>
+            {accountId && clientContacts.length === 0 ? (
+              <p className="text-xs text-muted-foreground">
+                This client has no contacts. Add a contact on the client page
+                first.
+              </p>
+            ) : null}
           </div>
+          {selectedContact ? (
+            <div className="grid gap-2 rounded-md border bg-muted/30 px-3 py-2 text-sm sm:grid-cols-2">
+              <div>
+                <p className="text-xs text-muted-foreground">Email</p>
+                <p className="font-medium">{selectedContact.email || "—"}</p>
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Phone</p>
+                <p className="font-medium">{selectedContact.phone || "—"}</p>
+              </div>
+            </div>
+          ) : null}
           <div className="space-y-2">
-            <Label htmlFor="phone">Phone</Label>
-            <Input
-              id="phone"
-              name="phone"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              placeholder="optional"
+            <Label htmlFor="notes">Note</Label>
+            <Textarea
+              id="notes"
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              placeholder="Optional note…"
+              rows={3}
             />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="notes">Notes</Label>
-            <Textarea id="notes" name="notes" placeholder="Dietary needs…" />
           </div>
           <Button type="submit" className="w-full" disabled={loading}>
-            {loading ? "Adding..." : "Add guest"}
+            {loading ? "Adding..." : "Add client"}
           </Button>
         </form>
       </DialogContent>

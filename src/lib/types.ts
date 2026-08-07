@@ -184,14 +184,18 @@ export interface EventGuest {
   id: string;
   org_id: string;
   event_id: string;
-  /** Optional link to a CRM client */
+  /** Linked CRM client */
   account_id?: string | null;
+  /** Linked contact at that client */
+  contact_id?: string | null;
+  /** Snapshot of contact name (or guest label) */
   name: string;
   email: string | null;
   phone: string | null;
   notes: string | null;
   created_at: string;
   account?: Account | { id: string; name?: string; nickname?: string | null } | null;
+  contact?: Contact | { id: string; name?: string; email?: string | null; phone?: string | null } | null;
   event?: Event | null;
 }
 

@@ -93,10 +93,21 @@ export async function createEventGuest(eventId: string, formData: FormData) {
   const profile = await requireProfile();
   const supabase = await createClient();
 
-  const name = String(formData.get("name") || "").trim();
-  if (!name) return { error: "Guest name is required." };
+  const accountId = String(formData.get("account_id") || "").trim();
+  const contactId = String(formData.get("contact_id") || "").trim();
+  if (!accountId) return { error: "Client is required." };
+  if (!contactId) return { error: "Contact is required." };
 
-  const accountId = String(formData.get("account_id") || "").trim() || null;
+  const { data: contact, error: contactError } = await supabase
+    .from("contacts")
+    .select("id, account_id, name, email, phone")
+    .eq("id", contactId)
+    .eq("account_id", accountId)
+    .eq("org_id", profile.org_id)
+    .maybeSingle();
+
+  if (contactError) return { error: contactError.message };
+  if (!contact) return { error: "Selected contact was not found for this client." };
 
   const { data, error } = await supabase
     .from("event_guests")
@@ -104,10 +115,11 @@ export async function createEventGuest(eventId: string, formData: FormData) {
       org_id: profile.org_id,
       event_id: eventId,
       account_id: accountId,
-      name,
-      email: (formData.get("email") as string) || null,
-      phone: (formData.get("phone") as string) || null,
-      notes: (formData.get("notes") as string) || null,
+      contact_id: contact.id,
+      name: contact.name,
+      email: contact.email || null,
+      phone: contact.phone || null,
+      notes: String(formData.get("notes") || "").trim() || null,
     })
     .select()
     .single();
@@ -126,10 +138,21 @@ export async function updateEventGuest(
   await requireProfile();
   const supabase = await createClient();
 
-  const name = String(formData.get("name") || "").trim();
-  if (!name) return { error: "Guest name is required." };
+  const accountId = String(formData.get("account_id") || "").trim();
+  const contactId = String(formData.get("contact_id") || "").trim();
+  if (!accountId) return { error: "Client is required." };
+  if (!contactId) return { error: "Contact is required." };
 
-  const accountId = String(formData.get("account_id") || "").trim() || null;
+  const { data: contact, error: contactError } = await supabase
+    .from("contacts")
+    .select("id, account_id, name, email, phone")
+    .eq("id", contactId)
+    .eq("account_id", accountId)
+    .eq("org_id", profile.org_id)
+    .maybeSingle();
+
+  if (contactError) return { error: contactError.message };
+  if (!contact) return { error: "Selected contact was not found for this client." };
 
   const { data: existing } = await supabase
     .from("event_guests")
@@ -141,10 +164,11 @@ export async function updateEventGuest(
     .from("event_guests")
     .update({
       account_id: accountId,
-      name,
-      email: (formData.get("email") as string) || null,
-      phone: (formData.get("phone") as string) || null,
-      notes: (formData.get("notes") as string) || null,
+      contact_id: contact.id,
+      name: contact.name,
+      email: contact.email || null,
+      phone: contact.phone || null,
+      notes: String(formData.get("notes") || "").trim() || null,
     })
     .eq("id", id);
 
