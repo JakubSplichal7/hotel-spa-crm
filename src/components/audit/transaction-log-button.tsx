@@ -17,13 +17,81 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { formatDateTime } from "@/lib/utils";
-import { ScrollText } from "lucide-react";
+import { formatDateTime, cn } from "@/lib/utils";
+import { ArrowLeft, ScrollText } from "lucide-react";
 
 function actionBadgeVariant(action: string) {
   if (action === "created") return "success" as const;
   if (action === "deleted") return "destructive" as const;
   return "secondary" as const;
+}
+
+function subjectLabel(entityType: string) {
+  const label = AUDIT_ENTITY_LABELS[entityType] || entityType;
+  return label.toLowerCase();
+}
+
+function actorName(event: AuditEvent) {
+  return (
+    (event.actor as { full_name?: string } | null)?.full_name || "Unknown user"
+  );
+}
+
+function TransactionDetail({ event }: { event: AuditEvent }) {
+  return (
+    <div className="rounded-lg border bg-card/80 p-3 shadow-sm">
+      <div className="flex flex-wrap items-start justify-between gap-2">
+        <div className="min-w-0">
+          <p className="font-medium">{event.summary}</p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            {actorName(event)} · {formatDateTime(event.created_at)}
+          </p>
+        </div>
+        <div className="flex flex-wrap gap-1">
+          <Badge variant={actionBadgeVariant(event.action)}>
+            {event.action}
+          </Badge>
+          <Badge variant="outline">
+            {AUDIT_ENTITY_LABELS[event.entity_type] || event.entity_type}
+          </Badge>
+        </div>
+      </div>
+      {event.entity_label ? (
+        <p className="mt-2 text-sm text-muted-foreground">{event.entity_label}</p>
+      ) : null}
+      {event.changes && event.changes.length > 0 ? (
+        <div className="mt-3 overflow-x-auto rounded-md border bg-muted/30">
+          <table className="w-full text-xs">
+            <thead>
+              <tr className="border-b text-left text-muted-foreground">
+                <th className="px-2 py-1.5 font-medium">Field</th>
+                <th className="px-2 py-1.5 font-medium">From</th>
+                <th className="px-2 py-1.5 font-medium">To</th>
+              </tr>
+            </thead>
+            <tbody>
+              {event.changes.map((change, idx) => (
+                <tr
+                  key={`${event.id}-${change.field}-${idx}`}
+                  className="border-b last:border-0"
+                >
+                  <td className="px-2 py-1.5 font-medium">{change.field}</td>
+                  <td className="px-2 py-1.5 text-muted-foreground">
+                    {change.from ?? "—"}
+                  </td>
+                  <td className="px-2 py-1.5">{change.to ?? "—"}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      ) : (
+        <p className="mt-3 text-sm text-muted-foreground">
+          No field-level changes recorded for this transaction.
+        </p>
+      )}
+    </div>
+  );
 }
 
 export function TransactionLogButton({
@@ -51,13 +119,18 @@ export function TransactionLogButton({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [events, setEvents] = useState<AuditEvent[]>([]);
+  const [selected, setSelected] = useState<AuditEvent | null>(null);
 
   useEffect(() => {
-    if (!open) return;
+    if (!open) {
+      setSelected(null);
+      return;
+    }
     let cancelled = false;
     (async () => {
       setLoading(true);
       setError(null);
+      setSelected(null);
       const result = await getAuditEvents({
         accountId,
         entityType,
@@ -84,7 +157,6 @@ export function TransactionLogButton({
     entityType,
     entityId,
     includeRelated,
-    // Stabilize array prop for effect deps
     entityTypes?.join(","),
   ]);
 
@@ -96,16 +168,41 @@ export function TransactionLogButton({
           Transaction log
         </Button>
       </DialogTrigger>
-      <DialogContent className="flex max-h-[85vh] max-w-2xl flex-col gap-0 overflow-hidden p-0">
+      <DialogContent className="flex max-h-[85vh] max-w-3xl flex-col gap-0 overflow-hidden p-0">
         <DialogHeader className="shrink-0 border-b px-6 py-4">
-          <DialogTitle>{title}</DialogTitle>
-          <DialogDescription>
-            {description ||
-              "Historical actions for this section. Newest first."}
-          </DialogDescription>
+          {selected ? (
+            <div className="flex items-start gap-2">
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="-ml-2 mt-0.5 h-8 w-8 shrink-0 p-0"
+                onClick={() => setSelected(null)}
+                aria-label="Back to list"
+              >
+                <ArrowLeft className="h-4 w-4" />
+              </Button>
+              <div className="min-w-0">
+                <DialogTitle>Transaction detail</DialogTitle>
+                <DialogDescription>
+                  {selected.entity_label || selected.summary}
+                </DialogDescription>
+              </div>
+            </div>
+          ) : (
+            <>
+              <DialogTitle>{title}</DialogTitle>
+              <DialogDescription>
+                {description ||
+                  "Historical actions for this section. Newest first. Click a row for details."}
+              </DialogDescription>
+            </>
+          )}
         </DialogHeader>
         <div className="min-h-0 flex-1 overflow-y-auto px-6 py-4">
-          {loading ? (
+          {selected ? (
+            <TransactionDetail event={selected} />
+          ) : loading ? (
             <p className="text-sm text-muted-foreground">Loading…</p>
           ) : error ? (
             <p className="text-sm text-destructive">{error}</p>
@@ -114,68 +211,55 @@ export function TransactionLogButton({
               No transactions recorded yet.
             </p>
           ) : (
-            <ul className="space-y-4">
-              {events.map((event) => (
-                <li
-                  key={event.id}
-                  className="rounded-lg border bg-card/80 p-3 shadow-sm"
-                >
-                  <div className="flex flex-wrap items-start justify-between gap-2">
-                    <div className="min-w-0">
-                      <p className="font-medium">{event.summary}</p>
-                      <p className="mt-1 text-xs text-muted-foreground">
-                        {(event.actor as { full_name?: string } | null)
-                          ?.full_name || "Unknown user"}{" "}
-                        · {formatDateTime(event.created_at)}
-                      </p>
-                    </div>
-                    <div className="flex flex-wrap gap-1">
-                      <Badge variant={actionBadgeVariant(event.action)}>
+            <div className="overflow-x-auto rounded-md border">
+              <table className="w-full min-w-[640px] text-left text-sm">
+                <thead>
+                  <tr className="border-b bg-muted/40 text-xs uppercase tracking-wide text-muted-foreground">
+                    <th className="px-3 py-2 font-medium">Name</th>
+                    <th className="px-3 py-2 font-medium">Action</th>
+                    <th className="px-3 py-2 font-medium">Subject</th>
+                    <th className="px-3 py-2 font-medium">Time</th>
+                    <th className="px-3 py-2 font-medium">By</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {events.map((event) => (
+                    <tr
+                      key={event.id}
+                      role="button"
+                      tabIndex={0}
+                      onClick={() => setSelected(event)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          setSelected(event);
+                        }
+                      }}
+                      className={cn(
+                        "cursor-pointer border-b last:border-0",
+                        "hover:bg-muted/50 focus-visible:bg-muted/50 focus-visible:outline-none"
+                      )}
+                    >
+                      <td className="max-w-[180px] truncate px-3 py-2 font-medium">
+                        {event.entity_label || "—"}
+                      </td>
+                      <td className="whitespace-nowrap px-3 py-2 capitalize text-muted-foreground">
                         {event.action}
-                      </Badge>
-                      <Badge variant="outline">
-                        {AUDIT_ENTITY_LABELS[event.entity_type] ||
-                          event.entity_type}
-                      </Badge>
-                    </div>
-                  </div>
-                  {event.entity_label ? (
-                    <p className="mt-2 text-sm text-muted-foreground">
-                      {event.entity_label}
-                    </p>
-                  ) : null}
-                  {event.changes && event.changes.length > 0 ? (
-                    <div className="mt-3 overflow-x-auto rounded-md border bg-muted/30">
-                      <table className="w-full text-xs">
-                        <thead>
-                          <tr className="border-b text-left text-muted-foreground">
-                            <th className="px-2 py-1.5 font-medium">Field</th>
-                            <th className="px-2 py-1.5 font-medium">From</th>
-                            <th className="px-2 py-1.5 font-medium">To</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {event.changes.map((change, idx) => (
-                            <tr
-                              key={`${event.id}-${change.field}-${idx}`}
-                              className="border-b last:border-0"
-                            >
-                              <td className="px-2 py-1.5 font-medium">
-                                {change.field}
-                              </td>
-                              <td className="px-2 py-1.5 text-muted-foreground">
-                                {change.from ?? "—"}
-                              </td>
-                              <td className="px-2 py-1.5">{change.to ?? "—"}</td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  ) : null}
-                </li>
-              ))}
-            </ul>
+                      </td>
+                      <td className="whitespace-nowrap px-3 py-2 text-muted-foreground">
+                        {subjectLabel(event.entity_type)}
+                      </td>
+                      <td className="whitespace-nowrap px-3 py-2 text-muted-foreground">
+                        {formatDateTime(event.created_at)}
+                      </td>
+                      <td className="max-w-[160px] truncate px-3 py-2 text-muted-foreground">
+                        {actorName(event)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           )}
         </div>
       </DialogContent>
