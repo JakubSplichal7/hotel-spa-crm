@@ -99,10 +99,11 @@ export default async function EventDetailPage({ params }: PageProps) {
         <div className="flex flex-wrap items-center gap-2">
           <ManagerTransactionLog
             profile={profile}
-            entityType="event"
+            entityTypes={["event", "event_guest"]}
             entityId={id}
+            includeRelated
             title={`Transaction log · ${event.name}`}
-            description="History for this event. Invite (guest) changes appear in the Events list log."
+            description="History for this event, including invited clients."
           />
           <EditEventDialog event={eventRecord} />
         </div>

@@ -29,6 +29,7 @@ export type AuditEvent = {
   entity_id: string | null;
   entity_label: string | null;
   account_id: string | null;
+  related_entity_id?: string | null;
   summary: string;
   changes: AuditChange[] | null;
   created_at: string;
@@ -81,6 +82,8 @@ export type LogAuditEventInput = {
   entityId?: string | null;
   entityLabel?: string | null;
   accountId?: string | null;
+  /** Parent entity (e.g. event id for an event_guest row). */
+  relatedEntityId?: string | null;
   summary: string;
   changes?: AuditChange[] | null;
 };

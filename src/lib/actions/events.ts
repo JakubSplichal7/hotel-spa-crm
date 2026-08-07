@@ -180,9 +180,11 @@ export async function createEventGuest(eventId: string, formData: FormData) {
     profile,
     action: "created",
     entityType: "event_guest",
-    entityId: data.id,
+    // Scope under the parent event so the event detail log includes invites
+    entityId: eventId,
     entityLabel: contact.name,
     accountId,
+    relatedEntityId: eventId,
     summary: `Added client contact “${contact.name}” to event`,
   });
 
@@ -240,9 +242,10 @@ export async function updateEventGuest(
     profile,
     action: "updated",
     entityType: "event_guest",
-    entityId: id,
+    entityId: eventId,
     entityLabel: contact.name,
     accountId,
+    relatedEntityId: eventId,
     summary: `Updated invited client contact “${contact.name}”`,
     changes: buildAuditChanges(existing, next, [
       { key: "account_id", label: "Client" },
@@ -278,9 +281,10 @@ export async function deleteEventGuest(id: string, eventId: string) {
     profile,
     action: "deleted",
     entityType: "event_guest",
-    entityId: id,
+    entityId: eventId,
     entityLabel: guest?.name || id,
     accountId: guest?.account_id || null,
+    relatedEntityId: eventId,
     summary: `Removed invited client contact “${guest?.name || id}”`,
   });
 

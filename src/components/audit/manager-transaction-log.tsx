@@ -10,6 +10,7 @@ export function ManagerTransactionLog({
   entityType,
   entityTypes,
   entityId,
+  includeRelated,
   title,
   description,
 }: {
@@ -18,6 +19,7 @@ export function ManagerTransactionLog({
   entityType?: AuditEntityType | string | null;
   entityTypes?: (AuditEntityType | string)[] | null;
   entityId?: string | null;
+  includeRelated?: boolean;
   title?: string;
   description?: string;
 }) {
@@ -28,6 +30,7 @@ export function ManagerTransactionLog({
       entityType={entityType}
       entityTypes={entityTypes}
       entityId={entityId}
+      includeRelated={includeRelated}
       title={title}
       description={description}
     />

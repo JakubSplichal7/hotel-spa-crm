@@ -31,6 +31,7 @@ export function TransactionLogButton({
   entityType,
   entityTypes,
   entityId,
+  includeRelated,
   title = "Transaction log",
   description,
   buttonVariant = "outline",
@@ -40,6 +41,7 @@ export function TransactionLogButton({
   entityType?: AuditEntityType | string | null;
   entityTypes?: (AuditEntityType | string)[] | null;
   entityId?: string | null;
+  includeRelated?: boolean;
   title?: string;
   description?: string;
   buttonVariant?: "default" | "outline" | "secondary";
@@ -61,6 +63,7 @@ export function TransactionLogButton({
         entityType,
         entityTypes,
         entityId,
+        includeRelated,
         limit: 200,
       });
       if (cancelled) return;
@@ -80,6 +83,7 @@ export function TransactionLogButton({
     accountId,
     entityType,
     entityId,
+    includeRelated,
     // Stabilize array prop for effect deps
     entityTypes?.join(","),
   ]);
