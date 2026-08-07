@@ -9,26 +9,41 @@ import {
   getTaskDayDelta,
 } from "@/lib/task-dates";
 import Link from "next/link";
+import { EditTaskDialog } from "@/components/tasks/edit-task-dialog";
 import { TaskStatusToggle } from "@/components/tasks/task-status-toggle";
 import { TaskDescriptionCard } from "@/components/tasks/task-description-card";
-import { getAccountDisplayName } from "@/lib/types";
+import {
+  getAccountDisplayName,
+  type Account,
+  type Profile,
+  type Task,
+} from "@/lib/types";
 
 interface PageProps {
   params: Promise<{ id: string }>;
 }
 
 export default async function TaskDetailPage({ params }: PageProps) {
-  await requireProfile();
+  const profile = await requireProfile();
   const { id } = await params;
   const supabase = await createClient();
 
-  const { data: task } = await supabase
-    .from("tasks")
-    .select(
-      "*, account:accounts(id, name, nickname), deal:deals(id, title), assignee:profiles!tasks_assignee_id_fkey(full_name)"
-    )
-    .eq("id", id)
-    .single();
+  const [{ data: task }, { data: accounts }, { data: profiles }] =
+    await Promise.all([
+      supabase
+        .from("tasks")
+        .select(
+          "*, account:accounts(id, name, nickname), deal:deals(id, title), assignee:profiles!tasks_assignee_id_fkey(full_name)"
+        )
+        .eq("id", id)
+        .single(),
+      supabase
+        .from("accounts")
+        .select("*")
+        .eq("org_id", profile.org_id)
+        .order("nickname"),
+      supabase.from("profiles").select("*").eq("org_id", profile.org_id),
+    ]);
 
   if (!task) notFound();
 
@@ -44,6 +59,7 @@ export default async function TaskDetailPage({ params }: PageProps) {
   const isOverdue =
     task.status === "open" && dueDay !== null && dueDay < todayStr;
   const delta = getTaskDayDelta(task);
+  const taskRecord = task as Task;
 
   return (
     <div className="space-y-6">
@@ -72,11 +88,18 @@ export default async function TaskDetailPage({ params }: PageProps) {
             </div>
           </div>
         </div>
-        <TaskStatusToggle
-          taskId={task.id}
-          status={task.status}
-          taskTitle={task.title}
-        />
+        <div className="flex flex-wrap items-center gap-2">
+          <EditTaskDialog
+            task={taskRecord}
+            accounts={(accounts || []) as Account[]}
+            profiles={(profiles || []) as Profile[]}
+          />
+          <TaskStatusToggle
+            taskId={task.id}
+            status={task.status}
+            taskTitle={task.title}
+          />
+        </div>
       </div>
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-5">
