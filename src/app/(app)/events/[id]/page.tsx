@@ -11,7 +11,7 @@ import { AddEventGuestDialog } from "@/components/events/add-event-guest-dialog"
 import { RemoveEventGuestButton } from "@/components/events/remove-event-guest-button";
 import { LogActivityDialog } from "@/components/activities/log-activity-dialog";
 import { CreateTaskDialog } from "@/components/tasks/create-task-dialog";
-import type { Account, Event, EventGuest, Profile } from "@/lib/types";
+import type { Account, Contact, Event, EventGuest, Profile } from "@/lib/types";
 
 const titleShadow =
   "text-slate-950 [text-shadow:0_1px_2px_rgba(255,255,255,0.95),0_0_12px_rgba(255,255,255,0.85),0_2px_8px_rgba(255,255,255,0.7)]";
@@ -41,6 +41,7 @@ export default async function EventDetailPage({ params }: PageProps) {
     { data: tasks },
     { data: profiles },
     { data: accounts },
+    { data: contacts },
   ] = await Promise.all([
     supabase
       .from("event_guests")
@@ -59,6 +60,11 @@ export default async function EventDetailPage({ params }: PageProps) {
       .order("due_at"),
     supabase.from("profiles").select("*").eq("org_id", profile.org_id),
     supabase.from("accounts").select("*").eq("org_id", profile.org_id).order("nickname"),
+    supabase
+      .from("contacts")
+      .select("*")
+      .eq("org_id", profile.org_id)
+      .order("is_primary", { ascending: false }),
   ]);
 
   const eventRecord = event as Event;
@@ -103,6 +109,7 @@ export default async function EventDetailPage({ params }: PageProps) {
           <AddEventGuestDialog
             eventId={event.id}
             accounts={(accounts || []) as Account[]}
+            contacts={(contacts || []) as Contact[]}
           />
         </div>
         {!guests?.length ? (

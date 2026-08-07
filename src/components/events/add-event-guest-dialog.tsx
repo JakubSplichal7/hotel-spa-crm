@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createEventGuest } from "@/lib/actions/events";
 import { Button } from "@/components/ui/button";
@@ -14,20 +14,27 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { NativeSelect } from "@/components/ui/native-select";
 import { SearchableClientSelect } from "@/components/searchable-client-select";
 import { FormError } from "@/components/form-error";
 import { validateRequired } from "@/lib/form-validation";
-import { getAccountDisplayName, type Account } from "@/lib/types";
+import {
+  getAccountDisplayName,
+  type Account,
+  type Contact,
+} from "@/lib/types";
 import { Plus } from "lucide-react";
 
 export function AddEventGuestDialog({
   eventId,
   accounts = [],
+  contacts = [],
   buttonVariant = "default",
   buttonSize = "sm",
 }: {
   eventId: string;
   accounts?: Account[];
+  contacts?: Contact[];
   buttonVariant?: "default" | "outline" | "secondary";
   buttonSize?: "default" | "sm";
 }) {
@@ -36,15 +43,48 @@ export function AddEventGuestDialog({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [accountId, setAccountId] = useState("");
+  const [contactId, setContactId] = useState("");
   const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+
+  const clientContacts = useMemo(() => {
+    if (!accountId) return [];
+    return contacts
+      .filter((c) => c.account_id === accountId)
+      .sort((a, b) => {
+        if (a.is_primary !== b.is_primary) return a.is_primary ? -1 : 1;
+        return a.name.localeCompare(b.name);
+      });
+  }, [contacts, accountId]);
+
+  function resetForm() {
+    setAccountId("");
+    setContactId("");
+    setName("");
+    setEmail("");
+    setPhone("");
+    setError(null);
+  }
 
   function handleAccountChange(nextId: string) {
     setAccountId(nextId);
+    setContactId("");
     if (!nextId) return;
     const account = accounts.find((a) => a.id === nextId);
-    if (account && !name.trim()) {
+    if (account) {
       setName(getAccountDisplayName(account));
     }
+  }
+
+  function handleContactChange(nextId: string) {
+    setContactId(nextId);
+    if (!nextId) return;
+    const contact = clientContacts.find((c) => c.id === nextId);
+    if (!contact) return;
+    setName(contact.name);
+    setEmail(contact.email || "");
+    setPhone(contact.phone || "");
   }
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -54,6 +94,8 @@ export function AddEventGuestDialog({
     const formData = new FormData(form);
     formData.set("account_id", accountId);
     formData.set("name", name);
+    formData.set("email", email);
+    formData.set("phone", phone);
     const missing = validateRequired(formData, [
       { name: "name", label: "Name" },
     ]);
@@ -69,8 +111,7 @@ export function AddEventGuestDialog({
       return;
     }
     setOpen(false);
-    setAccountId("");
-    setName("");
+    resetForm();
     form.reset();
     router.refresh();
   }
@@ -80,11 +121,7 @@ export function AddEventGuestDialog({
       open={open}
       onOpenChange={(next) => {
         setOpen(next);
-        if (next) {
-          setError(null);
-          setAccountId("");
-          setName("");
-        }
+        if (next) resetForm();
       }}
     >
       <DialogTrigger asChild>
@@ -93,7 +130,7 @@ export function AddEventGuestDialog({
           Add guest
         </Button>
       </DialogTrigger>
-      <DialogContent>
+      <DialogContent className="max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Invite guest</DialogTitle>
         </DialogHeader>
@@ -115,6 +152,35 @@ export function AddEventGuestDialog({
               </p>
             </div>
           ) : null}
+          {accountId ? (
+            <div className="space-y-2">
+              <Label htmlFor="contact_id">Contact (optional)</Label>
+              <NativeSelect
+                id="contact_id"
+                value={contactId}
+                onChange={(e) => handleContactChange(e.target.value)}
+              >
+                <option value="">Select a contact…</option>
+                {clientContacts.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name}
+                    {c.is_primary ? " (Primary)" : ""}
+                    {c.title ? ` · ${c.title}` : ""}
+                  </option>
+                ))}
+              </NativeSelect>
+              {clientContacts.length === 0 ? (
+                <p className="text-xs text-muted-foreground">
+                  This client has no contacts yet. You can still enter details
+                  manually.
+                </p>
+              ) : (
+                <p className="text-xs text-muted-foreground">
+                  Choosing a contact fills name, email, and phone.
+                </p>
+              )}
+            </div>
+          ) : null}
           <div className="space-y-2">
             <Label htmlFor="name" required>
               Name
@@ -130,11 +196,24 @@ export function AddEventGuestDialog({
           </div>
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
-            <Input id="email" name="email" type="email" placeholder="optional" />
+            <Input
+              id="email"
+              name="email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="optional"
+            />
           </div>
           <div className="space-y-2">
             <Label htmlFor="phone">Phone</Label>
-            <Input id="phone" name="phone" placeholder="optional" />
+            <Input
+              id="phone"
+              name="phone"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              placeholder="optional"
+            />
           </div>
           <div className="space-y-2">
             <Label htmlFor="notes">Notes</Label>
