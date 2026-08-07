@@ -9,6 +9,8 @@ import { ContactsTable } from "@/components/accounts/contacts-table";
 import { CreateAccountNoteDialog } from "@/components/accounts/create-account-note-dialog";
 import { AccountNotesTable } from "@/components/accounts/account-notes-table";
 import { AccountTasksPanel } from "@/components/accounts/account-tasks-panel";
+import { CreateDealDialog } from "@/components/deals/create-deal-dialog";
+import { CreateTaskDialog } from "@/components/tasks/create-task-dialog";
 import { EmptyState } from "@/components/empty-state";
 import { formatCurrency, formatDate, formatDateTime } from "@/lib/utils";
 import { getDealStageLabel, getActivityTypeLabel, getAccountTypeLabel, getAcquisitionLabel } from "@/lib/types";
@@ -202,8 +204,18 @@ export default async function AccountDetailPage({ params }: PageProps) {
         </TabsContent>
 
         <TabsContent value="deals" className="mt-4">
+          <div className="mb-4 flex justify-end">
+            <CreateDealDialog
+              accounts={[account as Account]}
+              profiles={(profiles || []) as Profile[]}
+              defaultAccountId={id}
+              buttonVariant="outline"
+              buttonSize="sm"
+              buttonLabel="Create Offer"
+            />
+          </div>
           {!deals?.length ? (
-            <EmptyState title="No offers" description="Create an offer or package from the Offers page." />
+            <EmptyState title="No offers" description="Create an offer or package for this client." />
           ) : (
             <div className="space-y-2">
               {deals.map((deal) => (
@@ -295,6 +307,16 @@ export default async function AccountDetailPage({ params }: PageProps) {
         </TabsContent>
 
         <TabsContent value="tasks" className="mt-4">
+          <div className="mb-4 flex justify-end">
+            <CreateTaskDialog
+              accounts={[account as Account]}
+              profiles={(profiles || []) as Profile[]}
+              defaultAccountId={id}
+              buttonVariant="outline"
+              buttonSize="sm"
+              buttonLabel="Create Task"
+            />
+          </div>
           <AccountTasksPanel tasks={(tasks || []) as Task[]} />
         </TabsContent>
 

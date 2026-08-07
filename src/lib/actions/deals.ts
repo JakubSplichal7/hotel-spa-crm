@@ -64,8 +64,10 @@ export async function createDeal(formData: FormData) {
 
   if (error) return { error: error.message };
 
+  const accountId = data.account_id as string | undefined;
   revalidatePath("/deals");
   revalidatePath("/dashboard");
+  if (accountId) revalidatePath(`/accounts/${accountId}`);
   return { data };
 }
 

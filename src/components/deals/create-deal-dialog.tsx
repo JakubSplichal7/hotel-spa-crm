@@ -32,24 +32,37 @@ import { RequireLinkedBookingPrompt } from "@/components/deals/require-linked-bo
 export function CreateDealDialog({
   accounts,
   profiles,
+  defaultAccountId,
+  buttonVariant = "default",
+  buttonSize = "default",
+  buttonLabel = "New Offer",
 }: {
   accounts: Account[];
   profiles: Profile[];
+  defaultAccountId?: string;
+  buttonVariant?: "default" | "outline" | "secondary";
+  buttonSize?: "default" | "sm";
+  buttonLabel?: string;
 }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [accountId, setAccountId] = useState("");
+  const [accountId, setAccountId] = useState(defaultAccountId || "");
   const [createdDealId, setCreatedDealId] = useState<string | null>(null);
   const [createdStage, setCreatedStage] = useState<DealStage | null>(null);
   const [askBooking, setAskBooking] = useState(false);
+
+  const lockedClient = Boolean(defaultAccountId);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError(null);
     const form = e.currentTarget;
     const formData = new FormData(form);
+    if (lockedClient && defaultAccountId) {
+      formData.set("account_id", defaultAccountId);
+    }
     const missing = validateRequired(formData, [
       { name: "title", label: "Offer title" },
       { name: "account_id", label: "Client" },
@@ -69,7 +82,7 @@ export function CreateDealDialog({
     if (!result?.data) return;
 
     setOpen(false);
-    setAccountId("");
+    setAccountId(defaultAccountId || "");
     form.reset();
     router.refresh();
 
@@ -87,15 +100,15 @@ export function CreateDealDialog({
         onOpenChange={(next) => {
           setOpen(next);
           if (next) {
-            setAccountId("");
+            setAccountId(defaultAccountId || "");
             setError(null);
           }
         }}
       >
         <DialogTrigger asChild>
-          <Button>
+          <Button variant={buttonVariant} size={buttonSize}>
             <Plus className="mr-2 h-4 w-4" />
-            New Offer
+            {buttonLabel}
           </Button>
         </DialogTrigger>
         <DialogContent>
@@ -115,20 +128,24 @@ export function CreateDealDialog({
                 placeholder="Corporate spa package Q2"
               />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="account_id" required>
-                Client
-              </Label>
-              <SearchableClientSelect
-                id="account_id"
-                accounts={accounts}
-                value={accountId}
-                onChange={setAccountId}
-                required
-                className="max-w-none"
-                placeholder="Type client name…"
-              />
-            </div>
+            {lockedClient ? (
+              <input type="hidden" name="account_id" value={defaultAccountId} />
+            ) : (
+              <div className="space-y-2">
+                <Label htmlFor="account_id" required>
+                  Client
+                </Label>
+                <SearchableClientSelect
+                  id="account_id"
+                  accounts={accounts}
+                  value={accountId}
+                  onChange={setAccountId}
+                  required
+                  className="max-w-none"
+                  placeholder="Type client name…"
+                />
+              </div>
+            )}
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="value">Value</Label>
