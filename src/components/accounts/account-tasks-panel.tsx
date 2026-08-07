@@ -99,21 +99,7 @@ export function AccountTasksPanel({ tasks }: { tasks: Task[] }) {
                     </p>
                   </div>
                   <div className="flex shrink-0 flex-wrap items-center justify-end gap-3 sm:gap-4">
-                    <Badge
-                      variant={
-                        isDone
-                          ? "success"
-                          : isOverdue
-                            ? "destructive"
-                            : "warning"
-                      }
-                    >
-                      {isDone ? "Done" : isOverdue ? "Overdue" : "Not done"}
-                    </Badge>
-                    <div className="whitespace-nowrap text-sm text-muted-foreground">
-                      Due: {task.due_at ? formatDate(task.due_at) : "—"}
-                    </div>
-                    <p className="text-sm font-medium">
+                    <p className="whitespace-nowrap text-sm font-medium">
                       {delta === null ? (
                         <span className="text-muted-foreground">—</span>
                       ) : (
@@ -128,6 +114,20 @@ export function AccountTasksPanel({ tasks }: { tasks: Task[] }) {
                         </span>
                       )}
                     </p>
+                    <div className="whitespace-nowrap text-sm text-muted-foreground">
+                      Due: {task.due_at ? formatDate(task.due_at) : "—"}
+                    </div>
+                    <Badge
+                      variant={
+                        isDone
+                          ? "success"
+                          : isOverdue
+                            ? "destructive"
+                            : "warning"
+                      }
+                    >
+                      {isDone ? "Done" : isOverdue ? "Overdue" : "Not done"}
+                    </Badge>
                   </div>
                 </CardContent>
               </Card>
