@@ -14,16 +14,20 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { SearchableClientSelect } from "@/components/searchable-client-select";
 import { FormError } from "@/components/form-error";
 import { validateRequired } from "@/lib/form-validation";
+import { getAccountDisplayName, type Account } from "@/lib/types";
 import { Plus } from "lucide-react";
 
 export function AddEventGuestDialog({
   eventId,
+  accounts = [],
   buttonVariant = "default",
   buttonSize = "sm",
 }: {
   eventId: string;
+  accounts?: Account[];
   buttonVariant?: "default" | "outline" | "secondary";
   buttonSize?: "default" | "sm";
 }) {
@@ -31,12 +35,25 @@ export function AddEventGuestDialog({
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [accountId, setAccountId] = useState("");
+  const [name, setName] = useState("");
+
+  function handleAccountChange(nextId: string) {
+    setAccountId(nextId);
+    if (!nextId) return;
+    const account = accounts.find((a) => a.id === nextId);
+    if (account && !name.trim()) {
+      setName(getAccountDisplayName(account));
+    }
+  }
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError(null);
     const form = e.currentTarget;
     const formData = new FormData(form);
+    formData.set("account_id", accountId);
+    formData.set("name", name);
     const missing = validateRequired(formData, [
       { name: "name", label: "Name" },
     ]);
@@ -52,6 +69,8 @@ export function AddEventGuestDialog({
       return;
     }
     setOpen(false);
+    setAccountId("");
+    setName("");
     form.reset();
     router.refresh();
   }
@@ -61,7 +80,11 @@ export function AddEventGuestDialog({
       open={open}
       onOpenChange={(next) => {
         setOpen(next);
-        if (next) setError(null);
+        if (next) {
+          setError(null);
+          setAccountId("");
+          setName("");
+        }
       }}
     >
       <DialogTrigger asChild>
@@ -76,11 +99,34 @@ export function AddEventGuestDialog({
         </DialogHeader>
         <form onSubmit={handleSubmit} noValidate className="space-y-4">
           <FormError message={error} />
+          {accounts.length > 0 ? (
+            <div className="space-y-2">
+              <Label htmlFor="account_id">Client (optional)</Label>
+              <SearchableClientSelect
+                id="account_id"
+                accounts={accounts}
+                value={accountId}
+                onChange={handleAccountChange}
+                className="max-w-none"
+                placeholder="Link to a CRM client…"
+              />
+              <p className="text-xs text-muted-foreground">
+                Link a client so this event shows on their profile.
+              </p>
+            </div>
+          ) : null}
           <div className="space-y-2">
             <Label htmlFor="name" required>
               Name
             </Label>
-            <Input id="name" name="name" required placeholder="Guest name" />
+            <Input
+              id="name"
+              name="name"
+              required
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Guest name"
+            />
           </div>
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>

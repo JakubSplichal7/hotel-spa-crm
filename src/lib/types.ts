@@ -184,11 +184,15 @@ export interface EventGuest {
   id: string;
   org_id: string;
   event_id: string;
+  /** Optional link to a CRM client */
+  account_id?: string | null;
   name: string;
   email: string | null;
   phone: string | null;
   notes: string | null;
   created_at: string;
+  account?: Account | { id: string; name?: string; nickname?: string | null } | null;
+  event?: Event | null;
 }
 
 export interface Idea {

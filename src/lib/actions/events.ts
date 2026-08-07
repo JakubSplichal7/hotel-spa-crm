@@ -4,9 +4,10 @@ import { createClient } from "@/lib/supabase/server";
 import { requireProfile } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 
-async function revalidateEventPaths(eventId: string) {
+async function revalidateEventPaths(eventId: string, accountId?: string | null) {
   revalidatePath("/events");
   revalidatePath(`/events/${eventId}`);
+  if (accountId) revalidatePath(`/accounts/${accountId}`);
 }
 
 export async function createEvent(formData: FormData) {
@@ -95,11 +96,14 @@ export async function createEventGuest(eventId: string, formData: FormData) {
   const name = String(formData.get("name") || "").trim();
   if (!name) return { error: "Guest name is required." };
 
+  const accountId = String(formData.get("account_id") || "").trim() || null;
+
   const { data, error } = await supabase
     .from("event_guests")
     .insert({
       org_id: profile.org_id,
       event_id: eventId,
+      account_id: accountId,
       name,
       email: (formData.get("email") as string) || null,
       phone: (formData.get("phone") as string) || null,
@@ -110,7 +114,7 @@ export async function createEventGuest(eventId: string, formData: FormData) {
 
   if (error) return { error: error.message };
 
-  await revalidateEventPaths(eventId);
+  await revalidateEventPaths(eventId, accountId);
   return { data };
 }
 
@@ -118,9 +122,15 @@ export async function deleteEventGuest(id: string, eventId: string) {
   await requireProfile();
   const supabase = await createClient();
 
+  const { data: guest } = await supabase
+    .from("event_guests")
+    .select("account_id")
+    .eq("id", id)
+    .maybeSingle();
+
   const { error } = await supabase.from("event_guests").delete().eq("id", id);
   if (error) return { error: error.message };
 
-  await revalidateEventPaths(eventId);
+  await revalidateEventPaths(eventId, guest?.account_id);
   return { success: true };
 }

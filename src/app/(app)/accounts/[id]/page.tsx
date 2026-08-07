@@ -15,7 +15,7 @@ import { getDealStageLabel, getActivityTypeLabel, getAccountTypeLabel, getAcquis
 import Link from "next/link";
 import { EditAccountDialog } from "@/components/accounts/edit-account-dialog";
 import { TableExportBar } from "@/components/export-xlsx-button";
-import type { Account, AccountNote, Profile, Task } from "@/lib/types";
+import type { Account, AccountNote, EventGuest, Profile, Task } from "@/lib/types";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -41,6 +41,7 @@ export default async function AccountDetailPage({ params }: PageProps) {
     { data: activities },
     { data: tasks },
     { data: bookings },
+    { data: eventGuests },
     { data: profiles },
   ] = await Promise.all([
     supabase.from("contacts").select("*").eq("account_id", id).order("is_primary", { ascending: false }),
@@ -53,8 +54,23 @@ export default async function AccountDetailPage({ params }: PageProps) {
     supabase.from("activities").select("*, creator:profiles!activities_created_by_fkey(full_name)").eq("account_id", id).order("occurred_at", { ascending: false }).limit(10),
     supabase.from("tasks").select("*, assignee:profiles!tasks_assignee_id_fkey(full_name)").eq("account_id", id).order("due_at"),
     supabase.from("bookings").select("*").eq("account_id", id).order("start_date", { ascending: false }),
+    supabase
+      .from("event_guests")
+      .select("*, event:events(*)")
+      .eq("account_id", id)
+      .order("created_at", { ascending: false }),
     supabase.from("profiles").select("*").eq("org_id", profile.org_id),
   ]);
+
+  const today = new Date();
+  const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+  const clientEventRows = ((eventGuests || []) as EventGuest[])
+    .filter((g) => g.event)
+    .sort((a, b) => {
+      const da = a.event?.event_date || "";
+      const db = b.event?.event_date || "";
+      return db.localeCompare(da);
+    });
 
   return (
     <div className="space-y-6">
@@ -114,6 +130,7 @@ export default async function AccountDetailPage({ params }: PageProps) {
           <TabsTrigger value="contacts">Contacts ({contacts?.length || 0})</TabsTrigger>
           <TabsTrigger value="notes">Notes ({notes?.length || 0})</TabsTrigger>
           <TabsTrigger value="deals">Offers ({deals?.length || 0})</TabsTrigger>
+          <TabsTrigger value="events">Events ({clientEventRows.length})</TabsTrigger>
           <TabsTrigger value="activities">Activities</TabsTrigger>
           <TabsTrigger value="tasks">Tasks ({tasks?.length || 0})</TabsTrigger>
           <TabsTrigger value="bookings">Bookings ({bookings?.length || 0})</TabsTrigger>
@@ -207,6 +224,48 @@ export default async function AccountDetailPage({ params }: PageProps) {
                   </Card>
                 </Link>
               ))}
+            </div>
+          )}
+        </TabsContent>
+
+        <TabsContent value="events" className="mt-4">
+          {!clientEventRows.length ? (
+            <EmptyState
+              title="No events"
+              description="When this client is invited as a guest on an event, it will appear here."
+            />
+          ) : (
+            <div className="space-y-2">
+              {clientEventRows.map((guest) => {
+                const event = guest.event!;
+                const eventDay = event.event_date?.slice(0, 10) || "";
+                const isUpcoming = eventDay >= todayStr;
+                return (
+                  <Card key={guest.id}>
+                    <CardContent className="flex items-center justify-between gap-4 p-4">
+                      <div className="min-w-0">
+                        <Link
+                          href={`/events/${event.id}`}
+                          className="font-medium text-primary hover:underline"
+                        >
+                          {event.name}
+                        </Link>
+                        <p className="mt-1 text-sm text-muted-foreground">
+                          Guest: {guest.name}
+                        </p>
+                      </div>
+                      <div className="shrink-0 text-right">
+                        <Badge variant={isUpcoming ? "warning" : "secondary"}>
+                          {isUpcoming ? "Upcoming" : "Past"}
+                        </Badge>
+                        <p className="mt-1 text-sm text-muted-foreground">
+                          {formatDate(event.event_date)}
+                        </p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
             </div>
           )}
         </TabsContent>

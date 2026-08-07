@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { formatDate, formatDateTime } from "@/lib/utils";
-import { getActivityTypeLabel } from "@/lib/types";
+import { getActivityTypeLabel, getAccountDisplayName } from "@/lib/types";
 import Link from "next/link";
 import { EditEventDialog } from "@/components/events/edit-event-dialog";
 import { AddEventGuestDialog } from "@/components/events/add-event-guest-dialog";
@@ -100,7 +100,10 @@ export default async function EventDetailPage({ params }: PageProps) {
       <div>
         <div className="mb-4 flex items-center justify-between gap-2">
           <h2 className={`text-lg font-bold ${titleShadow}`}>Invited guests</h2>
-          <AddEventGuestDialog eventId={event.id} />
+          <AddEventGuestDialog
+            eventId={event.id}
+            accounts={(accounts || []) as Account[]}
+          />
         </div>
         {!guests?.length ? (
           <p className={`text-sm font-semibold ${textShadow}`}>
@@ -112,6 +115,7 @@ export default async function EventDetailPage({ params }: PageProps) {
               <thead>
                 <tr className="border-b bg-muted/40 text-left">
                   <th className="p-3 font-medium">Name</th>
+                  <th className="p-3 font-medium">Client</th>
                   <th className="p-3 font-medium">Email</th>
                   <th className="p-3 font-medium">Phone</th>
                   <th className="p-3 font-medium">Notes</th>
@@ -119,26 +123,45 @@ export default async function EventDetailPage({ params }: PageProps) {
                 </tr>
               </thead>
               <tbody>
-                {(guests as EventGuest[]).map((guest) => (
-                  <tr key={guest.id} className="border-b last:border-0">
-                    <td className="p-3 font-medium">{guest.name}</td>
-                    <td className="p-3 text-muted-foreground">
-                      {guest.email || "—"}
-                    </td>
-                    <td className="p-3 text-muted-foreground">
-                      {guest.phone || "—"}
-                    </td>
-                    <td className="p-3 text-muted-foreground">
-                      {guest.notes || "—"}
-                    </td>
-                    <td className="p-3">
-                      <RemoveEventGuestButton
-                        guestId={guest.id}
-                        eventId={event.id}
-                      />
-                    </td>
-                  </tr>
-                ))}
+                {(guests as EventGuest[]).map((guest) => {
+                  const linkedAccount = guest.account_id
+                    ? ((accounts || []) as Account[]).find(
+                        (a) => a.id === guest.account_id
+                      )
+                    : null;
+                  return (
+                    <tr key={guest.id} className="border-b last:border-0">
+                      <td className="p-3 font-medium">{guest.name}</td>
+                      <td className="p-3 text-muted-foreground">
+                        {linkedAccount ? (
+                          <Link
+                            href={`/accounts/${linkedAccount.id}`}
+                            className="text-primary hover:underline"
+                          >
+                            {getAccountDisplayName(linkedAccount)}
+                          </Link>
+                        ) : (
+                          "—"
+                        )}
+                      </td>
+                      <td className="p-3 text-muted-foreground">
+                        {guest.email || "—"}
+                      </td>
+                      <td className="p-3 text-muted-foreground">
+                        {guest.phone || "—"}
+                      </td>
+                      <td className="p-3 text-muted-foreground">
+                        {guest.notes || "—"}
+                      </td>
+                      <td className="p-3">
+                        <RemoveEventGuestButton
+                          guestId={guest.id}
+                          eventId={event.id}
+                        />
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
