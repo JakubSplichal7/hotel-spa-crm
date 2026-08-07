@@ -11,6 +11,7 @@ import { AccountNotesTable } from "@/components/accounts/account-notes-table";
 import { AccountTasksPanel } from "@/components/accounts/account-tasks-panel";
 import { CreateDealDialog } from "@/components/deals/create-deal-dialog";
 import { CreateTaskDialog } from "@/components/tasks/create-task-dialog";
+import { LogActivityDialog } from "@/components/activities/log-activity-dialog";
 import { EmptyState } from "@/components/empty-state";
 import { formatCurrency, formatDate, formatDateTime } from "@/lib/utils";
 import { getDealStageLabel, getActivityTypeLabel, getAccountTypeLabel, getAcquisitionLabel } from "@/lib/types";
@@ -283,6 +284,15 @@ export default async function AccountDetailPage({ params }: PageProps) {
         </TabsContent>
 
         <TabsContent value="activities" className="mt-4">
+          <div className="mb-4 flex justify-end">
+            <LogActivityDialog
+              accounts={[account as Account]}
+              defaultAccountId={id}
+              buttonVariant="outline"
+              buttonSize="sm"
+              buttonLabel="Log Activity"
+            />
+          </div>
           {!activities?.length ? (
             <EmptyState title="No activities" description="Log calls, emails, and meetings." />
           ) : (
