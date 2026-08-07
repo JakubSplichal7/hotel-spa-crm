@@ -8,6 +8,7 @@ import { getActivityTypeLabel, getAccountDisplayName } from "@/lib/types";
 import Link from "next/link";
 import { EditEventDialog } from "@/components/events/edit-event-dialog";
 import { AddEventGuestDialog } from "@/components/events/add-event-guest-dialog";
+import { EditEventGuestDialog } from "@/components/events/edit-event-guest-dialog";
 import { RemoveEventGuestButton } from "@/components/events/remove-event-guest-button";
 import { LogActivityDialog } from "@/components/activities/log-activity-dialog";
 import { CreateTaskDialog } from "@/components/tasks/create-task-dialog";
@@ -161,10 +162,18 @@ export default async function EventDetailPage({ params }: PageProps) {
                         {guest.notes || "—"}
                       </td>
                       <td className="p-3">
-                        <RemoveEventGuestButton
-                          guestId={guest.id}
-                          eventId={event.id}
-                        />
+                        <div className="flex items-center justify-end gap-1">
+                          <EditEventGuestDialog
+                            guest={guest}
+                            eventId={event.id}
+                            accounts={(accounts || []) as Account[]}
+                            contacts={(contacts || []) as Contact[]}
+                          />
+                          <RemoveEventGuestButton
+                            guestId={guest.id}
+                            eventId={event.id}
+                          />
+                        </div>
                       </td>
                     </tr>
                   );

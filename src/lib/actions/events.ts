@@ -118,6 +118,45 @@ export async function createEventGuest(eventId: string, formData: FormData) {
   return { data };
 }
 
+export async function updateEventGuest(
+  id: string,
+  eventId: string,
+  formData: FormData
+) {
+  await requireProfile();
+  const supabase = await createClient();
+
+  const name = String(formData.get("name") || "").trim();
+  if (!name) return { error: "Guest name is required." };
+
+  const accountId = String(formData.get("account_id") || "").trim() || null;
+
+  const { data: existing } = await supabase
+    .from("event_guests")
+    .select("account_id")
+    .eq("id", id)
+    .maybeSingle();
+
+  const { error } = await supabase
+    .from("event_guests")
+    .update({
+      account_id: accountId,
+      name,
+      email: (formData.get("email") as string) || null,
+      phone: (formData.get("phone") as string) || null,
+      notes: (formData.get("notes") as string) || null,
+    })
+    .eq("id", id);
+
+  if (error) return { error: error.message };
+
+  await revalidateEventPaths(eventId, accountId);
+  if (existing?.account_id && existing.account_id !== accountId) {
+    revalidatePath(`/accounts/${existing.account_id}`);
+  }
+  return { success: true };
+}
+
 export async function deleteEventGuest(id: string, eventId: string) {
   await requireProfile();
   const supabase = await createClient();
