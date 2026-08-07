@@ -70,28 +70,30 @@ export function AccountTasksPanel({ tasks }: { tasks: Task[] }) {
           {filtered.map((task) => {
             const isDone = task.status === "done";
             return (
-              <Link key={task.id} href={`/tasks/${task.id}`}>
-                <Card className="hover:bg-muted/30">
-                  <CardContent className="flex items-center justify-between gap-4 p-4">
-                    <div className="min-w-0">
-                      <p className="font-medium">{task.title}</p>
-                      <p className="text-sm text-muted-foreground">
-                        {(task.assignee as { full_name: string } | null)
-                          ?.full_name || "Unassigned"}
-                      </p>
-                    </div>
-                    <div className="shrink-0 text-right">
-                      <Badge variant={isDone ? "success" : "warning"}>
-                        {isDone ? "Done" : "Not done"}
-                      </Badge>
-                      <p className="mt-1 text-sm text-muted-foreground">
-                        Due:{" "}
-                        {task.due_at ? formatDate(task.due_at) : "—"}
-                      </p>
-                    </div>
-                  </CardContent>
-                </Card>
-              </Link>
+              <Card key={task.id}>
+                <CardContent className="flex items-center justify-between gap-4 p-4">
+                  <div className="min-w-0">
+                    <Link
+                      href={`/tasks/${task.id}`}
+                      className="font-medium text-primary hover:underline"
+                    >
+                      {task.title}
+                    </Link>
+                    <p className="text-sm text-muted-foreground">
+                      {(task.assignee as { full_name: string } | null)
+                        ?.full_name || "Unassigned"}
+                    </p>
+                  </div>
+                  <div className="shrink-0 text-right">
+                    <Badge variant={isDone ? "success" : "warning"}>
+                      {isDone ? "Done" : "Not done"}
+                    </Badge>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      Due: {task.due_at ? formatDate(task.due_at) : "—"}
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
             );
           })}
         </div>
