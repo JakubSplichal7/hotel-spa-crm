@@ -15,6 +15,7 @@ import { EditEventGuestDialog } from "@/components/events/edit-event-guest-dialo
 import { RemoveEventGuestButton } from "@/components/events/remove-event-guest-button";
 import { LogActivityDialog } from "@/components/activities/log-activity-dialog";
 import { CreateTaskDialog } from "@/components/tasks/create-task-dialog";
+import { ManagerTransactionLog } from "@/components/audit/manager-transaction-log";
 import type { Account, Contact, Event, EventGuest, Profile } from "@/lib/types";
 
 const titleShadow =
@@ -95,7 +96,16 @@ export default async function EventDetailPage({ params }: PageProps) {
             </p>
           </div>
         </div>
-        <EditEventDialog event={eventRecord} />
+        <div className="flex flex-wrap items-center gap-2">
+          <ManagerTransactionLog
+            profile={profile}
+            entityType="event"
+            entityId={id}
+            title={`Transaction log · ${event.name}`}
+            description="History for this event. Invite (guest) changes appear in the Events list log."
+          />
+          <EditEventDialog event={eventRecord} />
+        </div>
       </div>
 
       {event.notes && (

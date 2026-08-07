@@ -2,6 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { requireProfile } from "@/lib/auth";
+import { buildAuditChanges, logAuditEvent } from "@/lib/audit";
 import { revalidatePath } from "next/cache";
 import type { BookingStatus, DealLostReason, DealStage } from "@/lib/types";
 import {
@@ -9,6 +10,18 @@ import {
   dealStageNeedsBooking,
   getPrimaryBooking,
 } from "@/lib/types";
+
+const DEAL_AUDIT_FIELDS = [
+  { key: "title", label: "Title" },
+  { key: "stage", label: "Stage" },
+  { key: "value", label: "Value" },
+  { key: "currency", label: "Currency" },
+  { key: "expected_close", label: "Expected close" },
+  { key: "owner_id", label: "Owner" },
+  { key: "notes", label: "Notes" },
+  { key: "lost_reason", label: "Lost reason" },
+  { key: "lost_comment", label: "Lost details" },
+];
 
 async function revalidateDealPaths(dealId: string, accountId?: string) {
   revalidatePath("/deals");
@@ -65,6 +78,16 @@ export async function createDeal(formData: FormData) {
   if (error) return { error: error.message };
 
   const accountId = data.account_id as string | undefined;
+  await logAuditEvent({
+    profile,
+    action: "created",
+    entityType: "deal",
+    entityId: data.id,
+    entityLabel: data.title,
+    accountId: accountId || null,
+    summary: `Created offer “${data.title}”`,
+  });
+
   revalidatePath("/deals");
   revalidatePath("/dashboard");
   if (accountId) revalidatePath(`/accounts/${accountId}`);
@@ -76,7 +99,7 @@ export async function updateDealStage(
   stage: DealStage,
   lost?: { lostReason?: string | null; lostComment?: string | null }
 ) {
-  await requireProfile();
+  const profile = await requireProfile();
   const supabase = await createClient();
 
   let lostReason: DealLostReason | null = null;
@@ -89,6 +112,12 @@ export async function updateDealStage(
     lostComment = parsed.comment;
   }
 
+  const { data: before } = await supabase
+    .from("deals")
+    .select("id, title, stage, account_id, lost_reason, lost_comment")
+    .eq("id", id)
+    .maybeSingle();
+
   const { data: deal, error } = await supabase
     .from("deals")
     .update({
@@ -100,17 +129,40 @@ export async function updateDealStage(
       ...(dealStageNeedsBooking(stage) ? {} : { booking_create_declined: false }),
     })
     .eq("id", id)
-    .select("id, account_id, stage")
+    .select("id, account_id, stage, title")
     .single();
 
   if (error) return { error: error.message };
+
+  await logAuditEvent({
+    profile,
+    action: "updated",
+    entityType: "deal",
+    entityId: id,
+    entityLabel: deal.title,
+    accountId: deal.account_id,
+    summary: `Changed offer “${deal.title}” stage to ${stage}`,
+    changes: buildAuditChanges(
+      before,
+      {
+        stage,
+        lost_reason: lostReason,
+        lost_comment: lostComment,
+      },
+      [
+        { key: "stage", label: "Stage" },
+        { key: "lost_reason", label: "Lost reason" },
+        { key: "lost_comment", label: "Lost details" },
+      ]
+    ),
+  });
 
   await revalidateDealPaths(id, deal?.account_id);
   return { success: true, data: deal };
 }
 
 export async function updateDeal(id: string, formData: FormData) {
-  await requireProfile();
+  const profile = await requireProfile();
   const supabase = await createClient();
 
   const stage = formData.get("stage") as DealStage;
@@ -128,18 +180,28 @@ export async function updateDeal(id: string, formData: FormData) {
     lostComment = parsed.comment;
   }
 
+  const { data: before } = await supabase
+    .from("deals")
+    .select("*")
+    .eq("id", id)
+    .maybeSingle();
+
+  const next = {
+    title: formData.get("title") as string,
+    stage,
+    value: parseFloat(formData.get("value") as string) || 0,
+    currency: (formData.get("currency") as string) || "EUR",
+    expected_close: (formData.get("expected_close") as string) || null,
+    owner_id: formData.get("owner_id") as string,
+    notes: (formData.get("notes") as string) || null,
+    lost_reason: lostReason,
+    lost_comment: lostComment,
+  };
+
   const { error } = await supabase
     .from("deals")
     .update({
-      title: formData.get("title") as string,
-      stage,
-      value: parseFloat(formData.get("value") as string) || 0,
-      currency: (formData.get("currency") as string) || "EUR",
-      expected_close: (formData.get("expected_close") as string) || null,
-      owner_id: formData.get("owner_id") as string,
-      notes: (formData.get("notes") as string) || null,
-      lost_reason: lostReason,
-      lost_comment: lostComment,
+      ...next,
       ...(stage !== "won" ? { active_booking_declined: false } : {}),
       ...(stage !== "completed" ? { completed_booking_declined: false } : {}),
     })
@@ -147,8 +209,20 @@ export async function updateDeal(id: string, formData: FormData) {
 
   if (error) return { error: error.message };
 
+  await logAuditEvent({
+    profile,
+    action: "updated",
+    entityType: "deal",
+    entityId: id,
+    entityLabel: next.title,
+    accountId: before?.account_id || null,
+    summary: `Updated offer “${next.title}”`,
+    changes: buildAuditChanges(before, next, DEAL_AUDIT_FIELDS),
+  });
+
   revalidatePath("/deals");
   revalidatePath(`/deals/${id}`);
+  if (before?.account_id) revalidatePath(`/accounts/${before.account_id}`);
   return { success: true };
 }
 
@@ -156,8 +230,14 @@ export async function deleteDeal(
   id: string,
   options?: { deleteLinkedBookings?: boolean }
 ) {
-  await requireProfile();
+  const profile = await requireProfile();
   const supabase = await createClient();
+
+  const { data: before } = await supabase
+    .from("deals")
+    .select("id, title, account_id")
+    .eq("id", id)
+    .maybeSingle();
 
   if (options?.deleteLinkedBookings) {
     const { error: bookingError } = await supabase
@@ -170,8 +250,19 @@ export async function deleteDeal(
   const { error } = await supabase.from("deals").delete().eq("id", id);
   if (error) return { error: error.message };
 
+  await logAuditEvent({
+    profile,
+    action: "deleted",
+    entityType: "deal",
+    entityId: id,
+    entityLabel: before?.title || id,
+    accountId: before?.account_id || null,
+    summary: `Deleted offer “${before?.title || id}”`,
+  });
+
   revalidatePath("/deals");
   revalidatePath("/bookings");
+  if (before?.account_id) revalidatePath(`/accounts/${before.account_id}`);
   return { success: true };
 }
 

@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { requireProfile } from "@/lib/auth";
 import { CreateDealDialog } from "@/components/deals/create-deal-dialog";
 import { OffersTable } from "@/components/deals/offers-table";
+import { ManagerTransactionLog } from "@/components/audit/manager-transaction-log";
 import { EmptyState } from "@/components/empty-state";
 import { PageHeader } from "@/components/page-header";
 import {
@@ -58,6 +59,12 @@ export default async function DealsPage() {
         title="Offers & packages"
         description="Upsells, memberships, and packages for your clients"
       >
+        <ManagerTransactionLog
+          profile={profile}
+          entityType="deal"
+          title="Offers transaction log"
+          description="Create, update, stage changes, and deletions for offers."
+        />
         <CreateDealDialog accounts={accounts || []} profiles={profiles || []} />
       </PageHeader>
 

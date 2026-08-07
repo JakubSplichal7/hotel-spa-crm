@@ -10,6 +10,7 @@ import { EditDealDialog } from "@/components/deals/edit-deal-dialog";
 import { OfferBookingSection } from "@/components/deals/offer-booking-section";
 import { LogActivityDialog } from "@/components/activities/log-activity-dialog";
 import { CreateTaskDialog } from "@/components/tasks/create-task-dialog";
+import { ManagerTransactionLog } from "@/components/audit/manager-transaction-log";
 import type { Account, Booking, Deal, Profile } from "@/lib/types";
 
 interface PageProps {
@@ -81,11 +82,20 @@ export default async function DealDetailPage({ params }: PageProps) {
             </div>
           </div>
         </div>
-        <EditDealDialog
-          deal={dealRecord}
-          profiles={(profiles || []) as Profile[]}
-          booking={primaryBooking}
-        />
+        <div className="flex flex-wrap items-center gap-2">
+          <ManagerTransactionLog
+            profile={profile}
+            entityType="deal"
+            entityId={id}
+            title={`Transaction log · ${deal.title}`}
+            description="History for this offer."
+          />
+          <EditDealDialog
+            deal={dealRecord}
+            profiles={(profiles || []) as Profile[]}
+            booking={primaryBooking}
+          />
+        </div>
       </div>
 
       <div className="grid gap-6 md:grid-cols-3">

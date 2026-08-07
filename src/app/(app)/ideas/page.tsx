@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { requireProfile } from "@/lib/auth";
 import { CreateIdeaDialog } from "@/components/ideas/create-idea-dialog";
 import { IdeasTable } from "@/components/ideas/ideas-table";
+import { ManagerTransactionLog } from "@/components/audit/manager-transaction-log";
 import { PageHeader } from "@/components/page-header";
 import type { Idea } from "@/lib/types";
 
@@ -25,6 +26,12 @@ export default async function IdeasPage() {
   return (
     <div className="space-y-6">
       <PageHeader title="Ideas" description="Capture ideas with a name and description">
+        <ManagerTransactionLog
+          profile={profile}
+          entityType="idea"
+          title="Ideas transaction log"
+          description="Create, update, and delete actions for ideas."
+        />
         <CreateIdeaDialog />
       </PageHeader>
 

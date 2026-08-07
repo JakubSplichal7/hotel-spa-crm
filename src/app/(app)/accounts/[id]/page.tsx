@@ -17,6 +17,7 @@ import { formatCurrency, formatDate, formatDateTime } from "@/lib/utils";
 import { getDealStageLabel, getActivityTypeLabel, getAccountTypeLabel, getAcquisitionLabel } from "@/lib/types";
 import Link from "next/link";
 import { EditAccountDialog } from "@/components/accounts/edit-account-dialog";
+import { ManagerTransactionLog } from "@/components/audit/manager-transaction-log";
 import { TableExportBar } from "@/components/export-xlsx-button";
 import type { Account, AccountNote, EventGuest, Profile, Task } from "@/lib/types";
 
@@ -122,10 +123,18 @@ export default async function AccountDetailPage({ params }: PageProps) {
             </p>
           )}
         </div>
-        <EditAccountDialog
-          account={account as Account}
-          profiles={(profiles || []) as Profile[]}
-        />
+        <div className="flex flex-wrap items-center gap-2">
+          <ManagerTransactionLog
+            profile={profile}
+            accountId={id}
+            title={`Transaction log · ${account.nickname || account.name}`}
+            description="History for this client only (contacts, notes, offers, tasks, bookings, events, and more)."
+          />
+          <EditAccountDialog
+            account={account as Account}
+            profiles={(profiles || []) as Profile[]}
+          />
+        </div>
       </div>
 
       <Tabs defaultValue="contacts">

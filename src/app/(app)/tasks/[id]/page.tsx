@@ -12,6 +12,7 @@ import Link from "next/link";
 import { EditTaskDialog } from "@/components/tasks/edit-task-dialog";
 import { TaskStatusToggle } from "@/components/tasks/task-status-toggle";
 import { TaskDescriptionCard } from "@/components/tasks/task-description-card";
+import { ManagerTransactionLog } from "@/components/audit/manager-transaction-log";
 import {
   getAccountDisplayName,
   type Account,
@@ -94,6 +95,13 @@ export default async function TaskDetailPage({ params }: PageProps) {
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-2">
+          <ManagerTransactionLog
+            profile={profile}
+            entityType="task"
+            entityId={id}
+            title={`Transaction log · ${task.title}`}
+            description="History for this task."
+          />
           <EditTaskDialog
             task={taskRecord}
             accounts={(accounts || []) as Account[]}

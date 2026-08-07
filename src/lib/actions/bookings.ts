@@ -2,8 +2,20 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { requireProfile } from "@/lib/auth";
+import { buildAuditChanges, logAuditEvent } from "@/lib/audit";
 import { revalidatePath } from "next/cache";
 import type { BookingStatus, DealStage } from "@/lib/types";
+
+const BOOKING_AUDIT_FIELDS = [
+  { key: "title", label: "Title" },
+  { key: "start_date", label: "Start date" },
+  { key: "end_date", label: "End date" },
+  { key: "value", label: "Value" },
+  { key: "currency", label: "Currency" },
+  { key: "status", label: "Status" },
+  { key: "deal_id", label: "Offer" },
+  { key: "notes", label: "Notes" },
+];
 
 function targetStatusForDealStage(stage: DealStage | null | undefined): BookingStatus {
   if (stage === "completed") return "completed";
@@ -58,15 +70,32 @@ export async function createBooking(formData: FormData) {
 
   if (error) return { error: error.message };
 
+  await logAuditEvent({
+    profile,
+    action: "created",
+    entityType: "booking",
+    entityId: data.id,
+    entityLabel: data.title,
+    accountId: data.account_id,
+    summary: `Created booking “${data.title}”`,
+  });
+
   revalidatePath("/bookings");
   revalidatePath("/dashboard");
+  if (data.account_id) revalidatePath(`/accounts/${data.account_id}`);
   if (data.deal_id) revalidatePath(`/deals/${data.deal_id}`);
   return { data };
 }
 
 export async function updateBookingStatus(id: string, status: BookingStatus) {
-  await requireProfile();
+  const profile = await requireProfile();
   const supabase = await createClient();
+
+  const { data: before } = await supabase
+    .from("bookings")
+    .select("id, title, status, account_id, deal_id")
+    .eq("id", id)
+    .maybeSingle();
 
   const { data, error } = await supabase
     .from("bookings")
@@ -75,10 +104,25 @@ export async function updateBookingStatus(id: string, status: BookingStatus) {
       ...(status !== "draft" ? { needs_confirmation: false } : {}),
     })
     .eq("id", id)
-    .select("id, deal_id")
+    .select("id, deal_id, account_id, title")
     .single();
 
   if (error) return { error: error.message };
+
+  await logAuditEvent({
+    profile,
+    action: "updated",
+    entityType: "booking",
+    entityId: id,
+    entityLabel: data.title,
+    accountId: data.account_id,
+    summary: `Changed booking “${data.title}” status`,
+    changes: buildAuditChanges(
+      before,
+      { status },
+      [{ key: "status", label: "Status" }]
+    ),
+  });
 
   revalidatePath("/bookings");
   revalidatePath(`/bookings/${id}`);
@@ -88,7 +132,7 @@ export async function updateBookingStatus(id: string, status: BookingStatus) {
 }
 
 export async function updateBooking(id: string, formData: FormData) {
-  await requireProfile();
+  const profile = await requireProfile();
   const supabase = await createClient();
 
   const status = formData.get("status") as BookingStatus;
@@ -102,7 +146,7 @@ export async function updateBooking(id: string, formData: FormData) {
 
   const { data: existing, error: loadError } = await supabase
     .from("bookings")
-    .select("id, account_id, deal_id")
+    .select("*")
     .eq("id", id)
     .single();
 
@@ -140,22 +184,23 @@ export async function updateBooking(id: string, formData: FormData) {
   }
 
   const previousDealId = existing.deal_id as string | null;
+  const next = {
+    title: formData.get("title") as string,
+    start_date: startDate,
+    end_date: endDate,
+    value: parseFloat(formData.get("value") as string) || 0,
+    currency: (formData.get("currency") as string) || "EUR",
+    status,
+    notes: (formData.get("notes") as string) || null,
+    deal_id: dealId,
+    ...(status !== "draft" ? { needs_confirmation: false } : {}),
+  };
 
   const { data, error } = await supabase
     .from("bookings")
-    .update({
-      title: formData.get("title") as string,
-      start_date: startDate,
-      end_date: endDate,
-      value: parseFloat(formData.get("value") as string) || 0,
-      currency: (formData.get("currency") as string) || "EUR",
-      status,
-      notes: (formData.get("notes") as string) || null,
-      deal_id: dealId,
-      ...(status !== "draft" ? { needs_confirmation: false } : {}),
-    })
+    .update(next)
     .eq("id", id)
-    .select("id, deal_id")
+    .select("id, deal_id, account_id, title")
     .single();
 
   if (error) return { error: error.message };
@@ -167,8 +212,20 @@ export async function updateBooking(id: string, formData: FormData) {
       .eq("id", dealId);
   }
 
+  await logAuditEvent({
+    profile,
+    action: "updated",
+    entityType: "booking",
+    entityId: id,
+    entityLabel: next.title,
+    accountId: existing.account_id,
+    summary: `Updated booking “${next.title}”`,
+    changes: buildAuditChanges(existing, next, BOOKING_AUDIT_FIELDS),
+  });
+
   revalidatePath("/bookings");
   revalidatePath(`/bookings/${id}`);
+  if (existing.account_id) revalidatePath(`/accounts/${existing.account_id}`);
   if (previousDealId) revalidatePath(`/deals/${previousDealId}`);
   if (data?.deal_id) revalidatePath(`/deals/${data.deal_id}`);
   return { success: true };

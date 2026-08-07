@@ -4,6 +4,7 @@ import { requireProfile } from "@/lib/auth";
 import { CreateTaskDialog } from "@/components/tasks/create-task-dialog";
 import { TaskList } from "@/components/tasks/task-list";
 import { ClientOfferFilter } from "@/components/client-offer-filter";
+import { ManagerTransactionLog } from "@/components/audit/manager-transaction-log";
 import { EmptyState } from "@/components/empty-state";
 import { PageHeader } from "@/components/page-header";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -106,6 +107,12 @@ export default async function TasksPage({ searchParams }: PageProps) {
           </>
         }
       >
+        <ManagerTransactionLog
+          profile={profile}
+          entityType="task"
+          title="Tasks transaction log"
+          description="Create, update, status, and delete actions for tasks."
+        />
         <CreateTaskDialog
           accounts={(accounts || []) as Account[]}
           profiles={(profiles || []) as Profile[]}

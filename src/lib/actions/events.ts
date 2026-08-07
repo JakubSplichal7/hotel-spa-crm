@@ -2,6 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { requireProfile } from "@/lib/auth";
+import { buildAuditChanges, logAuditEvent } from "@/lib/audit";
 import { revalidatePath } from "next/cache";
 
 async function revalidateEventPaths(eventId: string, accountId?: string | null) {
@@ -35,12 +36,21 @@ export async function createEvent(formData: FormData) {
 
   if (error) return { error: error.message };
 
+  await logAuditEvent({
+    profile,
+    action: "created",
+    entityType: "event",
+    entityId: data.id,
+    entityLabel: name,
+    summary: `Created event “${name}”`,
+  });
+
   revalidatePath("/events");
   return { data };
 }
 
 export async function updateEvent(id: string, formData: FormData) {
-  await requireProfile();
+  const profile = await requireProfile();
   const supabase = await createClient();
 
   const name = String(formData.get("name") || "").trim();
@@ -50,28 +60,67 @@ export async function updateEvent(id: string, formData: FormData) {
     return { error: "Name and date are required." };
   }
 
+  const { data: before } = await supabase
+    .from("events")
+    .select("*")
+    .eq("id", id)
+    .maybeSingle();
+
+  const next = {
+    name,
+    event_date: eventDate,
+    notes: (formData.get("notes") as string) || null,
+  };
+
   const { error } = await supabase
     .from("events")
     .update({
-      name,
-      event_date: eventDate,
-      notes: (formData.get("notes") as string) || null,
+      ...next,
       updated_at: new Date().toISOString(),
     })
     .eq("id", id);
 
   if (error) return { error: error.message };
 
+  await logAuditEvent({
+    profile,
+    action: "updated",
+    entityType: "event",
+    entityId: id,
+    entityLabel: name,
+    summary: `Updated event “${name}”`,
+    changes: buildAuditChanges(before, next, [
+      { key: "name", label: "Name" },
+      { key: "event_date", label: "Date" },
+      { key: "notes", label: "Notes" },
+    ]),
+  });
+
   await revalidateEventPaths(id);
   return { success: true };
 }
 
 export async function deleteEvent(id: string) {
-  await requireProfile();
+  const profile = await requireProfile();
   const supabase = await createClient();
+
+  const { data: before } = await supabase
+    .from("events")
+    .select("name")
+    .eq("id", id)
+    .maybeSingle();
 
   const { error } = await supabase.from("events").delete().eq("id", id);
   if (error) return { error: error.message };
+
+  await logAuditEvent({
+    profile,
+    action: "deleted",
+    entityType: "event",
+    entityId: id,
+    entityLabel: before?.name || id,
+    summary: `Deleted event “${before?.name || id}”`,
+  });
 
   revalidatePath("/events");
   return { success: true };
@@ -126,6 +175,16 @@ export async function createEventGuest(eventId: string, formData: FormData) {
 
   if (error) return { error: error.message };
 
+  await logAuditEvent({
+    profile,
+    action: "created",
+    entityType: "event_guest",
+    entityId: data.id,
+    entityLabel: contact.name,
+    accountId,
+    summary: `Added client contact “${contact.name}” to event`,
+  });
+
   await revalidateEventPaths(eventId, accountId);
   return { data };
 }
@@ -135,7 +194,7 @@ export async function updateEventGuest(
   eventId: string,
   formData: FormData
 ) {
-  await requireProfile();
+  const profile = await requireProfile();
   const supabase = await createClient();
 
   const accountId = String(formData.get("account_id") || "").trim();
@@ -156,23 +215,43 @@ export async function updateEventGuest(
 
   const { data: existing } = await supabase
     .from("event_guests")
-    .select("account_id")
+    .select("*")
     .eq("id", id)
     .maybeSingle();
 
+  const next = {
+    account_id: accountId,
+    contact_id: contact.id,
+    name: contact.name,
+    email: contact.email || null,
+    phone: contact.phone || null,
+    notes: String(formData.get("notes") || "").trim() || null,
+  };
+
   const { error } = await supabase
     .from("event_guests")
-    .update({
-      account_id: accountId,
-      contact_id: contact.id,
-      name: contact.name,
-      email: contact.email || null,
-      phone: contact.phone || null,
-      notes: String(formData.get("notes") || "").trim() || null,
-    })
+    .update(next)
     .eq("id", id);
 
   if (error) return { error: error.message };
+
+  await logAuditEvent({
+    profile,
+    action: "updated",
+    entityType: "event_guest",
+    entityId: id,
+    entityLabel: contact.name,
+    accountId,
+    summary: `Updated invited client contact “${contact.name}”`,
+    changes: buildAuditChanges(existing, next, [
+      { key: "account_id", label: "Client" },
+      { key: "contact_id", label: "Contact" },
+      { key: "name", label: "Contact name" },
+      { key: "email", label: "Email" },
+      { key: "phone", label: "Phone" },
+      { key: "notes", label: "Note" },
+    ]),
+  });
 
   await revalidateEventPaths(eventId, accountId);
   if (existing?.account_id && existing.account_id !== accountId) {
@@ -182,17 +261,27 @@ export async function updateEventGuest(
 }
 
 export async function deleteEventGuest(id: string, eventId: string) {
-  await requireProfile();
+  const profile = await requireProfile();
   const supabase = await createClient();
 
   const { data: guest } = await supabase
     .from("event_guests")
-    .select("account_id")
+    .select("account_id, name")
     .eq("id", id)
     .maybeSingle();
 
   const { error } = await supabase.from("event_guests").delete().eq("id", id);
   if (error) return { error: error.message };
+
+  await logAuditEvent({
+    profile,
+    action: "deleted",
+    entityType: "event_guest",
+    entityId: id,
+    entityLabel: guest?.name || id,
+    accountId: guest?.account_id || null,
+    summary: `Removed invited client contact “${guest?.name || id}”`,
+  });
 
   await revalidateEventPaths(eventId, guest?.account_id);
   return { success: true };

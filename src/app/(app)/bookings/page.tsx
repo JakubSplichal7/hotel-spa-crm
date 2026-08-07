@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { requireProfile } from "@/lib/auth";
 import { CreateBookingDialog } from "@/components/bookings/create-booking-dialog";
 import { BookingsTable } from "@/components/bookings/bookings-table";
+import { ManagerTransactionLog } from "@/components/audit/manager-transaction-log";
 import { EmptyState } from "@/components/empty-state";
 import { PageHeader } from "@/components/page-header";
 
@@ -29,6 +30,12 @@ export default async function BookingsPage() {
         title="Bookings & stays"
         description="Stays, spa visits, and events for your clients"
       >
+        <ManagerTransactionLog
+          profile={profile}
+          entityType="booking"
+          title="Bookings transaction log"
+          description="Create, update, and status changes for bookings."
+        />
         <CreateBookingDialog accounts={accounts || []} />
       </PageHeader>
 

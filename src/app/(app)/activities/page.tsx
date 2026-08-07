@@ -4,6 +4,7 @@ import { requireProfile } from "@/lib/auth";
 import { LogActivityDialog } from "@/components/activities/log-activity-dialog";
 import { ActivitiesTable } from "@/components/activities/activities-table";
 import { ClientOfferFilter } from "@/components/client-offer-filter";
+import { ManagerTransactionLog } from "@/components/audit/manager-transaction-log";
 import { EmptyState } from "@/components/empty-state";
 import { getAccountDisplayName } from "@/lib/types";
 import { PageHeader } from "@/components/page-header";
@@ -68,6 +69,12 @@ export default async function ActivitiesPage({ searchParams }: PageProps) {
         title="Activities"
         description={`Calls, emails, meetings, and notes with clients${filterHint ? ` · ${filterHint}` : ""}`}
       >
+        <ManagerTransactionLog
+          profile={profile}
+          entityType="activity"
+          title="Activities transaction log"
+          description="Logged, edited, and deleted activities."
+        />
         <LogActivityDialog
           accounts={(accounts || []) as Account[]}
           defaultAccountId={clientId || undefined}

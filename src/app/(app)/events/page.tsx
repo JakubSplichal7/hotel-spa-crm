@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { requireProfile } from "@/lib/auth";
 import { CreateEventDialog } from "@/components/events/create-event-dialog";
 import { EventsTable } from "@/components/events/events-table";
+import { ManagerTransactionLog } from "@/components/audit/manager-transaction-log";
 import { PageHeader } from "@/components/page-header";
 import type { Event } from "@/lib/types";
 
@@ -36,6 +37,12 @@ export default async function EventsPage() {
         title="Events"
         description="Plan events, invite guests, and track activities and tasks"
       >
+        <ManagerTransactionLog
+          profile={profile}
+          entityTypes={["event", "event_guest"]}
+          title="Events transaction log"
+          description="Event and invite (guest) create, update, and delete actions."
+        />
         <CreateEventDialog />
       </PageHeader>
 

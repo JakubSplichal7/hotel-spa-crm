@@ -4,6 +4,7 @@ import { requireProfile } from "@/lib/auth";
 import { CreateAccountDialog } from "@/components/accounts/create-account-dialog";
 import { AccountsTable } from "@/components/accounts/accounts-table";
 import { AccountFilters } from "@/components/accounts/account-filters";
+import { ManagerTransactionLog } from "@/components/audit/manager-transaction-log";
 import { EmptyState } from "@/components/empty-state";
 import { PageHeader } from "@/components/page-header";
 
@@ -50,6 +51,11 @@ export default async function AccountsPage({ searchParams }: PageProps) {
         title="Clients"
         description="Companies and individual guests you manage"
       >
+        <ManagerTransactionLog
+          profile={profile}
+          title="Clients transaction log"
+          description="All client-related actions across the CRM (clients, contacts, notes, offers, tasks, and more linked to clients)."
+        />
         <CreateAccountDialog profiles={profiles || []} />
       </PageHeader>
 

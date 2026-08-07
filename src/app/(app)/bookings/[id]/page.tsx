@@ -8,6 +8,7 @@ import Link from "next/link";
 import { EditBookingDialog } from "@/components/bookings/edit-booking-dialog";
 import { BookingStatusButtons } from "@/components/bookings/booking-status-buttons";
 import { ConfirmBookingButton } from "@/components/bookings/confirm-booking-button";
+import { ManagerTransactionLog } from "@/components/audit/manager-transaction-log";
 import type { Booking, BookingStatus } from "@/lib/types";
 import { BOOKING_STATUS_LABELS, getAccountDisplayName } from "@/lib/types";
 
@@ -16,7 +17,7 @@ interface PageProps {
 }
 
 export default async function BookingDetailPage({ params }: PageProps) {
-  await requireProfile();
+  const profile = await requireProfile();
   const { id } = await params;
   const supabase = await createClient();
 
@@ -69,6 +70,13 @@ export default async function BookingDetailPage({ params }: PageProps) {
           </div>
         </div>
         <div className="flex flex-wrap gap-2">
+          <ManagerTransactionLog
+            profile={profile}
+            entityType="booking"
+            entityId={id}
+            title={`Transaction log · ${booking.title}`}
+            description="History for this booking."
+          />
           {(booking.needs_confirmation || booking.status === "draft") && (
             <ConfirmBookingButton
               booking={
