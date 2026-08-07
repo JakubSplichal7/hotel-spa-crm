@@ -6,10 +6,22 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { EmptyState } from "@/components/empty-state";
-import { formatDate } from "@/lib/utils";
+import { CompactDate } from "@/components/table-date";
+import {
+  formatCompletionDelta,
+  getTaskDayDelta,
+} from "@/lib/task-dates";
 import type { Task } from "@/lib/types";
 
 type TaskDoneFilter = "all" | "open" | "done";
+
+function isDueBeforeToday(dueAt: string | null | undefined) {
+  if (!dueAt) return false;
+  const due = dueAt.slice(0, 10);
+  const now = new Date();
+  const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+  return due < today;
+}
 
 export function AccountTasksPanel({ tasks }: { tasks: Task[] }) {
   const [filter, setFilter] = useState<TaskDoneFilter>("all");
@@ -69,6 +81,8 @@ export function AccountTasksPanel({ tasks }: { tasks: Task[] }) {
         <div className="space-y-2">
           {filtered.map((task) => {
             const isDone = task.status === "done";
+            const isOverdue = !isDone && isDueBeforeToday(task.due_at);
+            const delta = getTaskDayDelta(task);
             return (
               <Card key={task.id}>
                 <CardContent className="flex items-center justify-between gap-4 p-4">
@@ -85,11 +99,37 @@ export function AccountTasksPanel({ tasks }: { tasks: Task[] }) {
                     </p>
                   </div>
                   <div className="shrink-0 text-right">
-                    <Badge variant={isDone ? "success" : "warning"}>
-                      {isDone ? "Done" : "Not done"}
+                    <Badge
+                      variant={
+                        isDone
+                          ? "success"
+                          : isOverdue
+                            ? "destructive"
+                            : "warning"
+                      }
+                    >
+                      {isDone ? "Done" : isOverdue ? "Overdue" : "Not done"}
                     </Badge>
-                    <p className="mt-1 text-sm text-muted-foreground">
-                      Due: {task.due_at ? formatDate(task.due_at) : "—"}
+                    <div className="mt-1 text-sm text-muted-foreground">
+                      <span className="text-xs uppercase tracking-wide">
+                        Due
+                      </span>
+                      <CompactDate value={task.due_at} className="mt-0.5" />
+                    </div>
+                    <p className="mt-1 text-sm font-medium">
+                      {delta === null ? (
+                        <span className="text-muted-foreground">—</span>
+                      ) : (
+                        <span
+                          className={
+                            delta.late
+                              ? "text-red-600 dark:text-red-400"
+                              : "text-green-600 dark:text-green-400"
+                          }
+                        >
+                          {formatCompletionDelta(delta.days)}
+                        </span>
+                      )}
                     </p>
                   </div>
                 </CardContent>
