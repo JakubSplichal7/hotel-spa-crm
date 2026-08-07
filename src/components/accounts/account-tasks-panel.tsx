@@ -6,11 +6,11 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { EmptyState } from "@/components/empty-state";
-import { CompactDate } from "@/components/table-date";
 import {
   formatCompletionDelta,
   getTaskDayDelta,
 } from "@/lib/task-dates";
+import { formatDate } from "@/lib/utils";
 import type { Task } from "@/lib/types";
 
 type TaskDoneFilter = "all" | "open" | "done";
@@ -98,7 +98,7 @@ export function AccountTasksPanel({ tasks }: { tasks: Task[] }) {
                         ?.full_name || "Unassigned"}
                     </p>
                   </div>
-                  <div className="shrink-0 text-right">
+                  <div className="flex shrink-0 flex-wrap items-center justify-end gap-3 sm:gap-4">
                     <Badge
                       variant={
                         isDone
@@ -110,13 +110,10 @@ export function AccountTasksPanel({ tasks }: { tasks: Task[] }) {
                     >
                       {isDone ? "Done" : isOverdue ? "Overdue" : "Not done"}
                     </Badge>
-                    <div className="mt-1 text-sm text-muted-foreground">
-                      <span className="text-xs uppercase tracking-wide">
-                        Due
-                      </span>
-                      <CompactDate value={task.due_at} className="mt-0.5" />
+                    <div className="whitespace-nowrap text-sm text-muted-foreground">
+                      Due: {task.due_at ? formatDate(task.due_at) : "—"}
                     </div>
-                    <p className="mt-1 text-sm font-medium">
+                    <p className="text-sm font-medium">
                       {delta === null ? (
                         <span className="text-muted-foreground">—</span>
                       ) : (
