@@ -152,6 +152,8 @@ export interface Task {
   deal_id: string | null;
   event_id?: string | null;
   title: string;
+  /** Longer free-text details */
+  description: string | null;
   /** Calendar due date (YYYY-MM-DD), no time */
   due_at: string | null;
   /** Calendar date when marked done (YYYY-MM-DD) */

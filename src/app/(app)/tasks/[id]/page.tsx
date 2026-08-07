@@ -10,6 +10,7 @@ import {
 } from "@/lib/task-dates";
 import Link from "next/link";
 import { TaskStatusToggle } from "@/components/tasks/task-status-toggle";
+import { TaskDescriptionCard } from "@/components/tasks/task-description-card";
 import { getAccountDisplayName } from "@/lib/types";
 
 interface PageProps {
@@ -153,6 +154,11 @@ export default async function TaskDetailPage({ params }: PageProps) {
           </p>
         </CardContent>
       </Card>
+
+      <TaskDescriptionCard
+        taskId={task.id}
+        description={task.description ?? null}
+      />
     </div>
   );
 }

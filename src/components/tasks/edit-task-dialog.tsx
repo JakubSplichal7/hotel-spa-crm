@@ -6,6 +6,7 @@ import { updateTask } from "@/lib/actions/tasks";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Dialog,
   DialogContent,
@@ -99,6 +100,16 @@ export function EditTaskDialog({
               name="title"
               required
               defaultValue={task.title}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor={`task-description-${task.id}`}>Description</Label>
+            <Textarea
+              id={`task-description-${task.id}`}
+              name="description"
+              rows={4}
+              defaultValue={task.description || ""}
+              placeholder="Add more detail about this task…"
             />
           </div>
           <div className="space-y-2">

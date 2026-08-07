@@ -6,6 +6,7 @@ import { createTask } from "@/lib/actions/tasks";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Dialog,
   DialogContent,
@@ -110,6 +111,15 @@ export function CreateTaskDialog({
               name="title"
               required
               placeholder="Send proposal"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="description">Description</Label>
+            <Textarea
+              id="description"
+              name="description"
+              rows={4}
+              placeholder="Add more detail about this task…"
             />
           </div>
           {lockedClient ? (

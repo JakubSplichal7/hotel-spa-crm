@@ -30,6 +30,7 @@ export async function createTask(formData: FormData) {
       deal_id: dealId || null,
       event_id: eventId,
       title: formData.get("title") as string,
+      description: String(formData.get("description") || "").trim() || null,
       due_at: dueAt || null,
       completed_at: null,
       status: "open",
@@ -66,6 +67,7 @@ export async function updateTask(id: string, formData: FormData) {
       deal_id: dealId,
       event_id: eventId,
       title: formData.get("title") as string,
+      description: String(formData.get("description") || "").trim() || null,
       due_at: dueAt || null,
       assignee_id: assigneeId,
     })
@@ -79,6 +81,33 @@ export async function updateTask(id: string, formData: FormData) {
   if (accountId) revalidatePath(`/accounts/${accountId}`);
   if (dealId) revalidatePath(`/deals/${dealId}`);
   if (eventId) revalidatePath(`/events/${eventId}`);
+  return { success: true };
+}
+
+export async function updateTaskDescription(id: string, description: string) {
+  await requireProfile();
+  const supabase = await createClient();
+
+  const { data: existing } = await supabase
+    .from("tasks")
+    .select("account_id, deal_id, event_id")
+    .eq("id", id)
+    .single();
+
+  const { error } = await supabase
+    .from("tasks")
+    .update({
+      description: description.trim() || null,
+    })
+    .eq("id", id);
+
+  if (error) return { error: error.message };
+
+  revalidatePath("/tasks");
+  revalidatePath(`/tasks/${id}`);
+  if (existing?.account_id) revalidatePath(`/accounts/${existing.account_id}`);
+  if (existing?.deal_id) revalidatePath(`/deals/${existing.deal_id}`);
+  if (existing?.event_id) revalidatePath(`/events/${existing.event_id}`);
   return { success: true };
 }
 
