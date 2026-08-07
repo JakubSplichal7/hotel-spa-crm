@@ -231,7 +231,7 @@ export function TransactionLogButton({
           Transaction log
         </Button>
       </DialogTrigger>
-      <DialogContent className="flex max-h-[85vh] max-w-3xl flex-col gap-0 overflow-hidden p-0">
+      <DialogContent className="flex max-h-[85vh] w-[calc(100vw-2rem)] max-w-5xl flex-col gap-0 overflow-hidden p-0">
         <DialogHeader className="shrink-0 border-b px-6 py-4">
           {selected ? (
             <div className="flex items-start gap-2">
@@ -275,8 +275,8 @@ export function TransactionLogButton({
             </p>
           ) : (
             <div className="space-y-3">
-              <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-end">
-                <label className="flex min-w-[140px] flex-1 flex-col gap-1 text-xs font-medium text-muted-foreground">
+              <div className="flex flex-nowrap items-end gap-2 overflow-x-auto pb-1">
+                <label className="flex w-[140px] shrink-0 flex-col gap-1 text-xs font-medium text-muted-foreground">
                   From
                   <Input
                     type="date"
@@ -285,7 +285,7 @@ export function TransactionLogButton({
                     className="h-9"
                   />
                 </label>
-                <label className="flex min-w-[140px] flex-1 flex-col gap-1 text-xs font-medium text-muted-foreground">
+                <label className="flex w-[140px] shrink-0 flex-col gap-1 text-xs font-medium text-muted-foreground">
                   To
                   <Input
                     type="date"
@@ -294,7 +294,7 @@ export function TransactionLogButton({
                     className="h-9"
                   />
                 </label>
-                <label className="flex min-w-[140px] flex-1 flex-col gap-1 text-xs font-medium text-muted-foreground">
+                <label className="flex w-[160px] shrink-0 flex-col gap-1 text-xs font-medium text-muted-foreground">
                   Author
                   <NativeSelect
                     className="h-9"
@@ -309,7 +309,7 @@ export function TransactionLogButton({
                     ))}
                   </NativeSelect>
                 </label>
-                <label className="flex min-w-[120px] flex-1 flex-col gap-1 text-xs font-medium text-muted-foreground">
+                <label className="flex w-[130px] shrink-0 flex-col gap-1 text-xs font-medium text-muted-foreground">
                   Action
                   <NativeSelect
                     className="h-9"
@@ -324,7 +324,7 @@ export function TransactionLogButton({
                     ))}
                   </NativeSelect>
                 </label>
-                <label className="flex min-w-[120px] flex-1 flex-col gap-1 text-xs font-medium text-muted-foreground">
+                <label className="flex w-[140px] shrink-0 flex-col gap-1 text-xs font-medium text-muted-foreground">
                   Subject
                   <NativeSelect
                     className="h-9"
