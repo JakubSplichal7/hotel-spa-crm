@@ -148,6 +148,7 @@ export default async function TasksPage({ searchParams }: PageProps) {
               tasks={(openTasks || []) as Task[]}
               accounts={(accounts || []) as Account[]}
               profiles={(profiles || []) as Profile[]}
+              offers={(offers || []) as { id: string; title: string; account_id: string }[]}
             />
           )}
         </TabsContent>
@@ -168,6 +169,7 @@ export default async function TasksPage({ searchParams }: PageProps) {
               tasks={(doneTasks || []) as Task[]}
               accounts={(accounts || []) as Account[]}
               profiles={(profiles || []) as Profile[]}
+              offers={(offers || []) as { id: string; title: string; account_id: string }[]}
             />
           )}
         </TabsContent>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { updateTask } from "@/lib/actions/tasks";
 import { Button } from "@/components/ui/button";
@@ -21,15 +21,23 @@ import { EditIconTrigger } from "@/components/edit-icon-trigger";
 import { validateRequired } from "@/lib/form-validation";
 import type { Account, Profile, Task } from "@/lib/types";
 
+export type TaskOfferOption = {
+  id: string;
+  title: string;
+  account_id: string;
+};
+
 export function EditTaskDialog({
   task,
   accounts,
   profiles,
+  offers = [],
   compact = false,
 }: {
   task: Task;
   accounts: Account[];
   profiles: Profile[];
+  offers?: TaskOfferOption[];
   compact?: boolean;
 }) {
   const router = useRouter();
@@ -37,13 +45,36 @@ export function EditTaskDialog({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [accountId, setAccountId] = useState(task.account_id || "");
+  const [dealId, setDealId] = useState(task.deal_id || "");
+
+  const clientOffers = useMemo(() => {
+    if (!accountId) return offers;
+    return offers.filter((o) => o.account_id === accountId);
+  }, [offers, accountId]);
+
+  function handleAccountChange(nextAccountId: string) {
+    setAccountId(nextAccountId);
+    if (!dealId) return;
+    const linked = offers.find((o) => o.id === dealId);
+    if (linked && nextAccountId && linked.account_id !== nextAccountId) {
+      setDealId("");
+    }
+  }
+
+  function handleDealChange(nextDealId: string) {
+    setDealId(nextDealId);
+    if (!nextDealId) return;
+    const offer = offers.find((o) => o.id === nextDealId);
+    if (offer) setAccountId(offer.account_id);
+  }
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError(null);
     const form = e.currentTarget;
     const formData = new FormData(form);
-    if (task.deal_id) formData.set("deal_id", task.deal_id);
+    formData.set("account_id", accountId);
+    formData.set("deal_id", dealId);
     if (task.event_id) formData.set("event_id", task.event_id);
 
     const missing = validateRequired(formData, [
@@ -72,6 +103,7 @@ export function EditTaskDialog({
         setOpen(next);
         if (next) {
           setAccountId(task.account_id || "");
+          setDealId(task.deal_id || "");
           setError(null);
         }
       }}
@@ -85,7 +117,7 @@ export function EditTaskDialog({
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent>
+      <DialogContent className="max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Edit Task</DialogTitle>
         </DialogHeader>
@@ -118,10 +150,31 @@ export function EditTaskDialog({
               id={`task-account-${task.id}`}
               accounts={accounts}
               value={accountId}
-              onChange={setAccountId}
+              onChange={handleAccountChange}
               className="max-w-none"
               placeholder="Type client name…"
             />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor={`task-deal-${task.id}`}>Offer (optional)</Label>
+            <NativeSelect
+              id={`task-deal-${task.id}`}
+              name="deal_id"
+              value={dealId}
+              onChange={(e) => handleDealChange(e.target.value)}
+            >
+              <option value="">No offer</option>
+              {clientOffers.map((o) => (
+                <option key={o.id} value={o.id}>
+                  {o.title}
+                </option>
+              ))}
+            </NativeSelect>
+            {accountId && clientOffers.length === 0 ? (
+              <p className="text-xs text-muted-foreground">
+                This client has no offers yet.
+              </p>
+            ) : null}
           </div>
           <div className="space-y-2">
             <Label htmlFor={`task-due-${task.id}`}>Due date</Label>

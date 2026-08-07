@@ -42,10 +42,12 @@ export function TaskList({
   tasks,
   accounts,
   profiles,
+  offers = [],
 }: {
   tasks: Task[];
   accounts: Account[];
   profiles: Profile[];
+  offers?: { id: string; title: string; account_id: string }[];
 }) {
   const router = useRouter();
   const [completeTask, setCompleteTask] = useState<Task | null>(null);
@@ -248,6 +250,7 @@ export function TaskList({
                         task={task}
                         accounts={accounts}
                         profiles={profiles}
+                        offers={offers}
                         compact
                       />
                       <DeleteTaskButton

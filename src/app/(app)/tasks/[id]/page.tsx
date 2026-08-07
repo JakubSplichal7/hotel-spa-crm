@@ -28,7 +28,7 @@ export default async function TaskDetailPage({ params }: PageProps) {
   const { id } = await params;
   const supabase = await createClient();
 
-  const [{ data: task }, { data: accounts }, { data: profiles }] =
+  const [{ data: task }, { data: accounts }, { data: profiles }, { data: offers }] =
     await Promise.all([
       supabase
         .from("tasks")
@@ -43,6 +43,11 @@ export default async function TaskDetailPage({ params }: PageProps) {
         .eq("org_id", profile.org_id)
         .order("nickname"),
       supabase.from("profiles").select("*").eq("org_id", profile.org_id),
+      supabase
+        .from("deals")
+        .select("id, title, account_id")
+        .eq("org_id", profile.org_id)
+        .order("title"),
     ]);
 
   if (!task) notFound();
@@ -93,6 +98,7 @@ export default async function TaskDetailPage({ params }: PageProps) {
             task={taskRecord}
             accounts={(accounts || []) as Account[]}
             profiles={(profiles || []) as Profile[]}
+            offers={(offers || []) as { id: string; title: string; account_id: string }[]}
           />
           <TaskStatusToggle
             taskId={task.id}
