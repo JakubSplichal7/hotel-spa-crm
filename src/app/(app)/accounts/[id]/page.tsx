@@ -8,13 +8,14 @@ import { CreateContactDialog } from "@/components/accounts/create-contact-dialog
 import { ContactsTable } from "@/components/accounts/contacts-table";
 import { CreateAccountNoteDialog } from "@/components/accounts/create-account-note-dialog";
 import { AccountNotesTable } from "@/components/accounts/account-notes-table";
+import { AccountTasksPanel } from "@/components/accounts/account-tasks-panel";
 import { EmptyState } from "@/components/empty-state";
 import { formatCurrency, formatDate, formatDateTime } from "@/lib/utils";
 import { getDealStageLabel, getActivityTypeLabel, getAccountTypeLabel, getAcquisitionLabel } from "@/lib/types";
 import Link from "next/link";
 import { EditAccountDialog } from "@/components/accounts/edit-account-dialog";
 import { TableExportBar } from "@/components/export-xlsx-button";
-import type { Account, AccountNote, Profile } from "@/lib/types";
+import type { Account, AccountNote, Profile, Task } from "@/lib/types";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -235,30 +236,7 @@ export default async function AccountDetailPage({ params }: PageProps) {
         </TabsContent>
 
         <TabsContent value="tasks" className="mt-4">
-          {!tasks?.length ? (
-            <EmptyState title="No tasks" description="Create follow-up tasks for this client." />
-          ) : (
-            <div className="space-y-2">
-              {tasks.map((task) => (
-                <Card key={task.id}>
-                  <CardContent className="flex items-center justify-between p-4">
-                    <div>
-                      <p className="font-medium">{task.title}</p>
-                      <p className="text-sm text-muted-foreground">
-                        {(task.assignee as { full_name: string } | null)?.full_name}
-                      </p>
-                    </div>
-                    <div className="text-right">
-                      <Badge variant={task.status === "done" ? "success" : "warning"}>{task.status}</Badge>
-                      {task.due_at && (
-                        <p className="mt-1 text-sm text-muted-foreground">{formatDate(task.due_at)}</p>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          )}
+          <AccountTasksPanel tasks={(tasks || []) as Task[]} />
         </TabsContent>
 
         <TabsContent value="bookings" className="mt-4">
