@@ -2,7 +2,8 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { canManageAll, requireProfile } from "@/lib/auth";
-import { buildAuditChanges, logAuditEvent } from "@/lib/audit";
+import { buildAuditChanges } from "@/lib/audit";
+import { logAuditEvent } from "@/lib/audit-log";
 import { revalidatePath } from "next/cache";
 import type { AccountType, AccountStatus } from "@/lib/types";
 

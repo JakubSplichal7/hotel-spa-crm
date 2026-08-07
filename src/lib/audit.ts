@@ -1,4 +1,3 @@
-import { createClient } from "@/lib/supabase/server";
 import type { Profile } from "@/lib/types";
 
 export type AuditAction = "created" | "updated" | "deleted";
@@ -61,38 +60,6 @@ export function buildAuditChanges(
   return changes;
 }
 
-export async function logAuditEvent(input: {
-  profile: Profile;
-  action: AuditAction;
-  entityType: AuditEntityType;
-  entityId?: string | null;
-  entityLabel?: string | null;
-  accountId?: string | null;
-  summary: string;
-  changes?: AuditChange[] | null;
-}): Promise<void> {
-  try {
-    const supabase = await createClient();
-    const { error } = await supabase.from("audit_events").insert({
-      org_id: input.profile.org_id,
-      actor_id: input.profile.id,
-      action: input.action,
-      entity_type: input.entityType,
-      entity_id: input.entityId || null,
-      entity_label: input.entityLabel || null,
-      account_id: input.accountId || null,
-      summary: input.summary,
-      changes:
-        input.changes && input.changes.length > 0 ? input.changes : null,
-    });
-    if (error) {
-      console.error("audit log failed:", error.message);
-    }
-  } catch (err) {
-    console.error("audit log failed:", err);
-  }
-}
-
 export const AUDIT_ENTITY_LABELS: Record<string, string> = {
   account: "Client",
   contact: "Contact",
@@ -104,4 +71,16 @@ export const AUDIT_ENTITY_LABELS: Record<string, string> = {
   event: "Event",
   event_guest: "Event client",
   idea: "Idea",
+};
+
+/** Input shape for server-side audit writes (see logAuditEvent). */
+export type LogAuditEventInput = {
+  profile: Profile;
+  action: AuditAction;
+  entityType: AuditEntityType;
+  entityId?: string | null;
+  entityLabel?: string | null;
+  accountId?: string | null;
+  summary: string;
+  changes?: AuditChange[] | null;
 };
