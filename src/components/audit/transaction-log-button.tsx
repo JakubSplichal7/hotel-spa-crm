@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { getAuditEvents } from "@/lib/actions/audit";
 import {
   AUDIT_ENTITY_LABELS,
@@ -17,8 +17,12 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { NativeSelect } from "@/components/ui/native-select";
 import { formatDateTime, cn } from "@/lib/utils";
 import { ArrowLeft, ScrollText } from "lucide-react";
+
+const ACTION_OPTIONS = ["created", "updated", "deleted"] as const;
 
 function actionBadgeVariant(action: string) {
   if (action === "created") return "success" as const;
@@ -35,6 +39,15 @@ function actorName(event: AuditEvent) {
   return (
     (event.actor as { full_name?: string } | null)?.full_name || "Unknown user"
   );
+}
+
+/** Local calendar date YYYY-MM-DD for an ISO timestamp. */
+function localDateKey(iso: string) {
+  const d = new Date(iso);
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
 }
 
 function TransactionDetail({ event }: { event: AuditEvent }) {
@@ -121,6 +134,12 @@ export function TransactionLogButton({
   const [events, setEvents] = useState<AuditEvent[]>([]);
   const [selected, setSelected] = useState<AuditEvent | null>(null);
 
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
+  const [author, setAuthor] = useState("all");
+  const [action, setAction] = useState("all");
+  const [subject, setSubject] = useState("all");
+
   useEffect(() => {
     if (!open) {
       setSelected(null);
@@ -131,6 +150,11 @@ export function TransactionLogButton({
       setLoading(true);
       setError(null);
       setSelected(null);
+      setDateFrom("");
+      setDateTo("");
+      setAuthor("all");
+      setAction("all");
+      setSubject("all");
       const result = await getAuditEvents({
         accountId,
         entityType,
@@ -159,6 +183,45 @@ export function TransactionLogButton({
     includeRelated,
     entityTypes?.join(","),
   ]);
+
+  const authorOptions = useMemo(() => {
+    const names = new Set(events.map(actorName));
+    return Array.from(names).sort((a, b) => a.localeCompare(b));
+  }, [events]);
+
+  const subjectOptions = useMemo(() => {
+    const types = new Set(events.map((e) => e.entity_type));
+    return Array.from(types).sort((a, b) =>
+      subjectLabel(a).localeCompare(subjectLabel(b))
+    );
+  }, [events]);
+
+  const filtered = useMemo(() => {
+    return events.filter((event) => {
+      const day = localDateKey(event.created_at);
+      if (dateFrom && day < dateFrom) return false;
+      if (dateTo && day > dateTo) return false;
+      if (author !== "all" && actorName(event) !== author) return false;
+      if (action !== "all" && event.action !== action) return false;
+      if (subject !== "all" && event.entity_type !== subject) return false;
+      return true;
+    });
+  }, [events, dateFrom, dateTo, author, action, subject]);
+
+  const filtersActive =
+    Boolean(dateFrom) ||
+    Boolean(dateTo) ||
+    author !== "all" ||
+    action !== "all" ||
+    subject !== "all";
+
+  function clearFilters() {
+    setDateFrom("");
+    setDateTo("");
+    setAuthor("all");
+    setAction("all");
+    setSubject("all");
+  }
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -211,54 +274,139 @@ export function TransactionLogButton({
               No transactions recorded yet.
             </p>
           ) : (
-            <div className="overflow-x-auto rounded-md border">
-              <table className="w-full min-w-[640px] text-left text-sm">
-                <thead>
-                  <tr className="border-b bg-muted/40 text-xs uppercase tracking-wide text-muted-foreground">
-                    <th className="px-3 py-2 font-medium">Name</th>
-                    <th className="px-3 py-2 font-medium">Action</th>
-                    <th className="px-3 py-2 font-medium">Subject</th>
-                    <th className="px-3 py-2 font-medium">Time</th>
-                    <th className="px-3 py-2 font-medium">By</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {events.map((event) => (
-                    <tr
-                      key={event.id}
-                      role="button"
-                      tabIndex={0}
-                      onClick={() => setSelected(event)}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter" || e.key === " ") {
-                          e.preventDefault();
-                          setSelected(event);
-                        }
-                      }}
-                      className={cn(
-                        "cursor-pointer border-b last:border-0",
-                        "hover:bg-muted/50 focus-visible:bg-muted/50 focus-visible:outline-none"
-                      )}
-                    >
-                      <td className="max-w-[180px] truncate px-3 py-2 font-medium">
-                        {event.entity_label || "—"}
-                      </td>
-                      <td className="whitespace-nowrap px-3 py-2 capitalize text-muted-foreground">
-                        {event.action}
-                      </td>
-                      <td className="whitespace-nowrap px-3 py-2 text-muted-foreground">
-                        {subjectLabel(event.entity_type)}
-                      </td>
-                      <td className="whitespace-nowrap px-3 py-2 text-muted-foreground">
-                        {formatDateTime(event.created_at)}
-                      </td>
-                      <td className="max-w-[160px] truncate px-3 py-2 text-muted-foreground">
-                        {actorName(event)}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+            <div className="space-y-3">
+              <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-end">
+                <label className="flex min-w-[140px] flex-1 flex-col gap-1 text-xs font-medium text-muted-foreground">
+                  From
+                  <Input
+                    type="date"
+                    value={dateFrom}
+                    onChange={(e) => setDateFrom(e.target.value)}
+                    className="h-9"
+                  />
+                </label>
+                <label className="flex min-w-[140px] flex-1 flex-col gap-1 text-xs font-medium text-muted-foreground">
+                  To
+                  <Input
+                    type="date"
+                    value={dateTo}
+                    onChange={(e) => setDateTo(e.target.value)}
+                    className="h-9"
+                  />
+                </label>
+                <label className="flex min-w-[140px] flex-1 flex-col gap-1 text-xs font-medium text-muted-foreground">
+                  Author
+                  <NativeSelect
+                    className="h-9"
+                    value={author}
+                    onChange={(e) => setAuthor(e.target.value)}
+                  >
+                    <option value="all">All authors</option>
+                    {authorOptions.map((name) => (
+                      <option key={name} value={name}>
+                        {name}
+                      </option>
+                    ))}
+                  </NativeSelect>
+                </label>
+                <label className="flex min-w-[120px] flex-1 flex-col gap-1 text-xs font-medium text-muted-foreground">
+                  Action
+                  <NativeSelect
+                    className="h-9"
+                    value={action}
+                    onChange={(e) => setAction(e.target.value)}
+                  >
+                    <option value="all">All actions</option>
+                    {ACTION_OPTIONS.map((opt) => (
+                      <option key={opt} value={opt}>
+                        {opt}
+                      </option>
+                    ))}
+                  </NativeSelect>
+                </label>
+                <label className="flex min-w-[120px] flex-1 flex-col gap-1 text-xs font-medium text-muted-foreground">
+                  Subject
+                  <NativeSelect
+                    className="h-9"
+                    value={subject}
+                    onChange={(e) => setSubject(e.target.value)}
+                  >
+                    <option value="all">All subjects</option>
+                    {subjectOptions.map((type) => (
+                      <option key={type} value={type}>
+                        {subjectLabel(type)}
+                      </option>
+                    ))}
+                  </NativeSelect>
+                </label>
+                {filtersActive ? (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="h-9 shrink-0"
+                    onClick={clearFilters}
+                  >
+                    Clear
+                  </Button>
+                ) : null}
+              </div>
+
+              {!filtered.length ? (
+                <p className="text-sm text-muted-foreground">
+                  No transactions match these filters.
+                </p>
+              ) : (
+                <div className="overflow-x-auto rounded-md border">
+                  <table className="w-full min-w-[640px] text-left text-sm">
+                    <thead>
+                      <tr className="border-b bg-muted/40 text-xs uppercase tracking-wide text-muted-foreground">
+                        <th className="px-3 py-2 font-medium">Name</th>
+                        <th className="px-3 py-2 font-medium">Action</th>
+                        <th className="px-3 py-2 font-medium">Subject</th>
+                        <th className="px-3 py-2 font-medium">Time</th>
+                        <th className="px-3 py-2 font-medium">By</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {filtered.map((event) => (
+                        <tr
+                          key={event.id}
+                          role="button"
+                          tabIndex={0}
+                          onClick={() => setSelected(event)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter" || e.key === " ") {
+                              e.preventDefault();
+                              setSelected(event);
+                            }
+                          }}
+                          className={cn(
+                            "cursor-pointer border-b last:border-0",
+                            "hover:bg-muted/50 focus-visible:bg-muted/50 focus-visible:outline-none"
+                          )}
+                        >
+                          <td className="max-w-[180px] truncate px-3 py-2 font-medium">
+                            {event.entity_label || "—"}
+                          </td>
+                          <td className="whitespace-nowrap px-3 py-2 capitalize text-muted-foreground">
+                            {event.action}
+                          </td>
+                          <td className="whitespace-nowrap px-3 py-2 text-muted-foreground">
+                            {subjectLabel(event.entity_type)}
+                          </td>
+                          <td className="whitespace-nowrap px-3 py-2 text-muted-foreground">
+                            {formatDateTime(event.created_at)}
+                          </td>
+                          <td className="max-w-[160px] truncate px-3 py-2 text-muted-foreground">
+                            {actorName(event)}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </div>
           )}
         </div>
